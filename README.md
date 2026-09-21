@@ -1,0 +1,50 @@
+# SPM Mathematics Question Generator
+
+A static website (no backend, no build step) that generates practice questions **and answers** for every
+topic in the KSSM Mathematics syllabus, Form 1 – Form 5 (5 forms · 53 chapters · 183 topics), based on the
+files in `syllabus/`.
+
+## Run it
+
+Open `site/index.html` in a browser (double-click works – there are no modules or network calls), or serve the
+`site/` folder from any static host (GitHub Pages, Netlify, `python3 -m http.server -d site`).
+
+## Features
+
+* Pick any mix of topics (tick a form, a chapter or single topics; search by name in English or Bahasa Melayu).
+* Number of questions (1–100) and difficulty: **Easy / Medium / Advanced / Mixed**.
+* **Interface language** (EN / BM) and **question language** (EN / BM) are independent.
+* **Normal** format leaves working space under each question (sized to the question type);
+  **Compact** has no gaps (optionally two columns) so a sheet can be reprinted many times.
+* **Print / Save as PDF** – the answers are always on their own last page(s), never sharing a page with questions.
+  On screen the answers are collapsed until you expand them.
+* Light and dark mode (follows the system, can be toggled), responsive layout.
+* A *seed* makes any worksheet reproducible; “New questions” draws a new seed.
+* Maths is typeset with KaTeX (vendored in `site/vendor/katex`, works offline); diagrams are inline SVG generated
+  from the same numbers as the answer key.
+
+## Layout
+
+```
+site/
+  index.html          page shell
+  css/style.css       theme tokens, screen layout, print rules
+  js/core.js          random numbers, fractions/algebra helpers, registry, paper generator
+  js/svg.js, figs.js  figure builders (number lines, planes, graphs, Venn, circles, triangles …)
+  js/i18n.js          UI strings and worksheet strings (EN / BM)
+  js/app.js           user interface
+  js/data/f<form><part>.js   the generators, chapter by chapter (f1a … f5b)
+tools/check.js        stress test of every generator (see below)
+syllabus/             the source syllabus
+```
+
+Each topic is `{ id, en, ms, scope, gen: { e: [fn…], m: [fn…], a: [fn…] } }`; a generator `fn(rng)` builds the
+numbers first and returns `{ q, a, w?, fig?, sp }` with English and Malay text (`SPM.L(en, ms)`), an optional SVG
+and an answer-space size. `need(cond)` rejects a random draw and retries.
+
+## Checking the generators
+
+```
+node tools/check.js                # 150 questions per topic and level: exceptions, NaN, unbalanced $, EN/BM maths mismatch …
+node tools/check.js F4-1.4 3       # print 3 samples per level for one topic (prefix* works too)
+```
