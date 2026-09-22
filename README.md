@@ -10,6 +10,10 @@ Open `site/index.html` in a browser (double-click works – there are no modules
 script tags, including the lazily-loaded ones described below, work the same from `file://` as from a server), or
 serve the `site/` folder from any static host (GitHub Pages, Netlify, `python3 -m http.server -d site`).
 
+For development, `npm run dev` serves `site/` with Vite (live reload, no build) on port 5180, bound to this
+machine's Tailscale IPv4 address (`tailscale ip -4`) so it's reachable over the tailnet only. Set `SPM_HOST` to
+bind elsewhere, e.g. `SPM_HOST=127.0.0.1 npm run dev`.
+
 ## Features
 
 * Pick any mix of topics (tick a form, a chapter or single topics; search by name in English or Bahasa Melayu).
