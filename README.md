@@ -6,8 +6,9 @@ files in `syllabus/`.
 
 ## Run it
 
-Open `site/index.html` in a browser (double-click works – there are no modules or network calls), or serve the
-`site/` folder from any static host (GitHub Pages, Netlify, `python3 -m http.server -d site`).
+Open `site/index.html` in a browser (double-click works – there are no modules or XHR/fetch calls; the page's own
+script tags, including the lazily-loaded ones described below, work the same from `file://` as from a server), or
+serve the `site/` folder from any static host (GitHub Pages, Netlify, `python3 -m http.server -d site`).
 
 ## Features
 
@@ -22,6 +23,10 @@ Open `site/index.html` in a browser (double-click works – there are no modules
 * A *seed* makes any worksheet reproducible; “New questions” draws a new seed.
 * Maths is typeset with KaTeX (vendored in `site/vendor/katex`, works offline); diagrams are inline SVG generated
   from the same numbers as the answer key.
+* Deep variety: every topic has at least 150 (most have 300–400+) distinct question *templates* – not just
+  different numbers, but different task types, wording, representations and contexts – so a 30-question worksheet
+  reads as 30 different problems, not the same one re-rolled. See `tools/PACKS.md` for how this is built and
+  measured.
 
 ## Layout
 
@@ -31,20 +36,42 @@ site/
   css/style.css       theme tokens, screen layout, print rules
   js/core.js          random numbers, fractions/algebra helpers, registry, paper generator
   js/svg.js, figs.js  figure builders (number lines, planes, graphs, Venn, circles, triangles …)
+  js/vary.js          shared bilingual context banks (shops, foods, places, jobs …) used by the data files
   js/i18n.js          UI strings and worksheet strings (EN / BM)
   js/app.js           user interface
-  js/data/f<form><part>.js   the generators, chapter by chapter (f1a … f5b)
+  js/packs.js          lazy-loads js/data/x*.js in the background after the page paints (see below)
+  js/data/f<form><part>.js   the original generators, chapter by chapter (f1a … f5b)
+  js/data/x<form><part>.js   "variety packs" – extra generators added on top with SPM.extend (x1a … x5d)
 tools/check.js        stress test of every generator (see below)
+tools/variety.js       counts distinct question templates per topic against a 50×-baseline target (see below)
+tools/PACKS.md         the brief used to write/extend a variety pack – the generator contract, what "variety"
+                       means here, correctness/bilingual rules, and how to measure a pack
 syllabus/             the source syllabus
 ```
 
 Each topic is `{ id, en, ms, scope, gen: { e: [fn…], m: [fn…], a: [fn…] } }`; a generator `fn(rng)` builds the
 numbers first and returns `{ q, a, w?, fig?, sp }` with English and Malay text (`SPM.L(en, ms)`), an optional SVG
-and an answer-space size. `need(cond)` rejects a random draw and retries.
+and an answer-space size. `need(cond)` rejects a random draw and retries. `SPM.extend(key, gen)` (used by the
+`x*.js` files) appends more generators to a topic already registered by `addChapter`, without touching the
+originals.
+
+**Loading.** `js/data/f*.js` (~700 KB total) load normally and register every topic, so the topic picker and a
+first worksheet are ready immediately. `js/data/x*.js` (~5.6 MB together, the extra variety) are fetched in the
+background by `js/packs.js` right after, via dynamically-created `<script>` tags – this halves initial page weight
+and keeps the page interactive without waiting on them. If a worksheet is requested before they land (rare – only
+on a very first paint on a slow connection), the page shows a brief “preparing the question bank” message and
+finishes once they arrive; nothing is lost if one fails to load, since the base topics already work on their own.
 
 ## Checking the generators
 
 ```
-node tools/check.js                # 150 questions per topic and level: exceptions, NaN, unbalanced $, EN/BM maths mismatch …
-node tools/check.js F4-1.4 3       # print 3 samples per level for one topic (prefix* works too)
+node tools/check.js                     # ~150 questions per topic and level: exceptions, NaN, unbalanced $, EN/BM maths mismatch, KaTeX parse errors …
+node tools/check.js F4-1.4 3            # print 3 samples per level for one topic (prefix* works too)
+SPM_TOPICS=F1-1. SPM_N=1000 node tools/check.js   # restrict to matching topic-key prefixes, and set draws per topic/level
+SPM_PACKS=x1a node tools/check.js        # only load one variety pack's x*.js (plus all the originals) – useful while editing a pack
+
+node tools/variety.js                    # per-topic distinct-question-template count vs. its target, and totals
+node tools/variety.js 'F3-1*'            # just the topics starting with F3-1
+node tools/variety.js F3-1.2 --show 30   # also print 30 distinct template skeletons of one topic
+node tools/variety.js --baseline         # (re)write tools/variety-baseline.json from the current code
 ```

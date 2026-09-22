@@ -53,16 +53,23 @@
       return { q: T(`Compare the graphs of $y = ${a === 1 ? '' : a}x^2$ and $y = ${b}x^2$. Which is narrower? What is their common minimum point?`, `Bandingkan graf $y = ${a === 1 ? '' : a}x^2$ dan $y = ${b}x^2$. Yang manakah lebih sempit? Apakah titik minimum sepunya?`), a: T(`$y = ${b}x^2$ is narrower (larger $a$); common minimum point $(0, 0)$`, `$y = ${b}x^2$ lebih sempit ($a$ lebih besar); titik minimum sepunya $(0, 0)$`), sp: 's' };
     },
     (r) => {
-      const a = r.nz(-3, 3), b = 2 * a * r.int(-3, 3), c = r.int(-5, 5);
-      return { q: T(`For $y = ${Q(a, b, c)}$, state the $y$-intercept and the equation of the axis of symmetry.`, `Bagi $y = ${Q(a, b, c)}$, nyatakan pintasan-$y$ dan persamaan paksi simetri.`), a: T(`$y$-intercept ${c}; axis $x = -\\dfrac{b}{2a} = ${n(-b / (2 * a))}$`, `Pintasan-$y$ ${c}; paksi $x = -\\dfrac{b}{2a} = ${n(-b / (2 * a))}$`), sp: 's' };
+      // axis of symmetry inferred from a pair of equal outputs (table-based), not the -b/2a formula
+      const a = r.nz(-3, 3), m = r.int(-3, 3), d = r.int(1, 3), c = r.int(-5, 5);
+      const b = -2 * a * m; // ensures f(m-d) = f(m+d)
+      const x1 = m - d, x2 = m + d;
+      const y = a * x1 * x1 + b * x1 + c;
+      return { q: T(`For $y = ${Q(a, b, c)}$, the table shows two points with the same $y$-value.${SPM.table([['$x$', x1, x2], ['$y$', n(y), n(y)]], { rowHead: true })}State the $y$-intercept and, using the table, the equation of the axis of symmetry.`, `Bagi $y = ${Q(a, b, c)}$, jadual menunjukkan dua titik dengan nilai $y$ yang sama.${SPM.table([['$x$', x1, x2], ['$y$', n(y), n(y)]], { rowHead: true })}Nyatakan pintasan-$y$ dan, menggunakan jadual, persamaan paksi simetri.`), a: T(`$y$-intercept ${c}; axis $x = ${m}$ (midway between $x = ${x1}$ and $x = ${x2}$)`, `Pintasan-$y$ ${c}; paksi $x = ${m}$ (di tengah-tengah $x = ${x1}$ dan $x = ${x2}$)`), sp: 'm' };
     },
   ];
   const g12a = [
     (r) => {
-      const a = r.pick([1, 2, -1, -2]), p = r.int(-3, 3), q = r.int(-4, 4);
-      // y = a(x-p)^2 + q : b = -2ap, c = a p^2 + q
+      // minimum/maximum read from a value table, not the vertex-form/formula shortcut
+      const a = r.pick([1, 2, -1, -2]), p = r.int(-2, 2), q = r.int(-4, 4);
       const b = -2 * a * p, c = a * p * p + q;
-      return { q: T(`The function $f(x) = ${Q(a, b, c)}$ has a ${a > 0 ? 'minimum' : 'maximum'} point. Find the equation of the axis of symmetry and the ${a > 0 ? 'minimum' : 'maximum'} value.`, `Fungsi $f(x) = ${Q(a, b, c)}$ mempunyai titik ${a > 0 ? 'minimum' : 'maksimum'}. Cari persamaan paksi simetri dan nilai ${a > 0 ? 'minimum' : 'maksimum'}.`), a: T(`Axis $x = ${p}$; ${a > 0 ? 'minimum' : 'maximum'} value $${q}$`, `Paksi $x = ${p}$; nilai ${a > 0 ? 'minimum' : 'maksimum'} $${q}$`), w: T(`$f(${p}) = ${q}$`), sp: 'm' };
+      const xs = [p - 2, p - 1, p, p + 1, p + 2];
+      const ys = xs.map((x) => a * x * x + b * x + c);
+      const tbl = SPM.table([['$x$', ...xs], ['$f(x)$', ...ys.map(n)]], { rowHead: true });
+      return { q: T(`The table shows values of $f(x) = ${Q(a, b, c)}$.${tbl}Using the table, state whether $f(x)$ has a minimum or maximum value in this range, and give that value and the corresponding $x$.`, `Jadual menunjukkan nilai $f(x) = ${Q(a, b, c)}$.${tbl}Menggunakan jadual, nyatakan sama ada $f(x)$ mempunyai nilai minimum atau maksimum dalam julat ini, dan berikan nilai itu serta $x$ yang sepadan.`), a: T(`${a > 0 ? 'Minimum' : 'Maximum'} value $${q}$ at $x = ${p}$`, `Nilai ${a > 0 ? 'minimum' : 'maksimum'} $${q}$ pada $x = ${p}$`), sp: 'm' };
     },
   ];
   const g13e = [

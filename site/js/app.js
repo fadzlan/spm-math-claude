@@ -144,11 +144,19 @@
   function randomSeed() {
     return String(Math.floor(Math.random() * 900000) + 100000);
   }
-  function generate(newSeed) {
+  async function generate(newSeed) {
     if (newSeed === true || !state.seed) state.seed = randomSeed();
     $('#seed').value = state.seed;
     state.keys = [...sel];
     save();
+    // the js/data/x*.js "variety pack" generators load lazily (see js/packs.js); on the rare occasion a
+    // worksheet is requested before they land, show a brief loading state rather than generate from the
+    // (still complete, just less varied) base topics alone.
+    if (SPM.packsReady && !SPM.packsLoaded) {
+      const ui = UI();
+      $('#sheet').innerHTML = `<div class="empty"><h3>${esc(ui.loadingTitle)}</h3><p>${esc(ui.loadingBody)}</p></div>`;
+      await SPM.packsReady;
+    }
     try {
       current = SPM.generate({ keys: state.keys, count: state.count, difficulty: state.difficulty, seed: state.seed });
     } catch (e) {

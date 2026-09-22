@@ -55,7 +55,7 @@
   const g61m = [
     (r) => {
       const x = r.int(25, 65), y = r.int(20, 50);
-      const fig = cfig({ pts: { A: 150, B: 30, C: 260, D: 90 }, lines: ['AB', 'AC', 'BC', 'DA', 'DB'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 24 }, { at: 'D', text: 'y', to: ['A', 'B'], r: 24 }] });
+      const fig = cfig({ pts: { A: 150, B: 30, C: 260, D: 320 }, lines: ['AB', 'AC', 'BC', 'DA', 'DB'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 24 }, { at: 'D', text: 'y', to: ['A', 'B'], r: 24 }] });
       return { q: nts(T(`In the diagram, $\\angle ACB = ${x}^\\circ$. Find $\\angle ADB$ and state the reason.`, `Dalam rajah, $\\angle ACB = ${x}^\\circ$. Cari $\\angle ADB$ dan nyatakan sebab.`)), fig, a: T(`$${x}^\\circ$ (angles in the same segment are equal)`, `$${x}^\\circ$ (sudut dalam tembereng yang sama adalah sama)`), sp: 's' };
     },
     (r) => {

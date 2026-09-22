@@ -25,7 +25,7 @@
       ];
       const four = r.shuffle(r.shuffle(opts.filter((o) => o[1])).slice(0, 2).concat(r.shuffle(opts.filter((o) => !o[1])).slice(0, 2)));
       const L = ['A', 'B', 'C', 'D'];
-      const list = four.map((o, i) => `(${L[i]}) $${o[0]}$`).join('\\quad ');
+      const list = four.map((o, i) => `(${L[i]}) $${o[0]}$`).join('&emsp;');
       const ans = four.map((o, i) => (o[1] ? L[i] : null)).filter(Boolean).join(', ');
       return { q: T(`Which of the following are linear equations? ${list}`, `Antara yang berikut, yang manakah persamaan linear? ${list}`), a: T(ans), sp: 's' };
     },
@@ -96,6 +96,7 @@
     },
     (r) => {
       const x = r.int(-5, 8), a = r.int(2, 6), b = r.int(1, 6), s = r.sign();
+      need(x !== 0);
       return { q: T(`Solve $${a}(x ${s < 0 ? '-' : '+'} ${b}) = ${a * (x + s * b)}$.`, `Selesaikan $${a}(x ${s < 0 ? '-' : '+'} ${b}) = ${a * (x + s * b)}$.`), a: T(`$x = ${x}$`), sp: 'm' };
     },
     (r) => {
@@ -271,7 +272,7 @@
       // line px + qy = l passes (xI,0) and (0,yI): choose l so that p = l/xI and q = l/yI are integers
       const l = SPM.lcm(xI, yI) * r.int(1, 2);
       const p = l / xI, q = l / yI;
-      return { q: T(`The line $px + qy = ${l}$ cuts the $x$-axis at $(${xI}, 0)$ and the $y$-axis at $(0, ${yI})$. Find the values of $p$ and $q$.`, `Garis $px + qy = ${l}$ memotong paksi-$x$ di $(${xI}, 0)$ dan paksi-$y$ di $(0, ${yI})$. Cari nilai $p$ dan $q$.`), a: T(`$p = ${p}$, $q = ${q}$`), w: T(`$${xI}p = ${l}$ and $${yI}q = ${l}$`), sp: 's' };
+      return { q: T(`The line $px + qy = ${l}$ cuts the $x$-axis at $(${xI}, 0)$ and the $y$-axis at $(0, ${yI})$. Find the values of $p$ and $q$.`, `Garis $px + qy = ${l}$ memotong paksi-$x$ di $(${xI}, 0)$ dan paksi-$y$ di $(0, ${yI})$. Cari nilai $p$ dan $q$.`), a: T(`$p = ${p}$, $q = ${q}$`), w: T(`$${xI}p = ${l}$ and $${yI}q = ${l}$`, `$${xI}p = ${l}$ dan $${yI}q = ${l}$`), sp: 's' };
     },
     (r) => {
       const m = r.pick([1, 2]), c = r.int(1, 3);
@@ -328,7 +329,7 @@
         a2 = a1 * k; b2 = b1 * k; c2 = c1 * k + r.pick([1, 2, 3]);
       } else { a2 = a1 * k; b2 = b1 * k; c2 = c1 * k; }
       const text = { one: T('one solution', 'satu penyelesaian'), none: T('no solution', 'tiada penyelesaian'), inf: T('infinitely many solutions', 'penyelesaian yang tidak terhingga banyaknya') };
-      return { q: T(`Without solving, state whether the simultaneous equations $${showSys({ a1, b1, c1, a2, b2, c2 })}$ have one solution, no solution or infinitely many solutions. Give a reason.`, `Tanpa menyelesaikannya, nyatakan sama ada persamaan serentak $${showSys({ a1, b1, c1, a2, b2, c2 })}$ mempunyai satu penyelesaian, tiada penyelesaian atau penyelesaian yang tidak terhingga banyaknya. Berikan sebab.`), a: text[classify(a1, b1, c1, a2, b2, c2)], w: kind === 'one' ? T('The lines have different gradients and intersect once.', 'Garis-garis itu mempunyai kecerunan berbeza dan bersilang sekali.') : kind === 'none' ? T('Same gradient but different intercepts: parallel lines.', 'Kecerunan sama tetapi pintasan berbeza: garis selari.') : T('The two equations represent the same line (coincident).', 'Kedua-dua persamaan mewakili garis yang sama (berhimpit).'), sp: 's' };
+      return { q: T(`Without solving, state whether the simultaneous equations $${showSys({ a1, b1, c1, a2, b2, c2 })}$ have one solution, no solution or infinitely many solutions. Give a reason.`, `Tanpa menyelesaikannya, nyatakan sama ada persamaan serentak $${showSys({ a1, b1, c1, a2, b2, c2 })}$ mempunyai satu penyelesaian, tiada penyelesaian atau penyelesaian yang tidak terhingga banyaknya. Berikan sebab.`), a: text[classify(a1, b1, c1, a2, b2, c2)], w: kind === 'one' ? T('The lines are not parallel, so they intersect exactly once.', 'Garis-garis itu tidak selari, maka bersilang tepat sekali.') : kind === 'none' ? T('The lines run in the same direction but cross the axes at different points: parallel lines.', 'Garis-garis itu menuju arah yang sama tetapi memotong paksi pada titik yang berbeza: garis selari.') : T('The two equations represent the same line (coincident).', 'Kedua-dua persamaan mewakili garis yang sama (berhimpit).'), sp: 's' };
     },
     (r) => {
       const price1 = r.int(2, 6), price2 = r.int(3, 9);
@@ -862,7 +863,7 @@
     },
     (r) => {
       const a = r.int(20, 40), b = r.int(a + 10, 65);
-      return { q: T(`Anwar stands on the 20th floor and sees a car park at an angle of depression of $${b}^\\circ$. Farah, on a higher floor of the same building, sees the same spot at an angle of depression of $${a}^\\circ$. State the angles of elevation of each of them from the spot, and find the difference between the two angles.`, `Anwar berdiri di tingkat 20 dan melihat sebuah tempat letak kereta pada sudut tunduk $${b}^\\circ$. Farah, di tingkat yang lebih tinggi dalam bangunan yang sama, melihat tempat yang sama pada sudut tunduk $${a}^\\circ$. Nyatakan sudut dongakan bagi setiap orang dari tempat itu, dan cari beza antara kedua-dua sudut.`), a: T(`Anwar: $${b}^\\circ$; Farah: $${a}^\\circ$; difference $${b - a}^\\circ$`, `Anwar: $${b}^\\circ$; Farah: $${a}^\\circ$; beza $${b - a}^\\circ$`), sp: 'm' };
+      return { q: T(`Anwar stands on the 20th floor and sees a car park at an angle of depression of $${a}^\\circ$. Farah, on a higher floor of the same building, sees the same spot at an angle of depression of $${b}^\\circ$. State the angles of elevation of each of them from the spot, and find the difference between the two angles.`, `Anwar berdiri di tingkat 20 dan melihat sebuah tempat letak kereta pada sudut tunduk $${a}^\\circ$. Farah, di tingkat yang lebih tinggi dalam bangunan yang sama, melihat tempat yang sama pada sudut tunduk $${b}^\\circ$. Nyatakan sudut dongakan bagi setiap orang dari tempat itu, dan cari beza antara kedua-dua sudut.`), a: T(`Anwar: $${a}^\\circ$; Farah: $${b}^\\circ$; difference $${b - a}^\\circ$`, `Anwar: $${a}^\\circ$; Farah: $${b}^\\circ$; beza $${b - a}^\\circ$`), sp: 'm' };
     },
   ];
 

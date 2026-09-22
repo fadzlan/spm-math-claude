@@ -708,7 +708,7 @@
         sides: { '0-2': `${o.ab} cm`, '1-2': `${o.ac} cm` },
         extra: (Q) => { const D = [Q[2][0], Q[0][1]]; return S.line(Q[2][0], Q[2][1], D[0], D[1], { dash: true }) + S.text(D[0], D[1] + 13, 'D', { i: true }) + S.rightAngle(D, Q[2], [D[0] + 12, D[1]], 8) + S.text(D[0] + 16, (Q[2][1] + D[1]) / 2, `${o.ad} cm`, { s: 12, a: 'start' }); },
       });
-      return { q: T('In the diagram, $AD \perp BC$. Find the length of $BC$.', 'Dalam rajah, $AD \perp BC$. Cari panjang $BC$.'), fig, a: T(`$BC = ${o.bd + o.dc}$ cm`), w: T(`$BD = \\sqrt{${o.ab}^2 - ${o.ad}^2} = ${o.bd}$; $DC = \\sqrt{${o.ac}^2 - ${o.ad}^2} = ${o.dc}$`), sp: 'l' };
+      return { q: T('In the diagram, $AD \\perp BC$. Find the length of $BC$.', 'Dalam rajah, $AD \\perp BC$. Cari panjang $BC$.'), fig, a: T(`$BC = ${o.bd + o.dc}$ cm`), w: T(`$BD = \\sqrt{${o.ab}^2 - ${o.ad}^2} = ${o.bd}$; $DC = \\sqrt{${o.ac}^2 - ${o.ad}^2} = ${o.dc}$`), sp: 'l' };
     },
     (r) => {
       const [a, b, c] = r.pick([[8, 15, 17], [9, 12, 15], [12, 16, 20], [15, 20, 25]]);

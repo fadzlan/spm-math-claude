@@ -1,0 +1,853 @@
+/* Variety pack x3c: F3-6.1..6.4 (Angles and Tangents of Circles), F3-8.1..8.2 (Loci in Two Dimensions). */
+(function () {
+  'use strict';
+  const SPM = window.SPM;
+  const { n, need, round } = SPM;
+  const S = SPM.svg;
+  const T = SPM.L;
+  const rad = (d) => (d * Math.PI) / 180;
+  const nts = (q) => T(q.en + ' ' + SPM.NTS.en, q.ms + ' ' + SPM.NTS.ms);
+
+  /* ===================================================================== shared circle-diagram + reason machinery (6.1-6.4) */
+
+  /** schematic circle figure (labels are symbolic; diagrams are "not drawn to scale"). */
+  function cfig(o) {
+    const w = o.w || 250, h = o.h || 220, cx = w / 2, cy = h / 2, R = o.R || 80;
+    const P = { O: [cx, cy] };
+    for (const [k, d] of Object.entries(o.pts || {})) P[k] = [cx + R * Math.cos(rad(d)), cy - R * Math.sin(rad(d))];
+    let out = S.circle(cx, cy, R);
+    for (const l of o.lines || []) { const a = P[l[0]], b = P[l[1]]; out += S.line(a[0], a[1], b[0], b[1], typeof l[2] === 'object' ? l[2] : undefined); }
+    for (const k of Object.keys(o.pts || {})) {
+      const u = [P[k][0] - cx, P[k][1] - cy]; const L = Math.hypot(u[0], u[1]) || 1;
+      out += S.dot(P[k][0], P[k][1], 2.4) + S.text(P[k][0] + (u[0] / L) * 13, P[k][1] + (u[1] / L) * 13, k, { i: true });
+    }
+    if (o.showO !== false) out += S.dot(cx, cy, 2.4) + S.text(cx + 9, cy + 10, 'O', { i: true });
+    for (const lb of o.labels || []) {
+      const A = P[lb.at];
+      const tgt = Array.isArray(lb.to) ? [(P[lb.to[0]][0] + P[lb.to[1]][0]) / 2, (P[lb.to[0]][1] + P[lb.to[1]][1]) / 2] : P[lb.to];
+      const d = [tgt[0] - A[0], tgt[1] - A[1]]; const L = Math.hypot(d[0], d[1]) || 1; const k = lb.r || 24;
+      out += S.text(A[0] + (d[0] / L) * k, A[1] + (d[1] / L) * k, lb.text, { s: 12 });
+    }
+    if (o.extra) out += o.extra(P, { cx, cy, R });
+    return S.wrap(w, h, out, 'circle diagram');
+  }
+
+  /** two externally-drawn tangent lines from a point P to a circle centre O, touching at A and B (schematic, symmetric). */
+  function kiteFig(labelP, labelAngle) {
+    const w = 260, h = 210, cx = 130, cy = 70, R = 55;
+    const Px = cx, Py = cy + 118;
+    const A = [cx - R * Math.cos(rad(35)), cy + R * Math.sin(rad(35))];
+    const B = [cx + R * Math.cos(rad(35)), cy + R * Math.sin(rad(35))];
+    let out = S.circle(cx, cy, R) + S.dot(cx, cy, 2.4) + S.text(cx, cy - 12, 'O', { i: true });
+    out += S.line(cx, cy, A[0], A[1]) + S.line(cx, cy, B[0], B[1]);
+    out += S.line(Px, Py, A[0], A[1]) + S.line(Px, Py, B[0], B[1]);
+    out += S.dot(A[0], A[1], 2.4) + S.text(A[0] - 12, A[1] + 4, 'A', { i: true });
+    out += S.dot(B[0], B[1], 2.4) + S.text(B[0] + 12, B[1] + 4, 'B', { i: true });
+    out += S.dot(Px, Py, 2.4) + S.text(Px, Py + 14, 'P', { i: true });
+    if (labelAngle) out += S.text(Px, Py - 16, labelAngle, { s: 12 });
+    if (labelP) out += S.text(cx, cy + R / 2 + 10, labelP, { s: 12 });
+    return S.wrap(w, h, out, 'two tangents from an external point');
+  }
+
+  /* bilingual reasons reused across 6.1-6.4 */
+  const RSN = {
+    c2i: T('the angle at the centre is twice the angle at the circumference (subtended by the same arc)', 'sudut pada pusat adalah dua kali sudut pada lilitan (dicangkum oleh lengkok yang sama)'),
+    c2iR: T('the reflex angle at the centre is twice the angle at the circumference (subtended by the same arc)', 'sudut refleks di pusat ialah dua kali sudut pada lilitan (dicangkum oleh lengkok yang sama)'),
+    semi: T('the angle in a semicircle is $90^\\circ$', 'sudut dalam semibulatan ialah $90^\\circ$'),
+    sameSeg: T('angles in the same segment are equal', 'sudut dalam tembereng yang sama adalah sama'),
+    isoRad: T('two radii of a circle are equal, so the triangle is isosceles', 'dua jejari bulatan adalah sama panjang, maka segi tiga itu sama kaki'),
+    angSum: T('the angles in a triangle add up to $180^\\circ$', 'jumlah sudut dalam segi tiga ialah $180^\\circ$'),
+    cycOpp: T('opposite angles of a cyclic quadrilateral sum to $180^\\circ$', 'sudut bertentangan sisi empat kitaran berjumlah $180^\\circ$'),
+    cycExt: T('the exterior angle of a cyclic quadrilateral equals the interior opposite angle', 'sudut peluaran sisi empat kitaran sama dengan sudut pedalaman bertentangan'),
+    tanRad: T('a tangent is perpendicular to the radius at the point of contact', 'tangen berserenjang dengan jejari pada titik sentuhan'),
+    eqTan: T('tangents drawn from an external point to a circle are equal in length', 'tangen yang dilukis dari satu titik luar ke bulatan adalah sama panjang'),
+    altSeg: T('the angle between a tangent and a chord equals the angle in the alternate segment', 'sudut antara tangen dan perentas sama dengan sudut dalam tembereng berselang-seli'),
+    kite: T('$OAPB$ has two right angles at $A$ and $B$ (tangent $\\perp$ radius), so the angles at $O$ and $P$ add up to $180^\\circ$', '$OAPB$ mempunyai dua sudut tegak di $A$ dan $B$ (tangen $\\perp$ jejari), maka sudut di $O$ dan $P$ berjumlah $180^\\circ$'),
+    pyth: T('Pythagoras’ theorem in the right-angled triangle formed by the radius and the tangent', 'teorem Pythagoras dalam segi tiga bersudut tegak yang dibentuk oleh jejari dan tangen'),
+    perpRad: T('each radius to its point of contact is perpendicular to the common tangent', 'setiap jejari ke titik sentuhannya berserenjang dengan tangen sepunya'),
+    sumO: T('the angles at the centre $O$ around a point sum to $360^\\circ$', 'sudut di pusat $O$ di sekeliling satu titik berjumlah $360^\\circ$'),
+    reflexSum: T('the reflex angle and the non-reflex angle at a point sum to $360^\\circ$', 'sudut refleks dan sudut bukan refleks pada satu titik berjumlah $360^\\circ$'),
+  };
+  const ALL_REASONS = Object.values(RSN);
+
+  /** build a case object for the generic CF dispatcher. val = correct number, unit = LaTeX suffix e.g. '^\\circ' or '\\ \\text{cm}'. */
+  function mkCase(stemEn, stemMs, askEn, askMs, askTex, val, unit, reason, fig, sp, wrongs) {
+    unit = unit === undefined ? '^\\circ' : unit;
+    const w = wrongs || angDist(val);
+    if (fig) { stemEn = stemEn + ' ' + SPM.NTS.en; stemMs = stemMs + ' ' + SPM.NTS.ms; }
+    return { stemEn, stemMs, askEn, askMs, askTex, val, unit, valStr: n(val) + unit, wrongsStr: w.map((x) => n(x) + unit), reason, fig, sp: sp || 's' };
+  }
+  function angDist(val, extra) {
+    const cs = new Set([2 * val, Math.round(val / 2), 180 - val, 90 - val, val + 15, val - 15, 360 - 2 * val].concat(extra || []));
+    cs.delete(val);
+    const arr = [...cs].filter((v) => Number.isInteger(v) && v > 0 && v < 360);
+    need(arr.length >= 3);
+    return arr.slice(0, 3);
+  }
+  /** integer square root if `t2` is a perfect square (within float tolerance), else null. */
+  function isqrt(t2) {
+    if (t2 <= 0) return null;
+    const r2 = Math.round(Math.sqrt(t2));
+    return Math.abs(r2 * r2 - t2) < 1e-6 ? r2 : null;
+  }
+  function lenDist(val) {
+    const cs = new Set([round(val * 2, 2), round(val / 2, 2), round(val + 2, 2), Math.max(1, round(val - 2, 2)), round(val + 1, 2)]);
+    cs.delete(val);
+    const arr = [...cs].filter((v) => v > 0);
+    need(arr.length >= 3);
+    return arr.slice(0, 3);
+  }
+
+  /** generic task-form dispatcher: turns one "case" into one of several question shapes. Shared by 6.1-6.4. */
+  const CF = [
+    (c) => ({ q: T(`${c.stemEn} Find ${c.askEn}.`, `${c.stemMs} Cari ${c.askMs}.`), fig: c.fig, a: T(`$${c.askTex} = ${c.valStr}$`), sp: c.sp }),
+    (c) => ({ q: T(`${c.stemEn} Find ${c.askEn}, and state the reason for your answer.`, `${c.stemMs} Cari ${c.askMs}, dan nyatakan sebab bagi jawapan anda.`), fig: c.fig, a: T(`$${c.askTex} = ${c.valStr}$ (${c.reason.en})`, `$${c.askTex} = ${c.valStr}$ (${c.reason.ms})`), sp: c.sp }),
+    (c) => ({ q: T(`${c.stemEn} It is given that ${c.askEn} $= ${c.valStr}$. State the reason.`, `${c.stemMs} Diberi ${c.askMs} $= ${c.valStr}$. Nyatakan sebabnya.`), a: T(c.reason.en, c.reason.ms), sp: 's' }),
+    (c, r) => {
+      const w0 = r.pick(c.wrongsStr);
+      return { q: T(`${c.stemEn} A student writes ${c.askEn} $= ${w0}$. Is this correct? If not, give the correct value and a reason.`, `${c.stemMs} Seorang murid menulis ${c.askMs} $= ${w0}$. Adakah ini betul? Jika tidak, berikan nilai yang betul berserta sebab.`), fig: c.fig, a: T(`Incorrect; $${c.askTex} = ${c.valStr}$ (${c.reason.en})`, `Tidak betul; $${c.askTex} = ${c.valStr}$ (${c.reason.ms})`), sp: 'm' };
+    },
+    (c, r) => {
+      const opts = r.shuffle([c.valStr, ...c.wrongsStr]);
+      const L = ['A', 'B', 'C', 'D'];
+      const ans = L[opts.indexOf(c.valStr)];
+      const otxt = opts.map((o, i) => `${L[i]}) $${o}$`).join('&emsp;');
+      return { q: T(`${c.stemEn} Which of the following is ${c.askEn}?<br>${otxt}`, `${c.stemMs} Yang manakah ${c.askMs}?<br>${otxt}`), fig: c.fig, a: T(`${ans}) $${c.askTex} = ${c.valStr}$`), sp: 's' };
+    },
+    (c) => ({ q: T(`${c.stemEn} Complete: ${c.askEn} $=$ ___, because ___.`, `${c.stemMs} Lengkapkan: ${c.askMs} $=$ ___, kerana ___.`), fig: c.fig, a: T(`$${c.askTex} = ${c.valStr}$ (${c.reason.en})`, `$${c.askTex} = ${c.valStr}$ (${c.reason.ms})`), sp: c.sp }),
+    (c) => {
+      if (c.unit !== '^\\circ') return { q: T(`${c.stemEn} Find ${c.askEn}.`, `${c.stemMs} Cari ${c.askMs}.`), fig: c.fig, a: T(`$${c.askTex} = ${c.valStr}$`), sp: c.sp };
+      const cmp = c.val > 90 ? T('more than', 'lebih besar daripada') : c.val < 90 ? T('less than', 'kurang daripada') : T('equal to', 'sama dengan');
+      return { q: T(`${c.stemEn} Without calculating first, state whether ${c.askEn} is more than, less than, or equal to $90^\\circ$. Then find its exact value.`, `${c.stemMs} Tanpa mengira dahulu, nyatakan sama ada ${c.askMs} lebih besar daripada, kurang daripada, atau sama dengan $90^\\circ$. Kemudian cari nilai tepatnya.`), fig: c.fig, a: T(`${cmp.en} $90^\\circ$; $${c.askTex} = ${c.valStr}$`, `${cmp.ms} $90^\\circ$; $${c.askTex} = ${c.valStr}$`), sp: c.sp };
+    },
+    (c, r) => {
+      const others = ALL_REASONS.filter((rs) => rs !== c.reason);
+      const d3 = r.sample(others, 3);
+      const opts = r.shuffle([c.reason, ...d3]);
+      const L = ['A', 'B', 'C', 'D'];
+      const ans = L[opts.findIndex((o) => o === c.reason)];
+      return { q: T(`${c.stemEn} It is known that ${c.askEn} $= ${c.valStr}$. Which reason justifies this?<br>${opts.map((o, i) => `${L[i]}) ${o.en}`).join('<br>')}`, `${c.stemMs} Diketahui ${c.askMs} $= ${c.valStr}$. Sebab manakah yang mewajarkan ini?<br>${opts.map((o, i) => `${L[i]}) ${o.ms}`).join('<br>')}`), fig: c.fig, a: T(`${ans}) ${c.reason.en}`, `${ans}) ${c.reason.ms}`), sp: 'm' };
+    },
+    (c, r) => {
+      const w0 = r.pick(c.wrongsStr);
+      return { q: T(`${c.stemEn} Here is one student's (flawed) working: "${c.askEn} $= ${w0}$." Identify the mistake and give the correct value of ${c.askEn}.`, `${c.stemMs} Berikut ialah kerja (yang tersilap) seorang murid: "${c.askMs} $= ${w0}$." Kenal pasti kesilapan itu dan berikan nilai ${c.askMs} yang betul.`), fig: c.fig, a: T(`Correct value: $${c.askTex} = ${c.valStr}$ (${c.reason.en}); the working above applied the wrong relationship.`, `Nilai yang betul: $${c.askTex} = ${c.valStr}$ (${c.reason.ms}); kerja di atas menggunakan hubungan yang salah.`), sp: 'm' };
+    },
+  ];
+  /** apply one random task-form to one random case. */
+  const genCF = (CASES) => (r) => CF[r.int(0, CF.length - 1)](r.pick(CASES)(r), r);
+
+  SPM.extend('F3-6.1', (function () {
+    /* ===== 6.1 task types: central<->inscribed (direct & reflex), semicircle, same segment, isosceles radii,
+       multi-step chains, algebraic angle equations, true/false misconception checks, theorem identification. */
+    const CASES_E = [
+      (r) => { const x = r.int(20, 80); const cx2 = 2 * x; const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'O', text: `${cx2}°`, to: ['A', 'B'], r: 26 }] }); return mkCase(`In the diagram, $O$ is the centre of the circle and $\\angle AOB = ${cx2}^\\circ$.`, `Dalam rajah, $O$ ialah pusat bulatan dan $\\angle AOB = ${cx2}^\\circ$.`, '$\\angle ACB$', '$\\angle ACB$', '\\angle ACB', x, '^\\circ', RSN.c2i, fig, 's'); },
+      (r) => { const x = r.int(20, 80); need(2 * x < 175); const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 24 }] }); return mkCase(`In the diagram, $O$ is the centre of the circle and $\\angle ACB = ${x}^\\circ$.`, `Dalam rajah, $O$ ialah pusat bulatan dan $\\angle ACB = ${x}^\\circ$.`, '$\\angle AOB$', '$\\angle AOB$', '\\angle AOB', 2 * x, '^\\circ', RSN.c2i, fig, 's'); },
+      (r) => { const x = r.int(20, 85); const reflex = 360 - 2 * x; need(reflex > 190 && reflex < 320); return mkCase(`$A$, $B$ and $C$ lie on a circle with centre $O$. The angle at the circumference subtended by the minor arc $AB$ is $\\angle ACB = ${x}^\\circ$.`, `$A$, $B$ dan $C$ terletak pada satu bulatan berpusat $O$. Sudut pada lilitan yang dicangkum oleh lengkok minor $AB$ ialah $\\angle ACB = ${x}^\\circ$.`, 'the reflex angle $\\angle AOB$', 'sudut refleks $\\angle AOB$', '\\angle AOB \\text{ (reflex)}', reflex, '^\\circ', RSN.c2iR, null, 's'); },
+      (r) => { const x = r.int(20, 85); const reflex = 360 - 2 * x; need(reflex > 190 && reflex < 320); return mkCase(`$A$, $B$ and $C$ lie on a circle with centre $O$, and $\\angle AOB = ${reflex}^\\circ$ (reflex).`, `$A$, $B$ dan $C$ terletak pada satu bulatan berpusat $O$, dan $\\angle AOB = ${reflex}^\\circ$ (refleks).`, '$\\angle ACB$', '$\\angle ACB$', '\\angle ACB', x, '^\\circ', RSN.c2iR, null, 's'); },
+      (r) => { const fig = cfig({ pts: { A: 180, B: 0, C: 110 }, lines: ['AB', 'CA', 'CB'] }); return mkCase('In the diagram, $AB$ is a diameter of the circle with centre $O$, and $C$ lies on the circumference.', 'Dalam rajah, $AB$ ialah diameter bulatan berpusat $O$, dan $C$ terletak pada lilitan.', '$\\angle ACB$', '$\\angle ACB$', '\\angle ACB', 90, '^\\circ', RSN.semi, fig, 's'); },
+      (r) => { const x = r.int(20, 80); const fig = cfig({ pts: { A: 200, B: 340, C: 90, D: 30 }, lines: ['AB', 'CA', 'CB', 'DA', 'DB'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }] }); return mkCase(`In the diagram, $A$, $B$, $C$ and $D$ lie on a circle, with $C$ and $D$ on the same side of chord $AB$. $\\angle ACB = ${x}^\\circ$.`, `Dalam rajah, $A$, $B$, $C$ dan $D$ terletak pada satu bulatan, dengan $C$ dan $D$ pada sebelah yang sama bagi perentas $AB$. $\\angle ACB = ${x}^\\circ$.`, '$\\angle ADB$', '$\\angle ADB$', '\\angle ADB', x, '^\\circ', RSN.sameSeg, fig, 's'); },
+      (r) => { const x = r.step(20, 120, 2); const base = (180 - x) / 2; need(base > 0 && Number.isInteger(base)); const fig = cfig({ pts: { A: 200, B: 340 }, lines: ['OA', 'OB', 'AB'], labels: [{ at: 'O', text: `${x}°`, to: ['A', 'B'], r: 26 }] }); return mkCase(`In the diagram, $O$ is the centre of the circle, $OA$ and $OB$ are radii, and $\\angle AOB = ${x}^\\circ$.`, `Dalam rajah, $O$ ialah pusat bulatan, $OA$ dan $OB$ ialah jejari, dan $\\angle AOB = ${x}^\\circ$.`, '$\\angle OAB$', '$\\angle OAB$', '\\angle OAB', base, '^\\circ', RSN.isoRad, fig, 's'); },
+      () => { const fig = cfig({ pts: { A: 30, B: 150, C: 270 }, lines: ['OA', 'OB', 'OC'] }); return mkCase('Three points $A$, $B$ and $C$ lie on a circle with centre $O$, equally spaced around the circle so that $\\angle AOB = \\angle BOC = \\angle COA = x^\\circ$.', 'Tiga titik $A$, $B$ dan $C$ terletak pada satu bulatan berpusat $O$, disusun sama jarak mengelilingi bulatan supaya $\\angle AOB = \\angle BOC = \\angle COA = x^\\circ$.', '$x$', '$x$', 'x', 120, '^\\circ', RSN.sumO, null, 's'); },
+      (r) => { const k = r.pick([2, 3, 4, 5]); const nr = 360 / (k + 1); need(Number.isInteger(nr) && nr > 10 && nr < 170); return mkCase(`At the centre $O$ of a circle, the reflex angle $\\angle AOB$ is ${k} times the size of the (non-reflex) angle $\\angle AOB$.`, `Di pusat $O$ sebuah bulatan, sudut refleks $\\angle AOB$ ialah ${k} kali saiz sudut (bukan refleks) $\\angle AOB$.`, 'the non-reflex angle $\\angle AOB$', 'sudut (bukan refleks) $\\angle AOB$', '\\angle AOB', nr, '^\\circ', RSN.reflexSum, null, 's'); },
+      (r) => { const x = r.int(20, 80); const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }] }); return mkCase(`Arc $AB$ of a circle with centre $O$ subtends $\\angle ACB = ${x}^\\circ$ at a point $C$ on the major arc. Any other point $D$ also lies on the major arc.`, `Lengkok $AB$ bagi sebuah bulatan berpusat $O$ mencangkum $\\angle ACB = ${x}^\\circ$ pada satu titik $C$ di lengkok major. Satu lagi titik $D$ turut terletak pada lengkok major itu.`, '$\\angle ADB$', '$\\angle ADB$', '\\angle ADB', x, '^\\circ', RSN.sameSeg, fig, 's'); },
+      (r) => { const p = r.int(60, 150), q = r.int(60, 150); const rem = 360 - p - q; need(rem > 15 && rem < 220 && p !== q); return mkCase(`Points $A$, $B$ and $C$ lie on a circle with centre $O$, dividing it into three arcs. $\\angle AOB = ${p}^\\circ$ and $\\angle BOC = ${q}^\\circ$.`, `Titik $A$, $B$ dan $C$ terletak pada satu bulatan berpusat $O$, membahagikannya kepada tiga lengkok. $\\angle AOB = ${p}^\\circ$ dan $\\angle BOC = ${q}^\\circ$.`, '$\\angle COA$', '$\\angle COA$', '\\angle COA', rem, '^\\circ', RSN.sumO, null, 's'); },
+      (r) => { const p = r.int(30, 120); const tot = r.int(p + 30, 320); const q = tot - p; need(q > 15 && q < 250 && q !== p); return mkCase(`Points $A$, $B$ and $C$ lie on a circle with centre $O$, with $B$ between $A$ and $C$ on the same arc. $\\angle AOB = ${p}^\\circ$ and $\\angle AOC = ${tot}^\\circ$.`, `Titik $A$, $B$ dan $C$ terletak pada satu bulatan berpusat $O$, dengan $B$ di antara $A$ dan $C$ pada lengkok yang sama. $\\angle AOB = ${p}^\\circ$ dan $\\angle AOC = ${tot}^\\circ$.`, '$\\angle BOC$', '$\\angle BOC$', '\\angle BOC', q, '^\\circ', T('$\\angle AOC = \\angle AOB + \\angle BOC$ (adjacent angles at the centre)', '$\\angle AOC = \\angle AOB + \\angle BOC$ (sudut bersebelahan di pusat)'), null, 's'); },
+      (r) => { const x = r.int(20, 80); const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'O', text: `${2 * x}°`, to: ['A', 'B'], r: 26 }] }); return mkCase(`$O$ is the centre of a Ferris wheel. Two carriages are fixed at points $A$ and $B$ on the wheel, with $\\angle AOB = ${2 * x}^\\circ$ measured at the centre $O$. An engineer stands at a fixed point $C$ on the wheel's rim (on the major arc $AB$).`, `$O$ ialah pusat sebuah kincir raksasa. Dua tempat duduk tetap pada titik $A$ dan $B$ di roda itu, dengan $\\angle AOB = ${2 * x}^\\circ$ diukur di pusat $O$. Seorang jurutera berdiri di satu titik tetap $C$ di gelang roda itu (pada lengkok major $AB$).`, 'the angle $\\angle ACB$ seen by the engineer', 'sudut $\\angle ACB$ yang dilihat oleh jurutera itu', '\\angle ACB', x, '^\\circ', RSN.c2i, fig, 's'); },
+    ];
+    const e = [genCF(CASES_E)];
+    e.push((r) => {
+      const x = r.int(20, 80);
+      const blankInsc = r.chance();
+      const tbl = SPM.table(blankInsc ? [['$\\angle AOB$ (centre)', `$${2 * x}^\\circ$`], ['$\\angle ACB$ (circumference)', '?']] : [['$\\angle AOB$ (centre)', '?'], ['$\\angle ACB$ (circumference)', `$${x}^\\circ$`]], { rowHead: true });
+      return { q: T(`$O$ is the centre of a circle; $A$, $B$, $C$ lie on the circle, with $\\angle AOB$ and $\\angle ACB$ subtending the same arc $AB$. The table shows one of the two angles. Find the missing value.<br>${tbl}`, `$O$ ialah pusat sebuah bulatan; $A$, $B$, $C$ terletak pada bulatan, dengan $\\angle AOB$ dan $\\angle ACB$ mencangkum lengkok $AB$ yang sama. Jadual menunjukkan salah satu daripada dua sudut itu. Cari nilai yang tiada.<br>${tbl}`), a: blankInsc ? T(`$\\angle ACB = ${x}^\\circ$`) : T(`$\\angle AOB = ${2 * x}^\\circ$`), sp: 's' };
+    });
+    e.push((r) => {
+      const x = r.int(20, 80);
+      const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }] });
+      return { q: nts(T(`The arc $AB$ of a circle with centre $O$ subtends an angle of $${x}^\\circ$ at a point $C$ on the major arc. Find the angle subtended by arc $AB$ at the centre $O$.`, `Lengkok $AB$ bagi sebuah bulatan berpusat $O$ mencangkum sudut $${x}^\\circ$ pada satu titik $C$ di lengkok major. Cari sudut yang dicangkum oleh lengkok $AB$ di pusat $O$.`)), fig, a: T(`$${2 * x}^\\circ$ (angle at the centre = 2 × angle at the circumference, for the same arc)`, `$${2 * x}^\\circ$ (sudut pada pusat = 2 × sudut pada lilitan, bagi lengkok yang sama)`), sp: 's' };
+    });
+    e.push((r) => {
+      const x = r.int(20, 80);
+      const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'O', text: `${2 * x}°`, to: ['A', 'B'], r: 26 }] });
+      return { q: nts(T(`A security camera is mounted at the centre $O$ of a circular plaza. Two entrances are at points $A$ and $B$ on the boundary, with $\\angle AOB = ${2 * x}^\\circ$ as seen from the camera. A guard stands at a fixed post $C$ on the boundary. Find the angle $\\angle ACB$ between the two entrances as seen by the guard.`, `Sebuah kamera keselamatan dipasang di pusat $O$ sebuah plaza berbentuk bulatan. Dua pintu masuk berada di titik $A$ dan $B$ pada sempadannya, dengan $\\angle AOB = ${2 * x}^\\circ$ dilihat dari kamera. Seorang pengawal berdiri di pos tetap $C$ pada sempadan itu. Cari sudut $\\angle ACB$ antara dua pintu masuk itu seperti yang dilihat oleh pengawal.`)), fig, a: T(`$\\angle ACB = ${x}^\\circ$ (angle at the centre = 2 × angle at the circumference)`, `$\\angle ACB = ${x}^\\circ$ (sudut pada pusat = 2 × sudut pada lilitan)`), sp: 's' };
+    });
+    e.push((r) => {
+      const bank = [
+        [T('$\\angle AOB$ is the angle at the centre and $\\angle ACB$ is the angle at the circumference, both subtending the same arc $AB$.', '$\\angle AOB$ ialah sudut pada pusat dan $\\angle ACB$ ialah sudut pada lilitan, kedua-duanya mencangkum lengkok $AB$ yang sama.'), T('$\\angle AOB = 2\\angle ACB$', '$\\angle AOB = 2\\angle ACB$')],
+        [T('$AB$ is a diameter of the circle and $C$ lies on the circumference.', '$AB$ ialah diameter bulatan dan $C$ terletak pada lilitan.'), T('$\\angle ACB = 90^\\circ$', '$\\angle ACB = 90^\\circ$')],
+        [T('$C$ and $D$ lie on a circle, both on the same side of chord $AB$.', '$C$ dan $D$ terletak pada satu bulatan, kedua-duanya pada sebelah yang sama bagi perentas $AB$.'), T('$\\angle ACB = \\angle ADB$', '$\\angle ACB = \\angle ADB$')],
+        [T('$C$ lies on a circle with centre $O$, and $\\angle AOB$ is a reflex angle subtending the same arc $AB$ as $\\angle ACB$.', '$C$ terletak pada bulatan berpusat $O$, dan $\\angle AOB$ ialah sudut refleks yang mencangkum lengkok $AB$ yang sama seperti $\\angle ACB$.'), T('$\\angle AOB = 2\\angle ACB$', '$\\angle AOB = 2\\angle ACB$')],
+      ];
+      const it = r.pick(bank);
+      return { q: T(`Complete the correct relationship for this configuration: ${it[0].en}`, `Lengkapkan hubungan yang betul bagi konfigurasi ini: ${it[0].ms}`), a: it[1], sp: 's' };
+    });
+    e.push((r) => {
+      const same = r.chance();
+      const x = r.int(30, 70);
+      const fig = same
+        ? cfig({ pts: { A: 200, B: 340, C: 90, D: 30 }, lines: ['AB', 'CA', 'CB', 'DA', 'DB'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }] })
+        : cfig({ pts: { A: 200, B: 340, C: 90, D: 260 }, lines: ['AB', 'CA', 'CB', 'DA', 'DB'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }] });
+      return { q: nts(T(`In the diagram, $\\angle ACB = ${x}^\\circ$. Is it necessarily true that $\\angle ADB = ${x}^\\circ$? Explain, referring to the segment(s) containing $C$ and $D$.`, `Dalam rajah, $\\angle ACB = ${x}^\\circ$. Adakah semestinya $\\angle ADB = ${x}^\\circ$? Terangkan, dengan merujuk kepada tembereng yang mengandungi $C$ dan $D$.`)), fig, a: same
+        ? T(`Yes; $C$ and $D$ lie in the same segment (same side of chord $AB$), so $\\angle ADB = ${x}^\\circ$ (angles in the same segment are equal).`, `Ya; $C$ dan $D$ terletak dalam tembereng yang sama (sebelah yang sama bagi perentas $AB$), maka $\\angle ADB = ${x}^\\circ$ (sudut dalam tembereng yang sama adalah sama).`)
+        : T(`No; $C$ and $D$ lie in opposite segments, so the "same segment" theorem does not apply here — more information (e.g. $O$ and the central angle) is needed to find $\\angle ADB$.`, `Tidak; $C$ dan $D$ terletak dalam tembereng yang bertentangan, jadi teorem "tembereng yang sama" tidak terpakai di sini — maklumat tambahan (contohnya $O$ dan sudut pusat) diperlukan untuk mencari $\\angle ADB$.`), sp: 'm' };
+    });
+
+    const CASES_M = [
+      (r) => { const a = r.int(30, 70); const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB', 'AB'], labels: [{ at: 'C', text: `${a}°`, to: ['A', 'B'], r: 22 }] }); return mkCase(`In the diagram, $O$ is the centre and $\\angle ACB = ${a}^\\circ$.`, `Dalam rajah, $O$ ialah pusat dan $\\angle ACB = ${a}^\\circ$.`, '$\\angle OAB$', '$\\angle OAB$', '\\angle OAB', 90 - a, '^\\circ', T(`$\\angle AOB = ${2 * a}^\\circ$ (centre = 2 × circumference); then triangle $OAB$ is isosceles ($OA = OB$), so $\\angle OAB = (180 - ${2 * a}) \\div 2$`, `$\\angle AOB = ${2 * a}^\\circ$ (pusat = 2 × lilitan); segi tiga $OAB$ sama kaki ($OA = OB$), maka $\\angle OAB = (180 - ${2 * a}) \\div 2$`), fig, 'm'); },
+      (r) => { const a = r.int(15, 70); const fig = cfig({ pts: { A: 180, B: 0, C: 120 }, lines: ['AB', 'CA', 'CB'], labels: [{ at: 'A', text: `${a}°`, to: ['B', 'C'], r: 22 }] }); need(90 - a > 0); return mkCase(`In the diagram, $AB$ is a diameter and $\\angle BAC = ${a}^\\circ$.`, `Dalam rajah, $AB$ ialah diameter dan $\\angle BAC = ${a}^\\circ$.`, '$\\angle ABC$', '$\\angle ABC$', '\\angle ABC', 90 - a, '^\\circ', T(`$\\angle ACB = 90^\\circ$ (angle in a semicircle); then $\\angle ABC = 180 - 90 - ${a}$ (angle sum of triangle)`, `$\\angle ACB = 90^\\circ$ (sudut dalam semibulatan); maka $\\angle ABC = 180 - 90 - ${a}$ (jumlah sudut segi tiga)`), fig, 'm'); },
+      (r) => { const x = r.int(25, 65), y = r.int(20, 50); need(x !== y); const fig = cfig({ pts: { A: 150, B: 30, C: 260, D: 200 }, lines: ['AB', 'AC', 'BC', 'DA', 'DB'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }, { at: 'D', text: `${y}°`, to: 'A', r: 22 }] }); need(x + y < 170); return mkCase(`In the diagram, $\\angle ACB = ${x}^\\circ$ and $\\angle DAB = ${y}^\\circ$, with $C$ and $D$ on the same side of $AB$.`, `Dalam rajah, $\\angle ACB = ${x}^\\circ$ dan $\\angle DAB = ${y}^\\circ$, dengan $C$ dan $D$ pada sebelah yang sama bagi $AB$.`, '$\\angle ADB + \\angle ABD$', '$\\angle ADB + \\angle ABD$', '\\angle ADB + \\angle ABD', 180 - x - y, '^\\circ', T(`$\\angle ADB = ${x}^\\circ$ (same segment); triangle $ABD$: $\\angle ADB + \\angle ABD = 180 - ${y}$`, `$\\angle ADB = ${x}^\\circ$ (tembereng sama); segi tiga $ABD$: $\\angle ADB + \\angle ABD = 180 - ${y}$`), fig, 'm'); },
+      (r) => { const p = r.int(2, 5), x = r.int(15, 40), q = r.int(1, 4) * 10, c1 = r.int(5, 25); const cx2 = p * x + c1; need(cx2 > 20 && cx2 < 170 && p !== 1); const half = cx2 / 2; need(Number.isInteger(half)); return mkCase(`In the diagram, $O$ is the centre and $\\angle AOB = (${p}x + ${c1})^\\circ$, where $x = ${x}$.`, `Dalam rajah, $O$ ialah pusat dan $\\angle AOB = (${p}x + ${c1})^\\circ$, dengan $x = ${x}$.`, '$\\angle ACB$', '$\\angle ACB$', '\\angle ACB', half, '^\\circ', T(`$\\angle AOB = ${p}(${x}) + ${c1} = ${cx2}^\\circ$; then $\\angle ACB = ${cx2} \\div 2$ (centre = 2 × circumference)`, `$\\angle AOB = ${p}(${x}) + ${c1} = ${cx2}^\\circ$; maka $\\angle ACB = ${cx2} \\div 2$ (pusat = 2 × lilitan)`), null, 'm'); },
+      (r) => { const x = r.int(20, 80); const y = 2 * x; const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'O', text: 'y', to: ['A', 'B'], r: 26 }, { at: 'C', text: 'x', to: ['A', 'B'], r: 22 }] }); return mkCase(`In the diagram, $O$ is the centre, $\\angle ACB = x$ and $\\angle AOB = y$, and it is known that $x = ${x}$.`, `Dalam rajah, $O$ ialah pusat, $\\angle ACB = x$ dan $\\angle AOB = y$, dan diketahui $x = ${x}$.`, '$y$', '$y$', 'y', y, '^\\circ', RSN.c2i, fig, 's'); },
+      (r) => { const b = r.int(20, 80); const fig = cfig({ pts: { A: 200, B: 340 }, lines: ['OA', 'OB', 'AB'], labels: [{ at: 'A', text: `${b}°`, to: ['O', 'B'], r: 22 }] }); return mkCase(`In the diagram, $O$ is the centre, $OA$ and $OB$ are radii, and $\\angle OAB = ${b}^\\circ$.`, `Dalam rajah, $O$ ialah pusat, $OA$ dan $OB$ ialah jejari, dan $\\angle OAB = ${b}^\\circ$.`, '$\\angle AOB$', '$\\angle AOB$', '\\angle AOB', 180 - 2 * b, '^\\circ', T(`triangle $OAB$ is isosceles ($OA = OB$), so $\\angle AOB = 180 - 2(${b})$`, `segi tiga $OAB$ sama kaki ($OA = OB$), maka $\\angle AOB = 180 - 2(${b})$`), fig, 's'); },
+      (r) => { const x = r.int(20, 70), y = r.int(15, 60); need(x !== y); const fig = cfig({ pts: { A: 150, B: 30, C: 260, D: 90 }, lines: ['AB', 'AC', 'BC', 'AD', 'BD'], showO: false, labels: [{ at: 'C', text: `${x}°`, to: 'A', r: 22 }, { at: 'D', text: `${y}°`, to: 'B', r: 22 }] }); const s = x + y; need(s > 30 && s < 170); return mkCase(`In the diagram, $A$, $B$, $C$ and $D$ lie on a circle, with $C$ and $D$ on opposite sides of chord $AB$ (so $ACBD$ is a cyclic quadrilateral in that order). $\\angle ACB = ${x}^\\circ$ and $\\angle ADB = ${y}^\\circ$.`, `Dalam rajah, $A$, $B$, $C$ dan $D$ terletak pada satu bulatan, dengan $C$ dan $D$ pada sebelah bertentangan bagi perentas $AB$ (maka $ACBD$ ialah sisi empat kitaran mengikut turutan itu). $\\angle ACB = ${x}^\\circ$ dan $\\angle ADB = ${y}^\\circ$.`, '$\\angle ACB + \\angle ADB$', '$\\angle ACB + \\angle ADB$', '\\angle ACB + \\angle ADB', s, '^\\circ', T('$C$ and $D$ lie in opposite segments, so $ACBD$ is a cyclic quadrilateral: $\\angle ACB + \\angle ADB = 180^\\circ$ (opposite angles)', '$C$ dan $D$ terletak dalam tembereng bertentangan, maka $ACBD$ ialah sisi empat kitaran: $\\angle ACB + \\angle ADB = 180^\\circ$ (sudut bertentangan)'), fig, 'm'); },
+      (r) => { const b = r.int(15, 60); need(90 - b > 0); const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB', 'AB'], labels: [{ at: 'A', text: `${b}°`, to: ['O', 'B'], r: 22 }] }); return mkCase(`In the diagram, $O$ is the centre and $\\angle OAB = ${b}^\\circ$ (triangle $OAB$ is isosceles, $OA = OB$).`, `Dalam rajah, $O$ ialah pusat dan $\\angle OAB = ${b}^\\circ$ (segi tiga $OAB$ sama kaki, $OA = OB$).`, '$\\angle ACB$', '$\\angle ACB$', '\\angle ACB', 90 - b, '^\\circ', T(`$\\angle AOB = 180 - 2(${b}) = ${180 - 2 * b}^\\circ$; then $\\angle ACB = ${180 - 2 * b} \\div 2$ (centre = 2 × circumference)`, `$\\angle AOB = 180 - 2(${b}) = ${180 - 2 * b}^\\circ$; maka $\\angle ACB = ${180 - 2 * b} \\div 2$ (pusat = 2 × lilitan)`), fig, 'm'); },
+    ];
+    const m = [genCF(CASES_M)];
+    m.push((r) => {
+      const x = r.int(20, 85); const reflex = 360 - 2 * x;
+      need(reflex > 190 && reflex < 320);
+      return { q: nts(T(`$A$, $B$ and $C$ lie on a circle with centre $O$, with $C$ on the major arc $AB$. $\\angle ACB = ${x}^\\circ$. Find (a) the (non-reflex) angle $\\angle AOB$, (b) the reflex angle $\\angle AOB$.`, `$A$, $B$ dan $C$ terletak pada satu bulatan berpusat $O$, dengan $C$ pada lengkok major $AB$. $\\angle ACB = ${x}^\\circ$. Cari (a) sudut (bukan refleks) $\\angle AOB$, (b) sudut refleks $\\angle AOB$.`)), a: T(`(a) $${2 * x}^\\circ$ (b) $${reflex}^\\circ$ (the two angles at $O$ add up to $360^\\circ$)`, `(a) $${2 * x}^\\circ$ (b) $${reflex}^\\circ$ (dua sudut di $O$ berjumlah $360^\\circ$)`), sp: 'm' };
+    });
+    m.push((r) => {
+      const a = r.int(30, 70), b = r.int(20, 60);
+      need(a !== b);
+      return { q: T(`$A$, $B$, $C$ and $D$ lie on a circle with centre $O$. $\\angle BAC = ${a}^\\circ$ and $\\angle CBD = ${b}^\\circ$ (both angles at the circumference). Find $\\angle BOC$ and $\\angle COD$.`, `$A$, $B$, $C$ dan $D$ terletak pada satu bulatan berpusat $O$. $\\angle BAC = ${a}^\\circ$ dan $\\angle CBD = ${b}^\\circ$ (kedua-dua sudut pada lilitan). Cari $\\angle BOC$ dan $\\angle COD$.`), a: T(`$\\angle BOC = ${2 * a}^\\circ$; $\\angle COD = ${2 * b}^\\circ$ (centre = 2 × circumference, applied to each arc)`, `$\\angle BOC = ${2 * a}^\\circ$; $\\angle COD = ${2 * b}^\\circ$ (pusat = 2 × lilitan, digunakan pada setiap lengkok)`), sp: 'm' };
+    });
+    m.push((r) => {
+      const claimTrue = r.chance();
+      const x = r.int(30, 70);
+      return { q: nts(T(`$P$, $Q$, $R$ and $S$ lie on a circle, with $\\angle PRQ = ${x}^\\circ$. A student claims: "since $R$ and $S$ both lie on the circle, $\\angle PSQ = ${x}^\\circ$ as well." Is this claim always true? Explain.`, `$P$, $Q$, $R$ dan $S$ terletak pada satu bulatan, dengan $\\angle PRQ = ${x}^\\circ$. Seorang murid mendakwa: "kerana $R$ dan $S$ kedua-duanya terletak pada bulatan, maka $\\angle PSQ = ${x}^\\circ$ juga." Adakah dakwaan ini sentiasa benar? Terangkan.`)), a: T('No; this is only true when $R$ and $S$ lie in the same segment (same side of chord $PQ$). If they lie in opposite segments, $\\angle PSQ$ is not necessarily equal to $\\angle PRQ$ (it need not even be determined without more information).', 'Tidak; ini hanya benar apabila $R$ dan $S$ terletak dalam tembereng yang sama (sebelah yang sama bagi perentas $PQ$). Jika mereka terletak dalam tembereng bertentangan, $\\angle PSQ$ tidak semestinya sama dengan $\\angle PRQ$ (malah tidak semestinya dapat ditentukan tanpa maklumat lanjut).'), sp: 'm' };
+    });
+    m.push(() => ({ q: T('Describe a method, using a protractor, to verify (for one specific circle diagram) that the angle at the centre is twice the angle at the circumference for the same arc. State what should be measured, and what relationship should be checked.', 'Huraikan satu kaedah, menggunakan protraktor, untuk mengesahkan (bagi satu rajah bulatan tertentu) bahawa sudut pada pusat adalah dua kali sudut pada lilitan bagi lengkok yang sama. Nyatakan apa yang perlu diukur, dan hubungan apa yang perlu disemak.'), a: T('Draw a circle, mark the centre $O$ and three points $A$, $B$, $C$ on the circumference. Measure $\\angle AOB$ (angle at the centre) and $\\angle ACB$ (angle at the circumference), both subtending arc $AB$. Check that the measured $\\angle AOB$ is twice the measured $\\angle ACB$; repeat with $C$ moved to a different position on the major arc to strengthen the conjecture.', 'Lukis satu bulatan, tandakan pusat $O$ dan tiga titik $A$, $B$, $C$ pada lilitan. Ukur $\\angle AOB$ (sudut pada pusat) dan $\\angle ACB$ (sudut pada lilitan), kedua-duanya mencangkum lengkok $AB$. Semak bahawa $\\angle AOB$ yang diukur adalah dua kali $\\angle ACB$ yang diukur; ulangi dengan $C$ dipindahkan ke kedudukan lain pada lengkok major untuk mengukuhkan konjektur itu.'), sp: 'l' }));
+    m.push(() => ({ q: T('If the angle at the centre subtending an arc is $\\angle AOB = 2y$, write an expression, in terms of $y$, for the angle at the circumference $\\angle ACB$ subtending the same arc.', 'Jika sudut pada pusat yang mencangkum satu lengkok ialah $\\angle AOB = 2y$, tulis satu ungkapan, dalam sebutan $y$, bagi sudut pada lilitan $\\angle ACB$ yang mencangkum lengkok yang sama.'), a: T('$\\angle ACB = y$'), sp: 's' }));
+    m.push((r) => {
+      const arcs = ['AB', 'BC', 'CA'];
+      const xs = r.sample([20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80], 3);
+      const tbl = SPM.table(arcs.map((name, i) => [`arc ${name}`, `$${xs[i]}^\\circ$`, '?']), { head: [T('Arc', 'Lengkok').en, T('Angle at circumference', 'Sudut pada lilitan').en, T('Angle at centre', 'Sudut pada pusat').en] });
+      const tblMs = SPM.table(arcs.map((name, i) => [`lengkok ${name}`, `$${xs[i]}^\\circ$`, '?']), { head: [T('Arc', 'Lengkok').ms, T('Angle at circumference', 'Sudut pada lilitan').ms, T('Angle at centre', 'Sudut pada pusat').ms] });
+      return { q: T(`The table shows the angle at the circumference for three different arcs of circles with centre $O$. Copy and complete the table with the corresponding angle at the centre for each arc.<br>${tbl}`, `Jadual menunjukkan sudut pada lilitan bagi tiga lengkok berbeza bagi bulatan berpusat $O$. Salin dan lengkapkan jadual itu dengan sudut pada pusat yang sepadan bagi setiap lengkok.<br>${tblMs}`), a: T(arcs.map((name, i) => `arc ${name}: $${2 * xs[i]}^\\circ$`).join('; '), arcs.map((name, i) => `lengkok ${name}: $${2 * xs[i]}^\\circ$`).join('; ')), sp: 'm' };
+    });
+    m.push(() => ({ q: T('A student says: "if two inscribed angles subtend the same chord, they must be equal." Comment on this statement, giving an example to support your answer.', 'Seorang murid berkata: "jika dua sudut pedalaman mencangkum perentas yang sama, kedua-duanya mestilah sama." Berikan komen tentang penyataan ini, dengan memberikan satu contoh untuk menyokong jawapan anda.'), a: T('The statement is false in general: it is true only when the two vertices lie in the same segment (same side of the chord). If the vertices lie in opposite segments, the two inscribed angles are instead supplementary (they sum to $180^\\circ$, as in a cyclic quadrilateral), not equal — for example $70^\\circ$ and $110^\\circ$.', 'Penyataan ini secara amnya tidak benar: ia hanya benar apabila kedua-dua bucu terletak dalam tembereng yang sama (sebelah yang sama bagi perentas itu). Jika bucu terletak dalam tembereng bertentangan, kedua-dua sudut pedalaman itu sebaliknya adalah bersaling pelengkap (berjumlah $180^\\circ$, seperti dalam sisi empat kitaran), bukan sama — contohnya $70^\\circ$ dan $110^\\circ$.'), sp: 'm' }));
+    m.push(() => ({ q: T('A student says: "the angle at the centre of a circle subtended by an arc is always less than $180^\\circ$." Comment on this statement, giving an example to support your answer.', 'Seorang murid berkata: "sudut pada pusat sebuah bulatan yang dicangkum oleh satu lengkok sentiasa kurang daripada $180^\\circ$." Berikan komen tentang penyataan ini, dengan memberikan satu contoh untuk menyokong jawapan anda.'), a: T('The statement is false in general: if the arc is a major arc, the central angle subtending it is reflex (greater than $180^\\circ$). For example, if an inscribed angle on the minor arc is $100^\\circ$, the central angle subtending the major arc is $200^\\circ$, which is reflex. The statement is only true when the arc considered is a minor arc.', 'Penyataan ini secara amnya tidak benar: jika lengkok itu ialah lengkok major, sudut pusat yang mencangkumnya adalah refleks (lebih besar daripada $180^\\circ$). Contohnya, jika sudut pedalaman pada lengkok minor ialah $100^\\circ$, sudut pusat yang mencangkum lengkok major ialah $200^\\circ$, iaitu refleks. Penyataan ini hanya benar apabila lengkok yang dipertimbangkan ialah lengkok minor.'), sp: 'm' }));
+    m.push((r) => {
+      const x = r.int(5, 25); const a = r.int(2, 6); const c1 = r.int(1, 15); const val = a * x + c1;
+      need(val > 15 && val < 85);
+      const b = r.int(1, 5); need(b !== a);
+      const c2 = val - b * x; need(Number.isInteger(c2) && Math.abs(c2) <= 60);
+      const c2s = c2 >= 0 ? `+ ${c2}` : `- ${-c2}`;
+      const fig = cfig({ pts: { A: 200, B: 340, C: 90, D: 30 }, lines: ['AB', 'CA', 'CB', 'DA', 'DB'], showO: false });
+      return { q: nts(T(`In the diagram, $C$ and $D$ lie on the major arc of chord $AB$, with $\\angle ACB = (${a}x + ${c1})^\\circ$ and $\\angle ADB = (${b}x ${c2s})^\\circ$. Find $x$ and the size of $\\angle ACB$.`, `Dalam rajah, $C$ dan $D$ terletak pada lengkok major bagi perentas $AB$, dengan $\\angle ACB = (${a}x + ${c1})^\\circ$ dan $\\angle ADB = (${b}x ${c2s})^\\circ$. Cari $x$ dan saiz $\\angle ACB$.`)), fig, a: T(`$x = ${x}$; $\\angle ACB = ${val}^\\circ$ (angles in the same segment are equal: $${a}x + ${c1} = ${b}x ${c2s}$)`, `$x = ${x}$; $\\angle ACB = ${val}^\\circ$ (sudut dalam tembereng yang sama adalah sama: $${a}x + ${c1} = ${b}x ${c2s}$)`), sp: 'm' };
+    });
+
+    const CASES_A = [
+      (r) => { const x = r.int(25, 65); const fig = cfig({ pts: { A: 200, B: 340, C: 90 }, lines: ['OA', 'OB', 'CA', 'CB', 'AB'], labels: [{ at: 'C', text: `${x}°`, to: 'O', r: 24 }] }); return { q: nts(T(`In the diagram, $O$ is the centre and $\\angle ACB = ${x}^\\circ$. Find (a) $\\angle AOB$, (b) $\\angle OAB$, (c) $\\angle OBA$.`, `Dalam rajah, $O$ ialah pusat dan $\\angle ACB = ${x}^\\circ$. Cari (a) $\\angle AOB$, (b) $\\angle OAB$, (c) $\\angle OBA$.`)), fig, a: T(`(a) $${2 * x}^\\circ$ (b) $${(180 - 2 * x) / 2}^\\circ$ (c) $${(180 - 2 * x) / 2}^\\circ$ (triangle $OAB$ is isosceles: $(180 - ${2 * x}) \\div 2$)`, `(a) $${2 * x}^\\circ$ (b) $${(180 - 2 * x) / 2}^\\circ$ (c) $${(180 - 2 * x) / 2}^\\circ$ (segi tiga $OAB$ sama kaki: $(180 - ${2 * x}) \\div 2$)`), sp: 'l' }; },
+      (r) => { const x = r.int(10, 30), a = r.int(2, 4), c1 = r.int(5, 20), b = r.int(1, 3); need(a !== b); const inscribed = a * x + c1; need(inscribed > 15 && inscribed < 80); const central = 2 * inscribed; const rhs = b * x - c1; return { q: T(`In a circle with centre $O$, $\\angle ACB = (${a}x + ${c1})^\\circ$ and $\\angle AOB = (${2 * a}x + ${2 * c1})^\\circ$ where $A$, $B$, $C$ are on the circle. Given that $x = ${x}$, find $\\angle ACB$ and $\\angle AOB$, and verify that $\\angle AOB = 2\\angle ACB$.`, `Dalam sebuah bulatan berpusat $O$, $\\angle ACB = (${a}x + ${c1})^\\circ$ dan $\\angle AOB = (${2 * a}x + ${2 * c1})^\\circ$ dengan $A$, $B$, $C$ pada bulatan. Diberi $x = ${x}$, cari $\\angle ACB$ dan $\\angle AOB$, dan sahkan bahawa $\\angle AOB = 2\\angle ACB$.`), a: T(`$\\angle ACB = ${inscribed}^\\circ$; $\\angle AOB = ${central}^\\circ$; indeed $${central} = 2 \\times ${inscribed}$`, `$\\angle ACB = ${inscribed}^\\circ$; $\\angle AOB = ${central}^\\circ$; memang $${central} = 2 \\times ${inscribed}$`), sp: 'm' }; },
+      (r) => { return { q: T('Using the fact that a radius is constant, explain (with reference to isosceles triangles $OAC$ and $OBC$) why the angle at the centre $\\angle AOB$ is twice the angle at the circumference $\\angle ACB$, for the case where $O$ lies inside triangle $ABC$.', 'Menggunakan hakikat bahawa jejari adalah malar, terangkan (dengan merujuk kepada segi tiga sama kaki $OAC$ dan $OBC$) mengapa sudut pada pusat $\\angle AOB$ adalah dua kali sudut pada lilitan $\\angle ACB$, bagi kes $O$ terletak di dalam segi tiga $ABC$.'), a: T('Let $\\angle OCA = \\angle OAC = p$ and $\\angle OCB = \\angle OBC = q$ (base angles of isosceles triangles, since $OA = OB = OC$, all radii). The exterior angle of each isosceles triangle at $O$ equals the sum of the two equal base angles: $\\angle AOX = 2p$ and $\\angle BOX = 2q$ for the appropriate exterior angles, so $\\angle AOB = 2p + 2q = 2(p+q) = 2\\angle ACB$.', 'Katakan $\\angle OCA = \\angle OAC = p$ dan $\\angle OCB = \\angle OBC = q$ (sudut tapak segi tiga sama kaki, kerana $OA = OB = OC$, semuanya jejari). Sudut peluaran setiap segi tiga sama kaki di $O$ sama dengan hasil tambah dua sudut tapak yang sama: $\\angle AOX = 2p$ dan $\\angle BOX = 2q$ bagi sudut peluaran yang berkenaan, maka $\\angle AOB = 2p + 2q = 2(p+q) = 2\\angle ACB$.'), sp: 'l' }; },
+      (r) => { const x = r.int(20, 60); const y = r.chance(0.4) ? 180 - x : r.int(95, 150); need(y >= 95 && y <= 160); const fig = cfig({ pts: { A: 160, B: 20, C: 280, D: 90 }, lines: ['OA', 'OB', 'CA', 'CB', 'DA', 'DB'], labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }, { at: 'D', text: `${y}°`, to: ['A', 'B'], r: 22 }] }); return { q: nts(T(`In the diagram, $O$ is the centre. $C$ is on the major arc and $D$ is on the minor arc of $AB$. $\\angle ACB = ${x}^\\circ$ and $\\angle ADB = ${y}^\\circ$. Find the reflex angle $\\angle AOB$ using each of $\\angle ACB$ and $\\angle ADB$, and comment on whether the two results are consistent.`, `Dalam rajah, $O$ ialah pusat. $C$ pada lengkok major dan $D$ pada lengkok minor bagi $AB$. $\\angle ACB = ${x}^\\circ$ dan $\\angle ADB = ${y}^\\circ$. Cari sudut refleks $\\angle AOB$ menggunakan setiap satu daripada $\\angle ACB$ dan $\\angle ADB$, dan komen sama ada kedua-dua hasil itu konsisten.`)), fig, a: T(`From $C$ (major arc): the non-reflex $\\angle AOB = ${2 * x}^\\circ$, so reflex $\\angle AOB = 360 - ${2 * x} = ${360 - 2 * x}^\\circ$. From $D$ (minor arc): reflex $\\angle AOB = ${2 * y}^\\circ$ directly. These are consistent only if $${360 - 2 * x} = ${2 * y}$, i.e. $\\angle ACB + \\angle ADB = 180^\\circ$; here $\\angle ACB + \\angle ADB = ${x + y}^\\circ$, so the two given angles ${x + y === 180 ? 'are' : 'are not'} consistent with a single diagram.`, `Dari $C$ (lengkok major): sudut (bukan refleks) $\\angle AOB = ${2 * x}^\\circ$, maka sudut refleks $\\angle AOB = 360 - ${2 * x} = ${360 - 2 * x}^\\circ$. Dari $D$ (lengkok minor): sudut refleks $\\angle AOB = ${2 * y}^\\circ$ secara terus. Kedua-duanya konsisten hanya jika $${360 - 2 * x} = ${2 * y}$, iaitu $\\angle ACB + \\angle ADB = 180^\\circ$; di sini $\\angle ACB + \\angle ADB = ${x + y}^\\circ$, maka kedua-dua sudut yang diberi ${x + y === 180 ? 'adalah' : 'bukan'} konsisten dengan satu rajah.`), sp: 'l' }; },
+    ];
+    CASES_A.push((r) => {
+      const x = r.int(95, 155);
+      const nonRefl = 360 - 2 * x, base = x - 90;
+      need(Number.isInteger(base) && base > 0 && nonRefl > 20 && nonRefl < 180);
+      const fig = cfig({ pts: { A: 200, B: 340, C: 270 }, lines: ['OA', 'OB', 'CA', 'CB'], labels: [{ at: 'C', text: `${x}°`, to: ['A', 'B'], r: 22 }] });
+      return { q: nts(T(`In the diagram, $O$ is the centre and $C$ lies on the minor arc $AB$, so $\\angle ACB = ${x}^\\circ$ is obtuse. Find (a) the reflex angle $\\angle AOB$, (b) the (non-reflex) angle $\\angle AOB$, (c) $\\angle OAB$.`, `Dalam rajah, $O$ ialah pusat dan $C$ terletak pada lengkok minor $AB$, maka $\\angle ACB = ${x}^\\circ$ adalah cakah. Cari (a) sudut refleks $\\angle AOB$, (b) sudut (bukan refleks) $\\angle AOB$, (c) $\\angle OAB$.`)), fig, a: T(`(a) $${2 * x}^\\circ$ (centre = 2 × circumference, for the major arc subtended by $\\angle ACB$) (b) $${nonRefl}^\\circ$ (angles at $O$ sum to $360^\\circ$) (c) $${base}^\\circ$ (triangle $OAB$ isosceles: $(180 - ${nonRefl}) \\div 2$)`, `(a) $${2 * x}^\\circ$ (pusat = 2 × lilitan, bagi lengkok major yang dicangkum oleh $\\angle ACB$) (b) $${nonRefl}^\\circ$ (sudut di $O$ berjumlah $360^\\circ$) (c) $${base}^\\circ$ (segi tiga $OAB$ sama kaki: $(180 - ${nonRefl}) \\div 2$)`), sp: 'l' };
+    });
+    const a = CASES_A.slice();
+    a.push(genCF(CASES_E), genCF(CASES_M));
+
+    return { e, m, a };
+  })());
+
+  /* ===================================================================== 6.2 Cyclic quadrilaterals */
+  RSN.coInt = T('co-interior angles between parallel lines sum to $180^\\circ$', 'sudut dalam sehala antara garis selari berjumlah $180^\\circ$');
+  ALL_REASONS.push(RSN.coInt);
+  /** cyclic quadrilateral ABCD (in cyclic order), optionally with side DC produced to E. */
+  function qfig(ext) {
+    const fig = cfig({ pts: { A: 150, B: 60, C: 340, D: 240 }, lines: ['AB', 'BC', 'CD', 'DA'], showO: false, extra: ext ? (P) => S.line(P.C[0], P.C[1], P.C[0] + 40, P.C[1] - 8) + S.text(P.C[0] + 55, P.C[1] - 10, 'E', { i: true }) : undefined });
+    return fig;
+  }
+  SPM.extend('F3-6.2', (function () {
+    const CASES_E = [
+      (r) => { const a2 = r.int(60, 120); return mkCase(`$ABCD$ is a cyclic quadrilateral with $\\angle DAB = ${a2}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran dengan $\\angle DAB = ${a2}^\\circ$.`, '$\\angle BCD$', '$\\angle BCD$', '\\angle BCD', 180 - a2, '^\\circ', RSN.cycOpp, qfig(false), 's'); },
+      (r) => { const b = r.int(50, 130); return mkCase(`$ABCD$ is a cyclic quadrilateral with $\\angle ABC = ${b}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran dengan $\\angle ABC = ${b}^\\circ$.`, '$\\angle ADC$', '$\\angle ADC$', '\\angle ADC', 180 - b, '^\\circ', RSN.cycOpp, qfig(false), 's'); },
+      (r) => { const a2 = r.int(60, 120); return mkCase(`$ABCD$ is a cyclic quadrilateral, and side $DC$ is produced to a point $E$. $\\angle DAB = ${a2}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran, dan sisi $DC$ dipanjangkan ke satu titik $E$. $\\angle DAB = ${a2}^\\circ$.`, 'the exterior angle $\\angle BCE$', 'sudut peluaran $\\angle BCE$', '\\angle BCE', a2, '^\\circ', RSN.cycExt, qfig(true), 's'); },
+      (r) => { const e2 = r.int(60, 120); return mkCase(`$ABCD$ is a cyclic quadrilateral, and side $DC$ is produced to $E$. The exterior angle $\\angle BCE = ${e2}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran, dan sisi $DC$ dipanjangkan ke $E$. Sudut peluaran $\\angle BCE = ${e2}^\\circ$.`, 'the interior opposite angle $\\angle DAB$', 'sudut pedalaman bertentangan $\\angle DAB$', '\\angle DAB', e2, '^\\circ', RSN.cycExt, qfig(true), 's'); },
+      (r) => { const y = r.int(20, 80); return mkCase(`$A$, $B$, $C$, $D$ lie on a circle with centre $O$ in that cyclic order. Taking the arc $BD$ that passes through $C$ (not through $A$), the angle it subtends at the centre is $\\angle BOD = ${2 * y}^\\circ$.`, `$A$, $B$, $C$, $D$ terletak pada satu bulatan berpusat $O$ mengikut turutan kitaran itu. Dengan mengambil lengkok $BD$ yang melalui $C$ (bukan melalui $A$), sudut yang dicangkumnya di pusat ialah $\\angle BOD = ${2 * y}^\\circ$.`, '$\\angle BAD$', '$\\angle BAD$', '\\angle BAD', y, '^\\circ', RSN.c2i, null, 's'); },
+      (r) => { const b = r.int(60, 120); return mkCase(`$ABCD$ is a cyclic quadrilateral with $AB \\parallel DC$. $\\angle DAB = ${b}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran dengan $AB \\parallel DC$. $\\angle DAB = ${b}^\\circ$.`, '$\\angle ADC$', '$\\angle ADC$', '\\angle ADC', 180 - b, '^\\circ', RSN.coInt, null, 's'); },
+    ];
+    const e = [genCF(CASES_E)];
+    e.push((r) => {
+      const a2 = r.int(50, 130), c2 = r.int(50, 130);
+      const cyclic = a2 + c2 === 180;
+      return { q: T(`A quadrilateral $PQRS$ has $\\angle QPS = ${a2}^\\circ$ and $\\angle QRS = ${c2}^\\circ$. Could $P$, $Q$, $R$, $S$ all lie on one circle (i.e. is $PQRS$ a cyclic quadrilateral)? Give a reason.`, `Sebuah sisi empat $PQRS$ mempunyai $\\angle QPS = ${a2}^\\circ$ dan $\\angle QRS = ${c2}^\\circ$. Bolehkah $P$, $Q$, $R$, $S$ semuanya terletak pada satu bulatan (iaitu $PQRS$ ialah sisi empat kitaran)? Berikan sebab.`), a: cyclic
+        ? T(`Yes, it could be; $\\angle QPS + \\angle QRS = ${a2 + c2}^\\circ = 180^\\circ$, satisfying the opposite-angle condition for a cyclic quadrilateral.`, `Ya, boleh; $\\angle QPS + \\angle QRS = ${a2 + c2}^\\circ = 180^\\circ$, memenuhi syarat sudut bertentangan bagi sisi empat kitaran.`)
+        : T(`No; $\\angle QPS + \\angle QRS = ${a2 + c2}^\\circ \\neq 180^\\circ$, so $P$, $Q$, $R$, $S$ cannot all lie on one circle (opposite angles of a cyclic quadrilateral must sum to $180^\\circ$).`, `Tidak; $\\angle QPS + \\angle QRS = ${a2 + c2}^\\circ \\neq 180^\\circ$, maka $P$, $Q$, $R$, $S$ tidak boleh semuanya terletak pada satu bulatan (sudut bertentangan sisi empat kitaran mesti berjumlah $180^\\circ$).`), sp: 'm' };
+    });
+    e.push((r) => {
+      const a2 = r.int(60, 120);
+      const rows = SPM.table([['$\\angle DAB$', `$${a2}^\\circ$`], ['$\\angle BCD$', '?']], { rowHead: true });
+      return { q: T(`$ABCD$ is a cyclic quadrilateral. The table shows one pair of opposite angles. Complete the table.<br>${rows}`, `$ABCD$ ialah sisi empat kitaran. Jadual menunjukkan sepasang sudut bertentangan. Lengkapkan jadual itu.<br>${rows}`), fig: qfig(false), a: T(`$\\angle BCD = ${180 - a2}^\\circ$`), sp: 's' };
+    });
+
+    const CASES_M = [
+      (r) => { const c2 = r.int(65, 115); return mkCase(`$ABCD$ is a cyclic quadrilateral and $DC$ is produced to $E$. $\\angle DAB = ${c2}^\\circ$, and $O$ is the centre of the circle.`, `$ABCD$ ialah sisi empat kitaran dan $DC$ dipanjangkan ke $E$. $\\angle DAB = ${c2}^\\circ$, dan $O$ ialah pusat bulatan.`, '$\\angle BCE + \\angle BCD$', '$\\angle BCE + \\angle BCD$', '\\angle BCE + \\angle BCD', 180, '^\\circ', T('$\\angle BCE$ and $\\angle BCD$ are angles on a straight line $DCE$', '$\\angle BCE$ dan $\\angle BCD$ ialah sudut pada garis lurus $DCE$'), qfig(true), 's', [90, 270, 360]); },
+      (r) => { const x = r.int(30, 70), y = r.int(20, 70); need(x !== y); return mkCase(`$ABCD$ is a cyclic quadrilateral. $\\angle DAB = ${x}^\\circ$ and $\\angle ABC = ${y}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran. $\\angle DAB = ${x}^\\circ$ dan $\\angle ABC = ${y}^\\circ$.`, '$\\angle BCD + \\angle CDA$', '$\\angle BCD + \\angle CDA$', '\\angle BCD + \\angle CDA', 360 - x - y, '^\\circ', T(`$\\angle BCD = 180 - ${x}$ and $\\angle CDA = 180 - ${y}$ (opposite angles), so their sum is $360 - ${x} - ${y}$`, `$\\angle BCD = 180 - ${x}$ dan $\\angle CDA = 180 - ${y}$ (sudut bertentangan), maka jumlahnya ialah $360 - ${x} - ${y}$`), qfig(false), 'm'); },
+      (r) => { const p = r.int(2, 4), c1 = r.int(10, 40), q = r.int(1, 3); need(p !== q); const x = r.int(15, 35); const A1 = p * x + c1; const c2 = 180 - A1 - q * x; need(Number.isInteger(c2) && A1 > 30 && A1 < 150 && (180 - A1) > 20); return mkCase(`In a cyclic quadrilateral, two opposite angles are $(${p}x + ${c1})^\\circ$ and $(${q}x ${c2 >= 0 ? '+ ' + c2 : '- ' + (-c2)})^\\circ$. It is known that $x = ${x}$.`, `Dalam sebuah sisi empat kitaran, dua sudut bertentangan ialah $(${p}x + ${c1})^\\circ$ dan $(${q}x ${c2 >= 0 ? '+ ' + c2 : '- ' + (-c2)})^\\circ$. Diketahui $x = ${x}$.`, 'the larger of the two opposite angles', 'sudut yang lebih besar antara dua sudut bertentangan itu', '\\text{Larger angle}', Math.max(A1, 180 - A1), '^\\circ', RSN.cycOpp, null, 'm'); },
+      (r) => { const a2 = r.int(70, 110); return mkCase(`$ABCD$ is a cyclic quadrilateral with $AB \\parallel DC$. $\\angle ABC = ${a2}^\\circ$.`, `$ABCD$ ialah sisi empat kitaran dengan $AB \\parallel DC$. $\\angle ABC = ${a2}^\\circ$.`, '$\\angle BCD$', '$\\angle BCD$', '\\angle BCD', 180 - a2, '^\\circ', RSN.coInt, qfig(false), 'm'); },
+    ];
+    const m = [genCF(CASES_M)];
+    m.push((r) => {
+      const a2 = r.int(60, 110), b = r.int(50, 110);
+      need(Math.abs(a2 - b) > 3);
+      return { q: nts(T(`$ABCD$ is a cyclic quadrilateral with $\\angle DAB = ${a2}^\\circ$. A student also measures $\\angle BCD = ${b}^\\circ$ in the same diagram. Explain why this cannot both be correct.`, `$ABCD$ ialah sisi empat kitaran dengan $\\angle DAB = ${a2}^\\circ$. Seorang murid turut mengukur $\\angle BCD = ${b}^\\circ$ dalam rajah yang sama. Terangkan mengapa kedua-duanya tidak boleh betul serentak.`)), fig: qfig(false), a: T(`Opposite angles of a cyclic quadrilateral must sum to $180^\\circ$, but $${a2} + ${b} = ${a2 + b}^\\circ \\neq 180^\\circ$, so the two measurements are inconsistent; the correct $\\angle BCD$ should be $${180 - a2}^\\circ$.`, `Sudut bertentangan sisi empat kitaran mesti berjumlah $180^\\circ$, tetapi $${a2} + ${b} = ${a2 + b}^\\circ \\neq 180^\\circ$, maka kedua-dua ukuran itu tidak konsisten; $\\angle BCD$ yang betul sepatutnya $${180 - a2}^\\circ$.`), sp: 'm' };
+    });
+
+    const CASES_A = [
+      (r) => { const x = r.int(10, 30), a2 = r.int(2, 4), c1 = r.int(5, 20), b = r.int(1, 3); const c2 = 180 - a2 * x - c1 - b * x; need(Math.abs(c2) < 40 && a2 !== b && (a2 * x + c1) > 20 && (a2 * x + c1) < 160); return { q: T(`In a cyclic quadrilateral, two opposite angles are $(${lin(a2, c1)})^\\circ$ and $(${lin(b, c2)})^\\circ$. Find $x$ and the two angles.`, `Dalam sebuah sisi empat kitaran, dua sudut bertentangan ialah $(${lin(a2, c1)})^\\circ$ dan $(${lin(b, c2)})^\\circ$. Cari $x$ dan kedua-dua sudut itu.`), a: T(`$x = ${x}$; angles $${a2 * x + c1}^\\circ$ and $${b * x + c2}^\\circ$`, `$x = ${x}$; sudut $${a2 * x + c1}^\\circ$ dan $${b * x + c2}^\\circ$`), sp: 'm' }; },
+      (r) => { const x = r.int(20, 80); return { q: nts(T(`$A$, $B$, $C$, $D$ lie on a circle with centre $O$ in that cyclic order, and $\\angle BAD = ${x}^\\circ$. Find (a) $\\angle BCD$, (b) the non-reflex angle $\\angle BOD$ (the one subtending arc $BCD$), (c) the reflex angle $\\angle BOD$ (the one subtending arc $BAD$).`, `$A$, $B$, $C$, $D$ terletak pada satu bulatan berpusat $O$ mengikut turutan kitaran itu, dan $\\angle BAD = ${x}^\\circ$. Cari (a) $\\angle BCD$, (b) sudut bukan refleks $\\angle BOD$ (yang mencangkum lengkok $BCD$), (c) sudut refleks $\\angle BOD$ (yang mencangkum lengkok $BAD$).`)), a: T(`(a) $${180 - x}^\\circ$ (opposite angles) (b) $${2 * x}^\\circ$ (centre = 2 × circumference: arc $BCD$ is subtended by $\\angle BAD$, on the other arc) (c) $${360 - 2 * x}^\\circ$ (angles at $O$ sum to $360^\\circ$; or directly $2 \\times ${180 - x}$, since arc $BAD$ is subtended by $\\angle BCD$)`, `(a) $${180 - x}^\\circ$ (sudut bertentangan) (b) $${2 * x}^\\circ$ (pusat = 2 × lilitan: lengkok $BCD$ dicangkum oleh $\\angle BAD$, pada lengkok yang satu lagi) (c) $${360 - 2 * x}^\\circ$ (sudut di $O$ berjumlah $360^\\circ$; atau terus $2 \\times ${180 - x}$, kerana lengkok $BAD$ dicangkum oleh $\\angle BCD$)`), sp: 'l' }; },
+      (r) => { return { q: T('$ABCD$ is a cyclic quadrilateral. Prove, using the angle-at-centre theorem, that $\\angle BAD + \\angle BCD = 180^\\circ$.', '$ABCD$ ialah sisi empat kitaran. Buktikan, menggunakan teorem sudut pada pusat, bahawa $\\angle BAD + \\angle BCD = 180^\\circ$.'), a: T('Let $O$ be the centre. Arc $BAD$ (through $A$) and arc $BCD$ (through $C$) together make up the whole circle, so the two angles they subtend at $O$ sum to $360^\\circ$. The angle at $O$ subtended by arc $BAD$ equals $2\\angle BCD$ (centre = 2 × circumference, since $\\angle BCD$ stands on the other arc, $BAD$). Likewise, the angle at $O$ subtended by arc $BCD$ equals $2\\angle BAD$. Adding: $2\\angle BCD + 2\\angle BAD = 360^\\circ$, so $\\angle BAD + \\angle BCD = 180^\\circ$.', 'Katakan $O$ ialah pusat. Lengkok $BAD$ (melalui $A$) dan lengkok $BCD$ (melalui $C$) bersama-sama membentuk keseluruhan bulatan, maka dua sudut yang dicangkumnya di $O$ berjumlah $360^\\circ$. Sudut di $O$ yang dicangkum oleh lengkok $BAD$ adalah $2\\angle BCD$ (pusat = 2 × lilitan, kerana $\\angle BCD$ berada pada lengkok yang satu lagi, iaitu $BAD$). Begitu juga, sudut di $O$ yang dicangkum oleh lengkok $BCD$ adalah $2\\angle BAD$. Menambah: $2\\angle BCD + 2\\angle BAD = 360^\\circ$, maka $\\angle BAD + \\angle BCD = 180^\\circ$.'), sp: 'l' }; },
+    ];
+    const a = CASES_A.slice();
+    a.push(genCF(CASES_E), genCF(CASES_M));
+
+    return { e, m, a };
+  })());
+
+  /* ===================================================================== 6.3 Tangents to circles */
+  const TRIPLES = [[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17], [9, 12, 15], [7, 24, 25], [10, 24, 26], [20, 21, 29], [12, 16, 20], [15, 20, 25]];
+  /** circle, radius OT (vertical, downward), horizontal tangent through T, external point P on the tangent; withChord adds chord TA. */
+  function tfig(withChord) {
+    const w = 240, h = 200, cx = 120, cy = 65, R = 55;
+    const Tp = [cx, cy + R];
+    let out = S.circle(cx, cy, R) + S.dot(cx, cy, 2.4) + S.text(cx, cy - 12, 'O', { i: true });
+    out += S.line(cx, cy, Tp[0], Tp[1]);
+    out += S.line(Tp[0] - 65, Tp[1], Tp[0] + 90, Tp[1]);
+    out += S.dot(Tp[0], Tp[1], 2.4) + S.text(Tp[0] - 12, Tp[1] + 4, 'T', { i: true });
+    const Pp = [Tp[0] + 70, Tp[1]];
+    out += S.dot(Pp[0], Pp[1], 2.4) + S.text(Pp[0] + 12, Pp[1], 'P', { i: true });
+    if (withChord) { const A2 = [cx - R * Math.cos(rad(35)), cy + R * Math.sin(rad(35))]; out += S.line(Tp[0], Tp[1], A2[0], A2[1]) + S.dot(A2[0], A2[1], 2.4) + S.text(A2[0] - 12, A2[1], 'A', { i: true }); }
+    return S.wrap(w, h, out, 'tangent to a circle');
+  }
+  SPM.extend('F3-6.3', (function () {
+    const CASES_E = [
+      (r) => { const x = r.int(20, 65); return mkCase(`$PT$ is a tangent to a circle at $T$, and $O$ is the centre. $\\angle TOP = ${x}^\\circ$.`, `$PT$ ialah tangen kepada sebuah bulatan di $T$, dan $O$ ialah pusat. $\\angle TOP = ${x}^\\circ$.`, '$\\angle OPT$', '$\\angle OPT$', '\\angle OPT', 90 - x, '^\\circ', RSN.tanRad, tfig(false), 's'); },
+      (r) => { const y = r.int(15, 60); return mkCase(`$PT$ is a tangent to a circle at $T$, and $O$ is the centre. $\\angle OPT = ${y}^\\circ$.`, `$PT$ ialah tangen kepada sebuah bulatan di $T$, dan $O$ ialah pusat. $\\angle OPT = ${y}^\\circ$.`, '$\\angle TOP$', '$\\angle TOP$', '\\angle TOP', 90 - y, '^\\circ', RSN.tanRad, tfig(false), 's'); },
+      (r) => { const [rr, t, d] = r.pick(TRIPLES); return mkCase(`$P$ is a point ${d} cm from the centre $O$ of a circle of radius ${rr} cm. A tangent $PT$ touches the circle at $T$.`, `$P$ ialah satu titik yang berjarak ${d} cm dari pusat $O$ sebuah bulatan berjejari ${rr} cm. Tangen $PT$ menyentuh bulatan di $T$.`, 'the length of $PT$', 'panjang $PT$', 'PT', t, '\\ \\text{cm}', RSN.pyth, tfig(false), 's', lenDist(t)); },
+      (r) => { const [rr, t, d] = r.pick(TRIPLES); return mkCase(`A tangent $PT$ touches a circle of radius ${rr} cm at $T$, and $PT = ${t}$ cm.`, `Tangen $PT$ menyentuh sebuah bulatan berjejari ${rr} cm di $T$, dan $PT = ${t}$ cm.`, 'the distance $OP$ from the centre $O$ to $P$', 'jarak $OP$ dari pusat $O$ ke $P$', 'OP', d, '\\ \\text{cm}', RSN.pyth, tfig(false), 's', lenDist(d)); },
+      (r) => { const t = r.int(5, 15), c1 = r.int(6, 12); need(2 * t + c1 !== c1); return mkCase(`Tangents $PA$ and $PB$ are drawn from an external point $P$ to a circle, touching it at $A$ and $B$. $PA = ${t}$ cm and chord $AB = ${c1}$ cm.`, `Tangen $PA$ dan $PB$ dilukis dari satu titik luar $P$ ke sebuah bulatan, menyentuhnya di $A$ dan $B$. $PA = ${t}$ cm dan perentas $AB = ${c1}$ cm.`, 'the perimeter of triangle $PAB$', 'perimeter segi tiga $PAB$', '\\text{Perimeter}', 2 * t + c1, '\\ \\text{cm}', RSN.eqTan, kiteFig(null, null), 's'); },
+      (r) => { const y = r.int(25, 75); return mkCase(`$TP$ is a tangent to a circle at $T$, and $TA$ is a chord. The angle between the tangent $TP$ and the chord $TA$ is $${y}^\\circ$.`, `$TP$ ialah tangen kepada sebuah bulatan di $T$, dan $TA$ ialah perentas. Sudut antara tangen $TP$ dan perentas $TA$ ialah $${y}^\\circ$.`, 'the angle in the alternate segment, $\\angle TBA$ (for a point $B$ in the alternate segment)', 'sudut dalam tembereng berselang-seli, $\\angle TBA$ (bagi satu titik $B$ dalam tembereng berselang-seli)', '\\angle TBA', y, '^\\circ', RSN.altSeg, tfig(true), 's'); },
+    ];
+    const e = [genCF(CASES_E)];
+    e.push((r) => {
+      const line = r.pick([
+        [T('a line that touches a circle at exactly one point', 'satu garis yang menyentuh bulatan tepat pada satu titik'), T('tangent', 'tangen')],
+        [T('a line that cuts through a circle at two points', 'satu garis yang memotong bulatan pada dua titik'), T('secant (chord extended), not a tangent', 'secan (perentas dipanjangkan), bukan tangen')],
+        [T('a line perpendicular to a radius at its endpoint on the circle', 'satu garis berserenjang dengan jejari pada hujungnya di bulatan'), T('tangent', 'tangen')],
+      ]);
+      return { q: T(`What do we call ${line[0].en}?`, `Apakah nama bagi ${line[0].ms}?`), a: line[1], sp: 's' };
+    });
+
+    const CASES_M = [
+      (r) => { const x = r.int(50, 130); return mkCase(`Tangents $PA$ and $PB$ touch a circle with centre $O$ at $A$ and $B$. $\\angle APB = ${x}^\\circ$.`, `Tangen $PA$ dan $PB$ menyentuh sebuah bulatan berpusat $O$ di $A$ dan $B$. $\\angle APB = ${x}^\\circ$.`, '$\\angle AOB$', '$\\angle AOB$', '\\angle AOB', 180 - x, '^\\circ', RSN.kite, kiteFig(null, `${x}°`), 'm'); },
+      (r) => { const x = r.int(50, 130); need((180 - x) % 2 === 0); return mkCase(`Tangents $PA$ and $PB$ touch a circle with centre $O$ at $A$ and $B$. $\\angle APB = ${x}^\\circ$; $OAPB$ is a kite.`, `Tangen $PA$ dan $PB$ menyentuh sebuah bulatan berpusat $O$ di $A$ dan $B$. $\\angle APB = ${x}^\\circ$; $OAPB$ ialah layang-layang.`, '$\\angle OAB$', '$\\angle OAB$', '\\angle OAB', (180 - x) / 2, '^\\circ', T(`$\\angle AOB = 180 - ${x}$ (kite $OAPB$); triangle $OAB$ isosceles ($OA = OB$), so $\\angle OAB = (180 - ${180 - x}) \\div 2$`, `$\\angle AOB = 180 - ${x}$ (layang-layang $OAPB$); segi tiga $OAB$ sama kaki ($OA = OB$), maka $\\angle OAB = (180 - ${180 - x}) \\div 2$`), kiteFig(null, `${x}°`), 'm'); },
+      (r) => { const [rr, t, d] = r.pick(TRIPLES); const k = r.int(2, 4); return mkCase(`Tangents $PA$ and $PB$ from an external point $P$ touch a circle of radius ${rr} cm at $A$ and $B$, with $PA = ${t}$ cm.`, `Tangen $PA$ dan $PB$ dari satu titik luar $P$ menyentuh sebuah bulatan berjejari ${rr} cm di $A$ dan $B$, dengan $PA = ${t}$ cm.`, 'the distance $OP$', 'jarak $OP$', 'OP', d, '\\ \\text{cm}', T('$PB = PA$ (equal tangents), and $OA \\perp PA$, so $OP^2 = OA^2 + PA^2$ (Pythagoras)', '$PB = PA$ (tangen sama panjang), dan $OA \\perp PA$, maka $OP^2 = OA^2 + PA^2$ (Pythagoras)'), tfig(false), 'm'); },
+      (r) => { const y = r.int(25, 75); const z = r.int(15, 70); need(y !== z && y + z < 175); return mkCase(`$TP$ is a tangent at $T$ and $TA$, $TB$ are two chords, with $A$ and $B$ on the same arc on the opposite side of $TA$, $TB$ from $P$. The angle between $TP$ and $TA$ is $${y}^\\circ$, and the angle between $TA$ and $TB$ is $${z}^\\circ$.`, `$TP$ ialah tangen di $T$ dan $TA$, $TB$ ialah dua perentas, dengan $A$ dan $B$ pada lengkok yang sama di sebelah bertentangan $TA$, $TB$ daripada $P$. Sudut antara $TP$ dan $TA$ ialah $${y}^\\circ$, dan sudut antara $TA$ dan $TB$ ialah $${z}^\\circ$.`, 'the angle between $TP$ and $TB$', 'sudut antara $TP$ dan $TB$', '\\angle PTB', y + z, '^\\circ', T('the angle between $TP$ and $TB$ is the sum of the angle between $TP$ and $TA$ and the angle between $TA$ and $TB$', 'sudut antara $TP$ dan $TB$ ialah hasil tambah sudut antara $TP$ dan $TA$ dengan sudut antara $TA$ dan $TB$'), null, 'm'); },
+    ];
+    const m = [genCF(CASES_M)];
+    m.push((r) => {
+      const [rr, t, d] = r.pick(TRIPLES);
+      const wrong = d + r.pick([-2, -1, 1, 2].filter((k) => k !== 0));
+      return { q: T(`A circle has radius ${rr} cm. A point $P$ is ${wrong} cm from the centre $O$. A student claims a tangent from $P$ to the circle has length ${t} cm. Check this claim.`, `Sebuah bulatan berjejari ${rr} cm. Satu titik $P$ berjarak ${wrong} cm dari pusat $O$. Seorang murid mendakwa tangen dari $P$ ke bulatan itu panjangnya ${t} cm. Semak dakwaan ini.`), a: T(`If $OP = ${wrong}$ cm, the tangent length would be $\\sqrt{${wrong}^2 - ${rr}^2}$ cm $= ${n(round(Math.sqrt(wrong * wrong - rr * rr), 2))}$ cm, not ${t} cm; the claim is only correct if $OP = ${d}$ cm.`, `Jika $OP = ${wrong}$ cm, panjang tangen sepatutnya $\\sqrt{${wrong}^2 - ${rr}^2}$ cm $= ${n(round(Math.sqrt(wrong * wrong - rr * rr), 2))}$ cm, bukan ${t} cm; dakwaan ini betul hanya jika $OP = ${d}$ cm.`), sp: 'm' };
+    });
+
+    const CASES_A = [
+      (r) => { const [rr, t, d] = r.pick(TRIPLES); const x = r.int(20, 65); need((90 - x) !== 0); return { q: nts(T(`$PT$ is a tangent to a circle of radius ${rr} cm at $T$, $O$ is the centre, $OP = ${d}$ cm, and $\\angle TPO = ${x}^\\circ$. Verify, using Pythagoras' theorem, that $PT = ${t}$ cm, then find $\\angle TOP$.`, `$PT$ ialah tangen kepada sebuah bulatan berjejari ${rr} cm di $T$, $O$ ialah pusat, $OP = ${d}$ cm, dan $\\angle TPO = ${x}^\\circ$. Sahkan, menggunakan teorem Pythagoras, bahawa $PT = ${t}$ cm, kemudian cari $\\angle TOP$.`)), fig: tfig(false), a: T(`$PT^2 = ${d}^2 - ${rr}^2 = ${d * d - rr * rr}$, so $PT = ${t}$ cm (verified); $\\angle TOP = 90 - ${x} = ${90 - x}^\\circ$ (angle sum of right-angled triangle $OTP$)`, `$PT^2 = ${d}^2 - ${rr}^2 = ${d * d - rr * rr}$, maka $PT = ${t}$ cm (disahkan); $\\angle TOP = 90 - ${x} = ${90 - x}^\\circ$ (jumlah sudut segi tiga bersudut tegak $OTP$)`), sp: 'm' }; },
+      (r) => { const x = r.int(40, 130); return { q: nts(T(`Tangents $PA$ and $PB$ touch a circle with centre $O$ at $A$ and $B$. $\\angle APB = ${x}^\\circ$. Find (a) $\\angle AOB$, (b) $\\angle OAB$, (c) explain why $A$, $O$, $B$, $P$ lie on a circle with diameter $OP$.`, `Tangen $PA$ dan $PB$ menyentuh sebuah bulatan berpusat $O$ di $A$ dan $B$. $\\angle APB = ${x}^\\circ$. Cari (a) $\\angle AOB$, (b) $\\angle OAB$, (c) terangkan mengapa $A$, $O$, $B$, $P$ terletak pada satu bulatan berdiameter $OP$.`)), a: T(`(a) $${180 - x}^\\circ$ ($OAPB$ is a kite: $90 + 90 + ${x} + \\angle AOB = 360$) (b) $${(x) / 2}^\\circ$ (triangle $OAB$ isosceles: $(180 - ${180 - x}) \\div 2$) (c) $\\angle OAP = \\angle OBP = 90^\\circ$ (tangent $\\perp$ radius); since both $A$ and $B$ see $OP$ at $90^\\circ$, they lie on the circle with diameter $OP$ (angle in a semicircle converse)`, `(a) $${180 - x}^\\circ$ ($OAPB$ ialah layang-layang: $90 + 90 + ${x} + \\angle AOB = 360$) (b) $${(x) / 2}^\\circ$ (segi tiga $OAB$ sama kaki: $(180 - ${180 - x}) \\div 2$) (c) $\\angle OAP = \\angle OBP = 90^\\circ$ (tangen $\\perp$ jejari); kerana $A$ dan $B$ kedua-duanya melihat $OP$ pada $90^\\circ$, mereka terletak pada bulatan berdiameter $OP$ (lawan sudut dalam semibulatan)`), sp: 'l' }; },
+      (r) => { const y = r.int(25, 75); return { q: T(`$TP$ is a tangent to a circle with centre $O$ at $T$, and $TA$ is a chord with $\\angle PTA = ${y}^\\circ$. $B$ is a point in the alternate segment. Prove, using triangle $OTA$ and the angle-at-centre theorem, that $\\angle TBA = ${y}^\\circ$.`, `$TP$ ialah tangen kepada sebuah bulatan berpusat $O$ di $T$, dan $TA$ ialah perentas dengan $\\angle PTA = ${y}^\\circ$. $B$ ialah satu titik dalam tembereng berselang-seli. Buktikan, menggunakan segi tiga $OTA$ dan teorem sudut pada pusat, bahawa $\\angle TBA = ${y}^\\circ$.`), a: T(`Since $OT \\perp TP$ (tangent $\\perp$ radius), $\\angle OTA = 90 - ${y} = ${90 - y}^\\circ$. Triangle $OTA$ is isosceles ($OT = OA$, radii), so $\\angle OAT = \\angle OTA = ${90 - y}^\\circ$. So $\\angle TOA = 180 - 2(${90 - y}) = ${2 * y}^\\circ$ (angle sum of triangle $OTA$). Since $\\angle TOA$ is the angle at the centre on chord $TA$'s minor arc, and $\\angle TBA$ is the angle at the circumference on the same arc from the alternate segment, $\\angle TOA = 2\\angle TBA$, so $\\angle TBA = ${2 * y} \\div 2 = ${y}^\\circ$.`, `Oleh kerana $OT \\perp TP$ (tangen $\\perp$ jejari), $\\angle OTA = 90 - ${y} = ${90 - y}^\\circ$. Segi tiga $OTA$ sama kaki ($OT = OA$, jejari), maka $\\angle OAT = \\angle OTA = ${90 - y}^\\circ$. Maka $\\angle TOA = 180 - 2(${90 - y}) = ${2 * y}^\\circ$ (jumlah sudut segi tiga $OTA$). Oleh kerana $\\angle TOA$ ialah sudut pada pusat bagi lengkok minor perentas $TA$, dan $\\angle TBA$ ialah sudut pada lilitan bagi lengkok yang sama dari tembereng berselang-seli, $\\angle TOA = 2\\angle TBA$, maka $\\angle TBA = ${2 * y} \\div 2 = ${y}^\\circ$.`), sp: 'm' }; },
+    ];
+    const a = CASES_A.slice();
+    a.push(genCF(CASES_E), genCF(CASES_M));
+
+    return { e, m, a };
+  })());
+
+  /* ===================================================================== 6.4 Common tangents */
+  /** two circles (fixed schematic pixel radii) with a common tangent (external or internal), radii shown perpendicular to it. */
+  function ctFig(internal) {
+    const w = 280, h = 170, cx1 = 90, cx2 = 210, cy = 95, r1 = 42, r2 = 26;
+    const Dpx = cx2 - cx1;
+    const s = internal ? r1 + r2 : r1 - r2;
+    const aDeg = (Math.asin(s / Dpx) * 180) / Math.PI;
+    const ang1 = 90 + aDeg, ang2 = internal ? 90 + aDeg + 180 : 90 + aDeg;
+    const P1 = [cx1 + r1 * Math.cos(rad(ang1)), cy - r1 * Math.sin(rad(ang1))];
+    const P2 = [cx2 + r2 * Math.cos(rad(ang2)), cy - r2 * Math.sin(rad(ang2))];
+    let out = S.circle(cx1, cy, r1) + S.circle(cx2, cy, r2);
+    out += S.dot(cx1, cy, 2.2) + S.text(cx1, cy + 15, 'O₁', { i: true, s: 12 });
+    out += S.dot(cx2, cy, 2.2) + S.text(cx2, cy + 15, 'O₂', { i: true, s: 12 });
+    out += S.line(cx1, cy, P1[0], P1[1]) + S.line(cx2, cy, P2[0], P2[1]);
+    const dx = P2[0] - P1[0], dy = P2[1] - P1[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, ext = 26;
+    out += S.line(P1[0] - ux * ext, P1[1] - uy * ext, P2[0] + ux * ext, P2[1] + uy * ext);
+    out += S.dot(P1[0], P1[1], 2.2) + S.text(P1[0] - 10, P1[1] - 6, 'A', { i: true });
+    out += S.dot(P2[0], P2[1], 2.2) + S.text(P2[0] + 10, P2[1] - 6, 'B', { i: true });
+    return S.wrap(w, h, out, 'common tangent to two circles');
+  }
+  SPM.extend('F3-6.4', (function () {
+    const CASES_E = [
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); const t2 = D * D - (R1 - R2) * (R1 - R2); const t = isqrt(t2); need(t !== null); return mkCase(`Two circles of radii ${R1} cm and ${R2} cm have their centres $O_1$ and $O_2$, ${D} cm apart. A common external tangent touches them at $A$ and $B$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat $O_1$ dan $O_2$, berjarak ${D} cm. Satu tangen sepunya luar menyentuhnya di $A$ dan $B$.`, 'the length of $AB$', 'panjang $AB$', 'AB', t, '\\ \\text{cm}', RSN.perpRad, ctFig(false), 's', lenDist(t)); },
+      (r) => { const R = r.int(3, 10), D = r.int(R * 2 + 2, 40); return mkCase(`Two circles, each of radius ${R} cm, have centres $O_1$ and $O_2$ that are ${D} cm apart. A common external tangent touches them at $A$ and $B$.`, `Dua bulatan, masing-masing berjejari ${R} cm, mempunyai pusat $O_1$ dan $O_2$ yang berjarak ${D} cm. Satu tangen sepunya luar menyentuhnya di $A$ dan $B$.`, 'the length of $AB$', 'panjang $AB$', 'AB', D, '\\ \\text{cm}', T('the radii are equal, so $AB = O_1O_2$ directly (the tangent is parallel to the line of centres)', 'jejari adalah sama, maka $AB = O_1O_2$ secara terus (tangen selari dengan garis pusat)'), ctFig(false), 's'); },
+      (r) => { return mkCase('$AB$ is a common tangent to two circles, touching one of them with centre $O_1$ at the point $A$.', '$AB$ ialah tangen sepunya bagi dua bulatan, menyentuh salah satu daripadanya berpusat $O_1$ pada titik $A$.', 'the angle $\\angle O_1AB$', 'sudut $\\angle O_1AB$', '\\angle O_1AB', 90, '^\\circ', RSN.perpRad, null, 's'); },
+      (r) => { let [a2, t, D] = r.pick(TRIPLES); if (a2 % 2 !== 0) { [a2, t] = [t, a2]; } need(a2 % 2 === 0); const R = a2 / 2; return mkCase(`Two circles, each of radius ${R} cm, have a common internal tangent $AB$ of length ${t} cm.`, `Dua bulatan, masing-masing berjejari ${R} cm, mempunyai tangen sepunya dalam $AB$ yang panjangnya ${t} cm.`, 'the distance $O_1O_2$ between their centres', 'jarak $O_1O_2$ antara pusat mereka', 'O_1O_2', D, '\\ \\text{cm}', T(`$O_1O_2^2 = AB^2 + (2R)^2 = ${t}^2 + ${2 * R}^2$ (since $R_1 = R_2 = R$)`, `$O_1O_2^2 = AB^2 + (2R)^2 = ${t}^2 + ${2 * R}^2$ (kerana $R_1 = R_2 = R$)`), ctFig(true), 's', lenDist(D)); },
+      (r) => { const [diff, t, D] = r.pick(TRIPLES); return mkCase(`Two circles have a common external tangent of length ${t} cm, and their centres $O_1$, $O_2$ are ${D} cm apart.`, `Dua bulatan mempunyai tangen sepunya luar yang panjangnya ${t} cm, dan pusat mereka $O_1$, $O_2$ berjarak ${D} cm.`, 'the difference between the two radii, $|R_1 - R_2|$', 'perbezaan antara dua jejari itu, $|R_1 - R_2|$', '|R_1 - R_2|', diff, '\\ \\text{cm}', T(`$|R_1-R_2|^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${diff * diff}$`, `$|R_1-R_2|^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${diff * diff}$`), null, 's'); },
+      (r) => { const [sum, t, D] = r.pick(TRIPLES); return mkCase(`Two circles have a common internal tangent of length ${t} cm, and their centres $O_1$, $O_2$ are ${D} cm apart.`, `Dua bulatan mempunyai tangen sepunya dalam yang panjangnya ${t} cm, dan pusat mereka $O_1$, $O_2$ berjarak ${D} cm.`, 'the sum of the two radii, $R_1 + R_2$', 'hasil tambah dua jejari itu, $R_1 + R_2$', 'R_1 + R_2', sum, '\\ \\text{cm}', T(`$(R_1+R_2)^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${sum * sum}$`, `$(R_1+R_2)^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${sum * sum}$`), null, 's'); },
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); return mkCase(`Two circles of radii ${R1} cm and ${R2} cm have centres $O_1$, $O_2$ that are ${D} cm apart, with $${D} \\gt ${R1} + ${R2}$ (so the circles are separate).`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat $O_1$, $O_2$ yang berjarak ${D} cm, dengan $${D} \\gt ${R1} + ${R2}$ (maka bulatan-bulatan itu berasingan).`, 'the total number of common tangents (external and internal together)', 'jumlah bilangan tangen sepunya (luar dan dalam bersama)', '\\text{Number}', 4, '', T('when two circles are separate (do not touch or overlap), there are 2 common external tangents and 2 common internal tangents', 'apabila dua bulatan berasingan (tidak bersentuh atau bertindih), terdapat 2 tangen sepunya luar dan 2 tangen sepunya dalam'), null, 's', [2, 3, 1]); },
+      (r) => { const R = r.int(3, 10), D = r.int(R * 2 + 2, 40); return mkCase(`Two circles, each of radius ${R} cm, have a common external tangent $AB$ of length ${D} cm.`, `Dua bulatan, masing-masing berjejari ${R} cm, mempunyai tangen sepunya luar $AB$ yang panjangnya ${D} cm.`, 'the distance $O_1O_2$ between their centres', 'jarak $O_1O_2$ antara pusat mereka', 'O_1O_2', D, '\\ \\text{cm}', T('the radii are equal, so $O_1O_2 = AB$ directly (the tangent is parallel to the line of centres)', 'jejari adalah sama, maka $O_1O_2 = AB$ secara terus (tangen selari dengan garis pusat)'), ctFig(false), 's'); },
+      (r) => { let [a2, t, D] = r.pick(TRIPLES); if (a2 % 2 !== 0) { [a2, t] = [t, a2]; } need(a2 % 2 === 0); const R = a2 / 2; return mkCase(`Two circles, each of radius ${R} cm, have centres $O_1$, $O_2$ that are ${D} cm apart. A common internal tangent touches them at $A$ and $B$.`, `Dua bulatan, masing-masing berjejari ${R} cm, mempunyai pusat $O_1$, $O_2$ yang berjarak ${D} cm. Satu tangen sepunya dalam menyentuhnya di $A$ dan $B$.`, 'the length of $AB$', 'panjang $AB$', 'AB', t, '\\ \\text{cm}', T(`$AB^2 = O_1O_2^2 - (2R)^2 = ${D}^2 - ${2 * R}^2$ (since $R_1 = R_2 = R$)`, `$AB^2 = O_1O_2^2 - (2R)^2 = ${D}^2 - ${2 * R}^2$ (kerana $R_1 = R_2 = R$)`), ctFig(true), 's', lenDist(t)); },
+    ];
+    const e = [genCF(CASES_E)];
+    e.push((r) => {
+      const c = r.pick([
+        [T('touches both circles on the same side of the line joining their centres, and does not cross the segment joining the centres', 'menyentuh kedua-dua bulatan pada sebelah yang sama bagi garis yang menyambung pusat-pusatnya, dan tidak memotong tembereng yang menyambung pusat-pusat itu'), T('common external tangent', 'tangen sepunya luar')],
+        [T('touches the two circles on opposite sides of the line joining their centres, crossing the segment joining the centres', 'menyentuh kedua-dua bulatan pada sebelah yang bertentangan bagi garis yang menyambung pusat-pusatnya, memotong tembereng yang menyambung pusat-pusat itu'), T('common internal tangent', 'tangen sepunya dalam')],
+      ]);
+      return { q: T(`A straight line ${c[0].en}. What type of common tangent is it?`, `Satu garis lurus ${c[0].ms}. Apakah jenis tangen sepunya itu?`), a: c[1], sp: 's' };
+    });
+    e.push((r) => {
+      const kind = r.pick([
+        [T('a line touching both circles, on the same side of the centre line', 'satu garis yang menyentuh kedua-dua bulatan, pada sebelah yang sama bagi garis pusat'), T('Yes — common external tangent', 'Ya — tangen sepunya luar')],
+        [T('a line touching only one of the two circles', 'satu garis yang menyentuh hanya salah satu daripada dua bulatan itu'), T('No — it is a tangent to one circle only, not a common tangent', 'Tidak — ia adalah tangen kepada satu bulatan sahaja, bukan tangen sepunya')],
+        [T('a line cutting through both circles at two points each', 'satu garis yang memotong kedua-dua bulatan pada dua titik setiap satu'), T('No — it is a secant of both circles, not a tangent', 'Tidak — ia adalah secan bagi kedua-dua bulatan, bukan tangen')],
+      ]);
+      return { q: T(`Is ${kind[0].en} a common tangent to the two circles?`, `Adakah ${kind[0].ms} merupakan tangen sepunya bagi kedua-dua bulatan itu?`), a: kind[1], sp: 's' };
+    });
+    e.push((r) => {
+      const R1 = r.int(3, 10), R2 = r.int(3, 10);
+      return { q: T(`Two circles have centres $${2 * (R1 + R2)}$ cm apart and radii ${R1} cm and ${R2} cm. Explain why a common external tangent exists between them.`, `Dua bulatan mempunyai pusat yang berjarak $${2 * (R1 + R2)}$ cm dan berjejari ${R1} cm dan ${R2} cm. Terangkan mengapa tangen sepunya luar wujud antara kedua-duanya.`), a: T(`A common external tangent always exists as long as the distance between the centres is greater than or equal to the difference of the radii; here $${2 * (R1 + R2)} > |${R1} - ${R2}| = ${Math.abs(R1 - R2)}$, so the circles are far enough apart (in fact separate) for a common external tangent to exist.`, `Tangen sepunya luar sentiasa wujud selagi jarak antara pusat lebih besar daripada atau sama dengan perbezaan jejari; di sini $${2 * (R1 + R2)} > |${R1} - ${R2}| = ${Math.abs(R1 - R2)}$, maka bulatan-bulatan itu cukup jauh (malah berasingan) untuk tangen sepunya luar wujud.`), sp: 's' };
+    });
+    e.push((r) => {
+      const [R1, R2] = r.pick(TRIPLES).slice(0, 2);
+      return { q: T(`A belt is stretched tightly around two circular pulleys of radii ${R1} cm and ${R2} cm, without crossing between them. What geometric name is given to each straight part of the belt?`, `Sebuah tali sawat diregangkan ketat mengelilingi dua takal bulat berjejari ${R1} cm dan ${R2} cm, tanpa bersilang antara kedua-duanya. Apakah nama geometri bagi setiap bahagian lurus tali sawat itu?`), a: T('A common external tangent to the two circles (pulleys)', 'Tangen sepunya luar bagi kedua-dua bulatan (takal) itu'), sp: 's' };
+    });
+    e.push((r) => {
+      const [R1, R2] = r.pick(TRIPLES).slice(0, 2);
+      return { q: T(`A crossed belt drive connects two circular pulleys of radii ${R1} cm and ${R2} cm, so that the belt crosses over itself between the pulleys. What geometric name is given to each straight part of the belt?`, `Satu gerakan tali sawat bersilang menyambungkan dua takal bulat berjejari ${R1} cm dan ${R2} cm, supaya tali sawat itu bersilang antara kedua-dua takal. Apakah nama geometri bagi setiap bahagian lurus tali sawat itu?`), a: T('A common internal tangent to the two circles (pulleys)', 'Tangen sepunya dalam bagi kedua-dua bulatan (takal) itu'), sp: 's' };
+    });
+    e.push((r) => {
+      const R1 = r.int(4, 12), R2 = r.int(2, R1 - 1), D = r.pick([2, 3, 4, 5]) + R1 + R2;
+      return { q: T(`Two circles of radii ${R1} cm and ${R2} cm have centres $${D}$ cm apart, and $${D} \\gt ${R1} + ${R2}$. Describe the relative position of the two circles.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat yang berjarak $${D}$ cm, dan $${D} \\gt ${R1} + ${R2}$. Huraikan kedudukan relatif kedua-dua bulatan itu.`), a: T('Since the distance between the centres exceeds the sum of the radii, the two circles are separate (they do not touch or overlap).', 'Oleh kerana jarak antara pusat melebihi hasil tambah jejari, kedua-dua bulatan itu berasingan (tidak bersentuh atau bertindih).'), sp: 's' };
+    });
+    e.push((r) => {
+      const kind = r.pick([
+        [T('are separate (the distance between centres is greater than the sum of the radii)', 'berasingan (jarak antara pusat lebih besar daripada hasil tambah jejari)'), T('4', '4')],
+        [T('touch each other at exactly one point, externally', 'bersentuhan antara satu sama lain tepat pada satu titik, secara luaran'), T('3', '3')],
+        [T('overlap, cutting each other at two points', 'bertindih, memotong antara satu sama lain pada dua titik'), T('2', '2')],
+      ]);
+      return { q: T(`If two circles ${kind[0].en}, how many common tangents (external and internal together) do they have?`, `Jika dua bulatan ${kind[0].ms}, berapakah bilangan tangen sepunya (luar dan dalam bersama) yang dimilikinya?`), a: kind[1], sp: 's' };
+    });
+
+    const CASES_M = [
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); const tExt2 = D * D - (R1 - R2) * (R1 - R2), tInt2 = D * D - (R1 + R2) * (R1 + R2); need(tInt2 > 0 && isqrt(tExt2) !== null); const gap = round(Math.sqrt(tExt2) - Math.sqrt(tInt2), 2); return mkCase(`A pulley belt design uses two wheels of radii ${R1} cm and ${R2} cm with axle centres $O_1$, $O_2$ that are ${D} cm apart.`, `Satu reka bentuk tali sawat takal menggunakan dua roda berjejari ${R1} cm dan ${R2} cm dengan pusat gandar $O_1$, $O_2$ yang berjarak ${D} cm.`, 'how much longer an open (external-tangent) belt segment is than a crossed (internal-tangent) belt segment', 'berapa lebih panjang satu bahagian tali sawat terbuka (tangen luar) berbanding bahagian tali sawat bersilang (tangen dalam)', '\\text{Difference}', gap, '\\ \\text{cm}', T(`external tangent $= \\sqrt{${D}^2 - (${R1} - ${R2})^2}$; internal tangent $= \\sqrt{${D}^2 - (${R1} + ${R2})^2}$`, `tangen luar $= \\sqrt{${D}^2 - (${R1} - ${R2})^2}$; tangen dalam $= \\sqrt{${D}^2 - (${R1} + ${R2})^2}$`), null, 'm'); },
+      (r) => { const R1 = r.int(4, 9), R2 = r.int(2, R1 - 1); const D = R1 - R2; return mkCase(`Circle $Q$, of radius ${R2} cm, sits inside circle $P$, of radius ${R1} cm, touching it internally at one point (their centres are $${D}$ cm apart).`, `Bulatan $Q$, berjejari ${R2} cm, terletak di dalam bulatan $P$, berjejari ${R1} cm, bersentuh dengannya secara dalaman pada satu titik (pusat mereka berjarak $${D}$ cm).`, 'the number of common tangents shared by the two circles', 'bilangan tangen sepunya yang dikongsi oleh kedua-dua bulatan', '\\text{Number}', 1, '', T('when one circle touches another internally, there is exactly one common tangent, at the point of contact', 'apabila satu bulatan bersentuh dengan satu lagi secara dalaman, hanya terdapat satu tangen sepunya, pada titik sentuhan itu'), null, 's', [0, 2, 4]); },
+      (r) => { const [diff, t, D] = r.pick(TRIPLES); const R2 = r.int(2, 8); const R1 = R2 + diff; return mkCase(`Two circles have a common external tangent of length ${t} cm, and their centres are ${D} cm apart. The larger circle has radius ${R1} cm.`, `Dua bulatan mempunyai tangen sepunya luar yang panjangnya ${t} cm, dan pusat mereka berjarak ${D} cm. Bulatan yang lebih besar berjejari ${R1} cm.`, 'the radius of the smaller circle', 'jejari bulatan yang lebih kecil', 'R_2', R2, '\\ \\text{cm}', T(`$(R_1 - R_2)^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${diff * diff}$, so $R_1 - R_2 = ${diff}$, giving $R_2 = ${R1} - ${diff}$`, `$(R_1 - R_2)^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${diff * diff}$, maka $R_1 - R_2 = ${diff}$, memberikan $R_2 = ${R1} - ${diff}$`), null, 'm'); },
+      (r) => { const [sum, t, D] = r.pick(TRIPLES); const R1 = r.int(2, sum - 2); const R2 = sum - R1; need(R2 >= 2 && R2 !== R1); return mkCase(`Two circles have a common internal tangent of length ${t} cm, and their centres are ${D} cm apart. One circle has radius ${R1} cm.`, `Dua bulatan mempunyai tangen sepunya dalam yang panjangnya ${t} cm, dan pusat mereka berjarak ${D} cm. Satu bulatan berjejari ${R1} cm.`, 'the radius of the other circle', 'jejari bulatan yang satu lagi', 'R_2', R2, '\\ \\text{cm}', T(`$(R_1 + R_2)^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${sum * sum}$, so $R_1 + R_2 = ${sum}$, giving $R_2 = ${sum} - ${R1}$`, `$(R_1 + R_2)^2 = O_1O_2^2 - AB^2 = ${D}^2 - ${t}^2 = ${sum * sum}$, maka $R_1 + R_2 = ${sum}$, memberikan $R_2 = ${sum} - ${R1}$`), null, 'm'); },
+      (r) => { return mkCase('Two circles with centres $O_1$ and $O_2$ have a common tangent touching them at $A$ and $B$.', 'Dua bulatan berpusat $O_1$ dan $O_2$ mempunyai satu tangen sepunya yang menyentuhnya di $A$ dan $B$.', '$\\angle O_1AB + \\angle O_2BA$', '$\\angle O_1AB + \\angle O_2BA$', '\\angle O_1AB + \\angle O_2BA', 180, '^\\circ', RSN.perpRad, ctFig(false), 's', [90, 270, 360]); },
+      (r) => { const [R1, R2, D] = r.pick([[3, 2, 13], [6, 2, 10], [4, 1, 13], [5, 3, 17], [7, 4, 25], [8, 3, 13]]); const t2 = D * D - (R1 + R2) * (R1 + R2); need(t2 > 0); const t = Math.sqrt(t2); return mkCase(`Two circles of radii ${R1} cm and ${R2} cm have centres $O_1$ and $O_2$, ${D} cm apart. A common internal tangent touches them at $A$ and $B$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat $O_1$ dan $O_2$, berjarak ${D} cm. Satu tangen sepunya dalam menyentuhnya di $A$ dan $B$.`, 'the length of $AB$', 'panjang $AB$', 'AB', round(t, 2), '\\ \\text{cm}', T('$O_1A \\perp AB$ and $O_2B \\perp AB$; extending $O_2B$ to meet the parallel through $O_1$ gives a right triangle with hypotenuse $O_1O_2$ and legs $AB$ and $(R_1 + R_2)$: $AB^2 = O_1O_2^2 - (R_1+R_2)^2$', '$O_1A \\perp AB$ dan $O_2B \\perp AB$; memanjangkan $O_2B$ untuk bertemu garis selari melalui $O_1$ memberikan segi tiga bersudut tegak berhipotenus $O_1O_2$ dan kaki $AB$ dan $(R_1 + R_2)$: $AB^2 = O_1O_2^2 - (R_1+R_2)^2$'), ctFig(true), 'm', lenDist(round(t, 2))); },
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); const t2 = D * D - (R1 - R2) * (R1 - R2); const t = isqrt(t2); need(t !== null); return mkCase(`Two circles of radii ${R1} cm and ${R2} cm have a common external tangent of length ${t} cm, touching them at $A$ and $B$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai tangen sepunya luar yang panjangnya ${t} cm, menyentuhnya di $A$ dan $B$.`, 'the distance $O_1O_2$ between the centres', 'jarak $O_1O_2$ antara pusat', 'O_1O_2', D, '\\ \\text{cm}', T(`$O_1O_2^2 = AB^2 + (R_1 - R_2)^2 = ${t}^2 + ${Math.abs(R1 - R2)}^2$`, `$O_1O_2^2 = AB^2 + (R_1 - R_2)^2 = ${t}^2 + ${Math.abs(R1 - R2)}^2$`), ctFig(false), 'm', lenDist(D)); },
+      (r) => { const [R1, R2, D] = r.pick([[3, 2, 13], [6, 2, 10], [4, 1, 13], [5, 3, 17], [7, 4, 25], [8, 3, 13]]); const t2 = D * D - (R1 + R2) * (R1 + R2); need(t2 > 0); const t = isqrt(t2); need(t !== null); return mkCase(`Two circles of radii ${R1} cm and ${R2} cm have a common internal tangent of length ${t} cm, touching them at $A$ and $B$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai tangen sepunya dalam yang panjangnya ${t} cm, menyentuhnya di $A$ dan $B$.`, 'the distance $O_1O_2$ between the centres', 'jarak $O_1O_2$ antara pusat', 'O_1O_2', D, '\\ \\text{cm}', T(`$O_1O_2^2 = AB^2 + (R_1 + R_2)^2 = ${t}^2 + ${R1 + R2}^2$`, `$O_1O_2^2 = AB^2 + (R_1 + R_2)^2 = ${t}^2 + ${R1 + R2}^2$`), ctFig(true), 'm', lenDist(D)); },
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); need(R1 !== R2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); const tExt2 = D * D - (R1 - R2) * (R1 - R2); const t = isqrt(tExt2); need(t !== null); return mkCase(`Two circles of radii ${R1} cm and ${R2} cm have centres $O_1$, $O_2$ that are $${D}$ cm apart. $AB$ is a common external tangent, touching the circles at $A$ and $B$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat $O_1$, $O_2$ yang berjarak $${D}$ cm. $AB$ ialah tangen sepunya luar, menyentuh bulatan itu di $A$ dan $B$.`, 'the perimeter of trapezium $O_1ABO_2$ (going $O_1 \\to A \\to B \\to O_2 \\to O_1$)', 'perimeter trapezium $O_1ABO_2$ (mengikut $O_1 \\to A \\to B \\to O_2 \\to O_1$)', '\\text{Perimeter}', R1 + t + R2 + D, '\\ \\text{cm}', T(`$AB = \\sqrt{${D}^2 - (${R1} - ${R2})^2} = ${t}$ cm; perimeter $= O_1A + AB + BO_2 + O_2O_1 = ${R1} + ${t} + ${R2} + ${D}$`, `$AB = \\sqrt{${D}^2 - (${R1} - ${R2})^2} = ${t}$ cm; perimeter $= O_1A + AB + BO_2 + O_2O_1 = ${R1} + ${t} + ${R2} + ${D}$`), ctFig(false), 'm'); },
+    ];
+    const m = [genCF(CASES_M)];
+    m.push((r) => {
+      const R1 = r.int(4, 10), R2 = r.int(2, R1 - 1), D = r.int(1, R1 - R2 - 1 > 0 ? R1 - R2 - 1 : 1);
+      need(D < R1 - R2);
+      return { q: T(`Circle $P$ has radius ${R1} cm and circle $Q$ has radius ${R2} cm. Their centres are $${D}$ cm apart. Explain why no common tangent (external or internal) exists between them.`, `Bulatan $P$ berjejari ${R1} cm dan bulatan $Q$ berjejari ${R2} cm. Pusat mereka berjarak $${D}$ cm. Terangkan mengapa tiada tangen sepunya (luar atau dalam) wujud antara kedua-duanya.`), a: T(`Since the distance between centres ($${D}$ cm) is less than the difference of the radii ($${R1} - ${R2} = ${R1 - R2}$ cm), circle $Q$ lies entirely inside circle $P$ without touching it, so no line can be tangent to both circles.`, `Oleh kerana jarak antara pusat ($${D}$ cm) adalah kurang daripada perbezaan jejari ($${R1} - ${R2} = ${R1 - R2}$ cm), bulatan $Q$ terletak sepenuhnya di dalam bulatan $P$ tanpa menyentuhnya, maka tiada garis boleh menjadi tangen kepada kedua-dua bulatan itu.`), sp: 'm' };
+    });
+
+    const CASES_A = [
+      (r) => { const [R1, R2] = r.pick([[8, 3], [10, 5], [9, 4], [12, 7], [11, 6]]); const t = r.pick([12, 24, 8, 15, 16, 20]); const D = Math.sqrt(t * t + (R1 - R2) ** 2); return { q: T(`Two circles of radii ${R1} cm and ${R2} cm have their centres $${n(round(D, 4))}$ cm apart. A common external tangent touches them at $A$ and $B$. Find the length of $AB$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat yang berjarak $${n(round(D, 4))}$ cm. Satu tangen sepunya luar menyentuhnya di $A$ dan $B$. Cari panjang $AB$.`), fig: ctFig(false), a: T(`${t} cm`), w: T(`$AB^2 = ${n(round(D * D, 2))} - (${R1} - ${R2})^2$`), sp: 'm' }; },
+      (r) => { const [R1, R2, D] = r.pick([[3, 2, 13], [6, 2, 10], [4, 1, 13], [5, 3, 17]]); const t2 = D * D - (R1 + R2) ** 2; need(t2 > 0); return { q: T(`Two circles of radii ${R1} cm and ${R2} cm have centres ${D} cm apart. Find the length of a common internal tangent, correct to 2 decimal places.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat berjarak ${D} cm. Cari panjang tangen sepunya dalam, betul kepada 2 tempat perpuluhan.`), fig: ctFig(true), a: T(`${n(round(Math.sqrt(t2), 2))} cm`), w: T(`$\\sqrt{${D}^2 - (${R1} + ${R2})^2}$`), sp: 'm' }; },
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); need(R1 !== R2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); const tExt2 = D * D - (R1 - R2) * (R1 - R2); const tInt2 = D * D - (R1 + R2) * (R1 + R2); need(tInt2 > 0 && isqrt(tExt2) !== null); return { q: nts(T(`Two circles of radii ${R1} cm and ${R2} cm have centres $O_1$, $O_2$ that are ${D} cm apart. Find the length of (a) a common external tangent, (b) a common internal tangent, correct to 2 decimal places where needed.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat $O_1$, $O_2$ yang berjarak ${D} cm. Cari panjang (a) tangen sepunya luar, (b) tangen sepunya dalam, betul kepada 2 tempat perpuluhan jika perlu.`)), fig: ctFig(false), a: T(`(a) $${n(round(Math.sqrt(tExt2), 2))}$ cm (b) $${n(round(Math.sqrt(tInt2), 2))}$ cm`), sp: 'l' }; },
+      (r) => { return { q: T('Two circles with centres $O_1$ and $O_2$ have a common external tangent touching them at $A$ and $B$. Explain why $O_1A \\parallel O_2B$, and state what type of quadrilateral $O_1ABO_2$ is in general (when the radii are unequal).', 'Dua bulatan berpusat $O_1$ dan $O_2$ mempunyai satu tangen sepunya luar yang menyentuhnya di $A$ dan $B$. Terangkan mengapa $O_1A \\parallel O_2B$, dan nyatakan jenis sisi empat $O_1ABO_2$ secara amnya (apabila jejari tidak sama).'), a: T('Both $O_1A$ and $O_2B$ are perpendicular to the same line $AB$ (tangent $\\perp$ radius at each point of contact), so $O_1A \\parallel O_2B$ (two lines perpendicular to the same line are parallel). Since $O_1A \\neq O_2B$ in general (different radii) but both are perpendicular to $AB$, $O_1ABO_2$ is a right-angled trapezium.', 'Kedua-dua $O_1A$ dan $O_2B$ berserenjang dengan garis $AB$ yang sama (tangen $\\perp$ jejari pada setiap titik sentuhan), maka $O_1A \\parallel O_2B$ (dua garis yang berserenjang dengan garis yang sama adalah selari). Oleh kerana $O_1A \\neq O_2B$ secara amnya (jejari berbeza) tetapi kedua-duanya berserenjang dengan $AB$, $O_1ABO_2$ ialah trapezium bersudut tegak.'), sp: 'm' }; },
+      (r) => { const [R1, R2] = r.pick(TRIPLES).slice(0, 2); const D = r.pick([12, 15, 18, 20, 24, 30]); need(D > R1 + R2); const tExt2 = D * D - (R1 - R2) * (R1 - R2), tInt2 = D * D - (R1 + R2) * (R1 + R2); need(tInt2 > 0); return { q: T(`Two circles of radii ${R1} cm and ${R2} cm have centres $${D}$ cm apart. Let $L_{\\text{ext}}$ and $L_{\\text{int}}$ be the lengths of a common external and a common internal tangent respectively. Prove that $L_{\\text{ext}}^2 - L_{\\text{int}}^2 = 4R_1R_2$.`, `Dua bulatan berjejari ${R1} cm dan ${R2} cm mempunyai pusat yang berjarak $${D}$ cm. Katakan $L_{\\text{ext}}$ dan $L_{\\text{int}}$ masing-masing ialah panjang tangen sepunya luar dan tangen sepunya dalam. Buktikan bahawa $L_{\\text{ext}}^2 - L_{\\text{int}}^2 = 4R_1R_2$.`), a: T(`$L_{\\text{ext}}^2 = O_1O_2^2 - (R_1 - R_2)^2$ and $L_{\\text{int}}^2 = O_1O_2^2 - (R_1 + R_2)^2$. Subtracting: $L_{\\text{ext}}^2 - L_{\\text{int}}^2 = (R_1+R_2)^2 - (R_1-R_2)^2 = 4R_1R_2$. Checking with the given numbers: $${tExt2} - ${tInt2} = ${tExt2 - tInt2} = 4 \\times ${R1} \\times ${R2} = ${4 * R1 * R2}$.`, `$L_{\\text{ext}}^2 = O_1O_2^2 - (R_1 - R_2)^2$ dan $L_{\\text{int}}^2 = O_1O_2^2 - (R_1 + R_2)^2$. Menolak: $L_{\\text{ext}}^2 - L_{\\text{int}}^2 = (R_1+R_2)^2 - (R_1-R_2)^2 = 4R_1R_2$. Menyemak dengan nombor yang diberi: $${tExt2} - ${tInt2} = ${tExt2 - tInt2} = 4 \\times ${R1} \\times ${R2} = ${4 * R1 * R2}$.`), sp: 'l' }; },
+    ];
+    const a = CASES_A.slice();
+    a.push(genCF(CASES_E), genCF(CASES_M));
+
+    return { e, m, a };
+  })());
+
+  /* ===================================================================== 8.1 / 8.2 Loci in Two Dimensions (grid-based) */
+  const SC = 26;
+  /** grid figure. pts:[{x,y,l,hollow}], segs:[{a,b,dash}], circles:[{cx,cy,r,dash,fill}], hl:[{y,dash}] (horizontal lines),
+   *  vl:[{x,dash}] (vertical lines), diag:[{x,y,slope,dash}] (45deg lines through a point), shade: fn(m)=>svg (drawn first, under lines). */
+  function gfig(o) {
+    const xr = o.xr || [0, 10], yr = o.yr || [0, 10];
+    return S.plane({
+      x: xr, y: yr, scale: SC, grid: true, pts: o.pts, segs: o.segs, noNumbers: o.noNumbers,
+      extra: (m) => {
+        let out = o.shade ? o.shade(m) : '';
+        for (const c of o.circles || []) out += S.circle(m.sx(c.cx), m.sy(c.cy), c.r * SC, { dash: c.dash !== false, fill: c.fill, op: c.fill ? 0.15 : undefined });
+        for (const h of o.hl || []) out += S.line(m.sx(xr[0]), m.sy(h.y), m.sx(xr[1]), m.sy(h.y), { dash: h.dash !== false });
+        for (const v of o.vl || []) out += S.line(m.sx(v.x), m.sy(yr[0]), m.sx(v.x), m.sy(yr[1]), { dash: v.dash !== false });
+        for (const d of o.diag || []) { const L = 8; out += S.line(m.sx(d.x - L), m.sy(d.y - L * d.slope), m.sx(d.x + L), m.sy(d.y + L * d.slope), { dash: d.dash !== false }); }
+        if (o.extra) out += o.extra(m);
+        return out;
+      },
+    });
+  }
+
+  /* the five standard 2D loci */
+  const STD = [
+    { cond: T('a fixed distance $d$ from a fixed point $O$', 'satu jarak tetap $d$ dari satu titik tetap $O$'), res: T('a circle with centre $O$ and radius $d$', 'bulatan berpusat $O$ berjejari $d$'), name: T('a circle', 'bulatan'), gen: T('a circle around the fixed point, with radius equal to the fixed distance', 'satu bulatan di sekeliling titik tetap itu, dengan jejari bersamaan jarak tetap itu') },
+    { cond: T('a fixed perpendicular distance $d$ from a straight line $PQ$', 'satu jarak serenjang tetap $d$ dari satu garis lurus $PQ$'), res: T('a pair of straight lines parallel to $PQ$, each a distance $d$ away, one on each side', 'sepasang garis lurus yang selari dengan $PQ$, masing-masing sejauh $d$, satu pada setiap sebelah'), name: T('a pair of parallel lines', 'sepasang garis selari'), gen: T('two straight lines, one on each side of the line, each at that fixed perpendicular distance from it', 'dua garis lurus, satu pada setiap sebelah garis itu, masing-masing pada jarak serenjang tetap itu daripadanya') },
+    { cond: T('equidistant from two fixed points $A$ and $B$', 'sama jarak dari dua titik tetap $A$ dan $B$'), res: T('the perpendicular bisector of $AB$', 'pembahagi dua sama serenjang bagi $AB$'), name: T('a perpendicular bisector', 'pembahagi dua sama serenjang'), gen: T('the perpendicular bisector of the segment joining the two fixed points', 'pembahagi dua sama serenjang bagi tembereng yang menyambung dua titik tetap itu') },
+    { cond: T('equidistant from two parallel straight lines', 'sama jarak dari dua garis lurus yang selari'), res: T('a straight line parallel to both, exactly midway between them', 'satu garis lurus yang selari dengan kedua-duanya, tepat di tengah-tengah antara kedua-duanya'), name: T('a straight line midway between them', 'satu garis lurus di tengah-tengah'), gen: T('a straight line midway between and parallel to the two lines', 'satu garis lurus di tengah-tengah dan selari dengan dua garis itu') },
+    { cond: T('equidistant from two intersecting straight lines', 'sama jarak dari dua garis lurus yang bersilang'), res: T('the pair of angle bisectors of the angles between the lines (the two bisectors are perpendicular to each other)', 'sepasang pembahagi dua sama sudut bagi sudut antara garis-garis itu (kedua-dua pembahagi itu berserenjang antara satu sama lain)'), name: T('a pair of angle bisectors', 'sepasang pembahagi dua sama sudut'), gen: T('the pair of angle bisectors of the angles between the two lines', 'sepasang pembahagi dua sama sudut bagi sudut antara dua garis itu') },
+  ];
+  function stdDist(i, extra) {
+    const idx = [0, 1, 2, 3, 4].filter((k) => k !== i);
+    const w = SPM.makeRng('sd' + i).shuffle(idx).slice(0, 3).map((k) => STD[k].res);
+    return (extra || []).concat(w).slice(0, 3);
+  }
+  /** generic locus-description task-form dispatcher (mirrors CF for chapter 6). c = {cond, res, wrongs?} */
+  const LF = [
+    (c) => ({ q: T(`Describe the locus of points that are ${c.cond.en}.`, `Huraikan lokus titik yang ${c.cond.ms}.`), a: T(c.res.en, c.res.ms), sp: 'm' }),
+    (c) => ({ q: T(`Complete: the locus of points that are ${c.cond.en} is ____.`, `Lengkapkan: lokus titik yang ${c.cond.ms} ialah ____.`), a: T(c.res.en, c.res.ms), sp: 'm' }),
+    (c) => ({ q: T(`What condition must a point satisfy to lie on ${c.res.en}?`, `Syarat apakah yang mesti dipenuhi oleh satu titik untuk terletak pada ${c.res.ms}?`), a: T(`It is ${c.cond.en}`, `Ia ${c.cond.ms}`), sp: 'm' }),
+    (c, r) => {
+      const w = c.wrongs || stdDist(c.i);
+      const opts = r.shuffle([c.res, ...w]);
+      const L = ['A', 'B', 'C', 'D'];
+      const ans = L[opts.findIndex((o) => o === c.res)];
+      return { q: T(`Which of the following describes the locus of points that are ${c.cond.en}?<br>${opts.map((o, i) => `${L[i]}) ${o.en}`).join('<br>')}`, `Yang manakah menghuraikan lokus titik yang ${c.cond.ms}?<br>${opts.map((o, i) => `${L[i]}) ${o.ms}`).join('<br>')}`), a: T(`${ans}) ${c.res.en}`, `${ans}) ${c.res.ms}`), sp: 'm' };
+    },
+    (c, r) => {
+      const w = r.pick(c.wrongs || stdDist(c.i));
+      return { q: T(`A student says the locus of points that are ${c.cond.en} is ${w.en}. Is this correct? If not, give the correct description.`, `Seorang murid berkata lokus titik yang ${c.cond.ms} ialah ${w.ms}. Adakah ini betul? Jika tidak, berikan huraian yang betul.`), a: T(`Incorrect; it is ${c.res.en}`, `Tidak betul; ia ialah ${c.res.ms}`), sp: 'm' };
+    },
+    (c) => ({ q: T(`In a few words, name the geometric shape formed by the locus of points that are ${c.cond.en}.`, `Dalam beberapa patah perkataan, namakan bentuk geometri yang dibentuk oleh lokus titik yang ${c.cond.ms}.`), a: T(STD[c.i].name.en, STD[c.i].name.ms), sp: 's' }),
+    (c) => ({ q: T(`Explain briefly why every point on ${c.res.en} satisfies the condition of being ${c.cond.en}.`, `Terangkan secara ringkas mengapa setiap titik pada ${c.res.ms} memenuhi syarat ${c.cond.ms}.`), a: T(`By definition/construction, every point of ${c.res.en} is ${c.cond.en} — this is exactly the defining property of this locus.`, `Mengikut definisi/pembinaan, setiap titik ${c.res.ms} adalah ${c.cond.ms} — inilah tepatnya sifat penentu lokus ini.`), sp: 'm' }),
+    (c, r) => {
+      const w = r.pick(c.wrongs || stdDist(c.i));
+      const opts = r.shuffle([c.res, w]);
+      const same = opts[0] === c.res;
+      return { q: T(`True or false: the locus of points that are ${c.cond.en} is ${opts[0].en}.`, `Benar atau palsu: lokus titik yang ${c.cond.ms} ialah ${opts[0].ms}.`), a: same ? T('True', 'Benar') : T(`False; it is ${c.res.en}`, `Palsu; ia ialah ${c.res.ms}`), sp: 's' };
+    },
+  ];
+  const mkLoc = (i) => ({ i, cond: STD[i].cond, res: STD[i].res });
+  const genLF = (r) => LF[r.int(0, LF.length - 1)](mkLoc(r.int(0, 4)), r);
+
+  /* real-life contexts, each tagged with the STD index it matches */
+  const CTX = [
+    { i: 0, en: 'a goat tied by a rope of fixed length to a post, grazing freely around it', ms: 'seekor kambing yang diikat dengan tali sepanjang tetap pada satu batang, meragut bebas di sekelilingnya' },
+    { i: 0, en: 'an aircraft flying so that it is always exactly 2 km (in a horizontal plane) from a control tower', ms: 'sebuah pesawat yang terbang supaya ia sentiasa tepat 2 km (dalam satah mengufuk) dari sebuah menara kawalan' },
+    { i: 1, en: 'a security guard patrolling at a fixed distance from a long straight fence', ms: 'seorang pengawal keselamatan meronda pada jarak tetap dari sebuah pagar lurus yang panjang' },
+    { i: 1, en: 'ships keeping a safe fixed distance from a straight stretch of coastline', ms: 'kapal-kapal yang mengekalkan jarak selamat tetap dari satu bahagian lurus garis pantai' },
+    { i: 2, en: 'a new fire station to be built equidistant from two existing towns', ms: 'sebuah balai bomba baharu yang hendak dibina sama jarak dari dua buah bandar yang sedia ada' },
+    { i: 2, en: 'a referee positioned so that they are always the same distance from two fixed markers on a field', ms: 'seorang pengadil yang berada pada kedudukan supaya sentiasa sama jarak dari dua penanda tetap di padang' },
+    { i: 3, en: 'a walking path equidistant from two straight, parallel canal banks', ms: 'satu laluan berjalan kaki yang sama jarak dari dua tebing terusan lurus yang selari' },
+    { i: 4, en: 'a signal tower positioned equidistant from two straight roads that cross each other', ms: 'sebuah menara isyarat yang diletakkan sama jarak dari dua jalan lurus yang bersilang antara satu sama lain' },
+    { i: 0, en: 'the tip of the hour hand of a large wall clock as it moves', ms: 'hujung jarum jam sebuah jam dinding yang besar semasa ia bergerak' },
+    { i: 0, en: 'a buoy anchored to the seabed by a fixed-length chain, drifting with the current', ms: 'sebuah pelampung yang dilabuhkan ke dasar laut dengan rantai sepanjang tetap, hanyut mengikut arus' },
+    { i: 1, en: 'a spotlight beam kept a constant distance from a straight stage edge', ms: 'seberkas lampu sorot yang dikekalkan pada jarak malar dari tepi pentas yang lurus' },
+    { i: 1, en: 'trees planted a fixed distance on either side of a straight garden path', ms: 'pokok-pokok yang ditanam pada jarak tetap di kedua-dua belah sebuah laluan taman yang lurus' },
+    { i: 2, en: 'a delivery hub chosen so that it is equally far from two warehouses', ms: 'sebuah hab penghantaran yang dipilih supaya sama jauh dari dua buah gudang' },
+    { i: 3, en: 'a drone flying equidistant between two straight, parallel power lines', ms: 'sebuah dron yang terbang sama jarak antara dua talian kuasa lurus yang selari' },
+    { i: 4, en: 'a lamp post placed equidistant from two straight paths that cross in a park', ms: 'sebuah tiang lampu yang diletakkan sama jarak dari dua laluan lurus yang bersilang di sebuah taman' },
+    { i: 0, en: 'a radio transmitter with a fixed broadcast range around it', ms: 'sebuah pemancar radio dengan julat siaran tetap di sekelilingnya' },
+    { i: 1, en: 'a no-parking zone marked a fixed distance from a straight kerb', ms: 'satu zon larangan meletak kenderaan yang ditandakan pada jarak tetap dari bahu jalan yang lurus' },
+    { i: 2, en: 'a footbridge to be built equidistant from two riverside villages', ms: 'sebuah jambatan pejalan kaki yang hendak dibina sama jarak dari dua buah kampung tepi sungai' },
+    { i: 3, en: 'a row of streetlights placed equidistant between two straight, parallel roads', ms: 'sebaris lampu jalan yang diletakkan sama jarak antara dua jalan lurus yang selari' },
+    { i: 4, en: 'a CCTV pole positioned equidistant from two straight corridors that cross inside a building', ms: 'sebuah tiang CCTV yang diletakkan sama jarak dari dua koridor lurus yang bersilang di dalam sebuah bangunan' },
+    { i: 0, en: 'a sprinkler head that waters the ground within a fixed radius', ms: 'sebuah kepala pencurah yang membasahi tanah dalam jejari tetap' },
+  ];
+  /** task-forms for a context item: c = {i, en, ms} (the context text and the matching STD index) */
+  const CF8 = [
+    (c) => ({ q: T(`What is the locus traced out by ${c.en}?`, `Apakah lokus yang dilalui oleh ${c.ms}?`), a: T(STD[c.i].gen.en, STD[c.i].gen.ms), sp: 'm' }),
+    (c, r) => {
+      const opts = r.shuffle([STD[c.i].res, ...stdDist(c.i)]);
+      const L = ['A', 'B', 'C', 'D'];
+      const ans = L[opts.findIndex((o) => o === STD[c.i].res)];
+      return { q: T(`Which locus describes the possible positions of ${c.en}?<br>${opts.map((o, i) => `${L[i]}) ${o.en}`).join('<br>')}`, `Lokus manakah yang menghuraikan kedudukan yang mungkin bagi ${c.ms}?<br>${opts.map((o, i) => `${L[i]}) ${o.ms}`).join('<br>')}`), a: T(`${ans}) ${STD[c.i].res.en}`, `${ans}) ${STD[c.i].res.ms}`), sp: 'm' };
+    },
+    (c) => ({ q: T(`Complete: the locus for ${c.en} is ____.`, `Lengkapkan: lokus bagi ${c.ms} ialah ____.`), a: T(STD[c.i].gen.en, STD[c.i].gen.ms), sp: 'm' }),
+    (c, r) => {
+      const w = r.pick(stdDist(c.i));
+      return { q: T(`A classmate claims that for ${c.en}, the locus is ${w.en}. Is this correct? If not, give the correct locus.`, `Seorang rakan sekelas mendakwa bagi ${c.ms}, lokusnya ialah ${w.ms}. Adakah ini betul? Jika tidak, berikan lokus yang betul.`), a: T(`Incorrect; it is ${STD[c.i].gen.en}`, `Tidak betul; ia ialah ${STD[c.i].gen.ms}`), sp: 'm' };
+    },
+  ];
+  const genCTX = (r) => CF8[r.int(0, CF8.length - 1)](r.pick(CTX), r);
+
+  /* ruler-and-compass construction steps for each of the 5 standard loci */
+  const CONSTR = [
+    T('Open the compasses to the required radius $d$. Place the compass point on the fixed point and draw a full circle.', 'Bukakan angkup ke jejari yang diperlukan $d$. Letakkan mata angkup pada titik tetap itu dan lukis satu bulatan penuh.'),
+    T('Set the compasses to the required distance $d$. At several points along the line, use a set square (or the compasses) to mark points a perpendicular distance $d$ away on each side, then join these into two straight lines parallel to the given line.', 'Tetapkan angkup ke jarak yang diperlukan $d$. Pada beberapa titik di sepanjang garis itu, gunakan sesiku set (atau angkup) untuk menandakan titik pada jarak serenjang $d$ di setiap sebelah, kemudian sambungkan titik-titik ini menjadi dua garis lurus yang selari dengan garis yang diberi.'),
+    T('Open the compasses to more than half the length of $AB$. With the point on $A$, draw arcs above and below $AB$. Without changing the radius, repeat with the point on $B$. Join the two points where the arcs cross to form the perpendicular bisector of $AB$.', 'Bukakan angkup ke lebih daripada separuh panjang $AB$. Dengan mata angkup di $A$, lukis lengkok di atas dan di bawah $AB$. Tanpa mengubah jejari, ulangi dengan mata angkup di $B$. Sambungkan dua titik persilangan lengkok itu untuk membentuk pembahagi dua sama serenjang bagi $AB$.'),
+    T('Measure the perpendicular distance between the two parallel lines and halve it. Draw a straight line parallel to both given lines, at this half-distance from each of them.', 'Ukur jarak serenjang antara dua garis selari itu dan bahagi dua. Lukis satu garis lurus yang selari dengan kedua-dua garis yang diberi, pada separuh jarak ini dari setiap satu.'),
+    T('With the compass point at the intersection of the two lines, draw an arc that crosses both lines. From each of those two crossing points, draw arcs of equal radius that intersect each other; join this intersection point to the vertex to get one angle bisector. Repeat for the other angle (between the lines) to get the second bisector, perpendicular to the first.', 'Dengan mata angkup di persilangan dua garis itu, lukis satu lengkok yang memotong kedua-dua garis. Dari setiap dua titik persilangan itu, lukis lengkok berjejari sama yang bersilang antara satu sama lain; sambungkan titik persilangan ini ke verteks untuk mendapat satu pembahagi dua sama sudut. Ulangi bagi sudut yang satu lagi (antara garis-garis itu) untuk mendapat pembahagi dua sama kedua, berserenjang dengan yang pertama.'),
+  ];
+  const KF = [
+    (i) => ({ q: T(`Describe, step by step, how to construct ${STD[i].res.en} using a ruler and compasses.`, `Huraikan, langkah demi langkah, cara membina ${STD[i].res.ms} menggunakan pembaris dan angkup.`), a: T(CONSTR[i].en, CONSTR[i].ms), sp: 'l' }),
+    (i) => ({ q: T(`A construction is carried out as follows: "${CONSTR[i].en}" What locus does this construction produce?`, `Satu pembinaan dijalankan seperti berikut: "${CONSTR[i].ms}" Apakah lokus yang dihasilkan oleh pembinaan ini?`), a: T(STD[i].res.en, STD[i].res.ms), sp: 'm' }),
+    (i, r) => {
+      const others = [0, 1, 2, 3, 4].filter((k) => k !== i);
+      const w = r.sample(others, 3).map((k) => STD[k].res);
+      const opts = r.shuffle([STD[i].res, ...w]);
+      const L = ['A', 'B', 'C', 'D'];
+      const ans = L[opts.findIndex((o) => o === STD[i].res)];
+      return { q: T(`Which locus is produced by this ruler-and-compass construction?<br>"${CONSTR[i].en}"<br>${opts.map((o, j) => `${L[j]}) ${o.en}`).join('<br>')}`, `Lokus manakah yang dihasilkan oleh pembinaan pembaris dan angkup ini?<br>"${CONSTR[i].ms}"<br>${opts.map((o, j) => `${L[j]}) ${o.ms}`).join('<br>')}`), a: T(`${ans}) ${STD[i].res.en}`, `${ans}) ${STD[i].res.ms}`), sp: 'm' };
+    },
+    (i) => ({ q: T(`State the geometry instrument(s) needed, and the key measurement to set on them, to construct ${STD[i].res.en}.`, `Nyatakan alat geometri yang diperlukan, dan ukuran utama yang perlu ditetapkan padanya, untuk membina ${STD[i].res.ms}.`), a: T(CONSTR[i].en, CONSTR[i].ms), sp: 'm' }),
+    (i, r) => {
+      const wrongI = r.pick([0, 1, 2, 3, 4].filter((k) => k !== i));
+      return { q: T(`To construct ${STD[i].res.en}, a student instead follows these steps: "${CONSTR[wrongI].en}" Explain what is wrong, and describe the correct construction.`, `Untuk membina ${STD[i].res.ms}, seorang murid sebaliknya mengikut langkah-langkah ini: "${CONSTR[wrongI].ms}" Terangkan apa yang salah, dan huraikan pembinaan yang betul.`), a: T(`Those steps construct ${STD[wrongI].res.en}, not ${STD[i].res.en}. The correct construction is: ${CONSTR[i].en}`, `Langkah-langkah itu membina ${STD[wrongI].res.ms}, bukan ${STD[i].res.ms}. Pembinaan yang betul ialah: ${CONSTR[i].ms}`), sp: 'l' };
+    },
+    (i) => ({ q: T(`What measurement must be kept constant (or measured accurately) throughout the construction of ${STD[i].res.en}, and how is this achieved with a ruler and compasses?`, `Ukuran apakah yang perlu dikekalkan malar (atau diukur dengan tepat) sepanjang pembinaan ${STD[i].res.ms}, dan bagaimana ini dicapai dengan pembaris dan angkup?`), a: T(CONSTR[i].en, CONSTR[i].ms), sp: 'm' }),
+  ];
+  const genK = (r) => KF[r.int(0, KF.length - 1)](r.int(0, 4), r);
+  /** matching task: pick k of the 5 standard loci and ask to match condition to result. */
+  const genMatch = (r) => {
+    const k = r.int(3, 5);
+    const idx = r.sample([0, 1, 2, 3, 4], k);
+    const conds = r.shuffle(idx.map((i) => ({ i, t: STD[i].cond })));
+    const resLetters = ['P', 'Q', 'R', 'S', 'T'];
+    const resShuffled = r.shuffle(idx.map((i) => i));
+    const ansMap = conds.map((c, ci) => `${ci + 1}-${resLetters[resShuffled.indexOf(c.i)]}`).join(', ');
+    return {
+      q: T(`Match each numbered locus condition below to its correct lettered description (${resLetters.slice(0, k).join(', ')}).<br>${conds.map((c, ci) => `${ci + 1}. Points ${c.t.en}`).join('<br>')}<br>${resShuffled.map((i, ri) => `${resLetters[ri]}) ${STD[i].res.en}`).join('<br>')}`, `Padankan setiap syarat lokus bernombor di bawah dengan huraian berhuruf yang betul (${resLetters.slice(0, k).join(', ')}).<br>${conds.map((c, ci) => `${ci + 1}. Titik ${c.t.ms}`).join('<br>')}<br>${resShuffled.map((i, ri) => `${resLetters[ri]}) ${STD[i].res.ms}`).join('<br>')}`),
+      a: T(ansMap, ansMap), sp: 'm',
+    };
+  };
+  SPM.extend('F3-8.1', (function () {
+    const e = [genLF, genCTX, genMatch];
+    e.push((r) => {
+      const d = r.int(2, 4);
+      const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'O' }], circles: [{ cx: 5, cy: 5, r: d }] });
+      return { q: T(`The diagram shows the locus of points that are $${d}$ cm from a fixed point $O$ (using a scale of 1 unit = 1 cm). What shape is this locus, and what are its centre and radius?`, `Rajah menunjukkan lokus titik yang berjarak $${d}$ cm dari satu titik tetap $O$ (menggunakan skala 1 unit = 1 cm). Apakah bentuk lokus ini, dan apakah pusat dan jejarinya?`), fig, a: T(`A circle with centre $O$ and radius $${d}$ cm`, `Bulatan berpusat $O$ dan berjejari $${d}$ cm`), sp: 's' };
+    });
+    e.push((r) => {
+      const k = r.int(3, 7), d = r.int(1, 2);
+      const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 1, y: k, l: 'P' }, { x: 9, y: k, l: 'Q' }], hl: [{ y: k, dash: false }, { y: k + d }, { y: k - d }] });
+      return { q: T(`The diagram shows a straight line $PQ$ (solid) and, at a scale of 1 unit = 1 cm, the locus (dashed) of points a perpendicular distance $${d}$ cm from $PQ$. Describe this locus fully.`, `Rajah menunjukkan satu garis lurus $PQ$ (tebal) dan, pada skala 1 unit = 1 cm, lokus (putus-putus) titik yang berjarak serenjang $${d}$ cm dari $PQ$. Huraikan lokus ini dengan lengkap.`), fig, a: T(`A pair of straight lines parallel to $PQ$, one $${d}$ cm above and one $${d}$ cm below it.`, `Sepasang garis lurus yang selari dengan $PQ$, satu $${d}$ cm di atasnya dan satu $${d}$ cm di bawahnya.`), sp: 's' };
+    });
+    e.push((r) => {
+      const AB = r.pick([4, 6, 8]);
+      const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: 5 - AB / 2, y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], segs: [{ a: [5 - AB / 2, 4], b: [5 + AB / 2, 4] }], vl: [{ x: 5 }] });
+      return { q: T(`The diagram shows two fixed points $A$ and $B$ and, at a scale of 1 unit = 1 cm, a locus (dashed). Describe this locus, and state one property shared by every point on it.`, `Rajah menunjukkan dua titik tetap $A$ dan $B$ dan, pada skala 1 unit = 1 cm, satu lokus (putus-putus). Huraikan lokus ini, dan nyatakan satu sifat yang dikongsi oleh setiap titik padanya.`), fig, a: T('The perpendicular bisector of $AB$; every point on it is equidistant from $A$ and $B$.', 'Pembahagi dua sama serenjang bagi $AB$; setiap titik padanya sama jarak dari $A$ dan $B$.'), sp: 's' };
+    });
+    e.push((r) => {
+      const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'V' }], hl: [{ y: 5, dash: false }], vl: [{ x: 5, dash: false }], diag: [{ x: 5, y: 5, slope: 1 }, { x: 5, y: 5, slope: -1 }] });
+      return { q: T('The diagram shows two straight lines crossing at right angles at $V$ (solid), and a locus (dashed). Describe this locus fully.', 'Rajah menunjukkan dua garis lurus yang bersilang pada sudut tegak di $V$ (tebal), dan satu lokus (putus-putus).  Huraikan lokus ini dengan lengkap.'), fig, a: T('The pair of angle bisectors of the angles between the two lines; since the lines are perpendicular, the two bisectors are also straight lines at $45^\\circ$ to each original line, and they are perpendicular to each other.', 'Sepasang pembahagi dua sama sudut bagi sudut antara dua garis itu; oleh kerana garis-garis itu berserenjang, kedua-dua pembahagi itu juga merupakan garis lurus pada $45^\\circ$ kepada setiap garis asal, dan kedua-duanya berserenjang antara satu sama lain.'), sp: 's' };
+    });
+    e.push((r) => {
+      const pair = r.pick([['a circle', 'a sphere', 'point'], ['two parallel lines', 'a cylindrical surface', 'line']]);
+      return { q: T(`In a plane, the locus of points a fixed distance from a fixed ${pair[2]} is ${pair[0]}. What is the corresponding locus in three-dimensional space?`, `Dalam satu satah, lokus titik yang berjarak tetap dari satu ${pair[2] === 'point' ? 'titik' : 'garis'} tetap ialah ${pair[2] === 'point' ? 'bulatan' : 'dua garis selari'}. Apakah lokus yang sepadan dalam ruang tiga dimensi?`), a: T(pair[1], pair[2] === 'point' ? 'sfera' : 'satah silinder'), sp: 's' };
+    });
+
+    const m = [genLF, genCTX, genK, genMatch];
+    m.push((r) => {
+      const pair = r.pick([
+        [T('a plane', 'satu satah'), T('two fixed points $A$ and $B$', 'dua titik tetap $A$ dan $B$'), T('the perpendicular bisector of $AB$ (a straight line)', 'pembahagi dua sama serenjang bagi $AB$ (satu garis lurus)'), T('a plane perpendicular to $AB$ through its midpoint', 'satu satah berserenjang dengan $AB$ melalui titik tengahnya')],
+        [T('a plane', 'satu satah'), T('two intersecting straight lines', 'dua garis lurus yang bersilang'), T('a pair of angle bisectors', 'sepasang pembahagi dua sama sudut'), T('a pair of planes bisecting the angles between the two lines', 'sepasang satah yang membahagi dua sama sudut antara dua garis itu')],
+      ]);
+      return { q: T(`In ${pair[0].en}, the locus of points equidistant from ${pair[1].en} is ${pair[2].en}. Describe the corresponding locus in three-dimensional space.`, `Dalam ${pair[0].ms}, lokus titik yang sama jarak dari ${pair[1].ms} ialah ${pair[2].ms}. Huraikan lokus yang sepadan dalam ruang tiga dimensi.`), a: T(pair[3].en, pair[3].ms), sp: 'm' };
+    });
+    m.push((r) => {
+      const d = r.int(2, 9);
+      return { q: T(`Describe the locus of points that are $${d}$ cm from a fixed point $O$ (a) in a plane, (b) in three-dimensional space. Compare the two.`, `Huraikan lokus titik yang berjarak $${d}$ cm dari titik tetap $O$ (a) dalam satah, (b) dalam ruang tiga dimensi. Bandingkan kedua-duanya.`), a: T(`(a) A circle of radius $${d}$ cm centred at $O$. (b) A sphere of radius $${d}$ cm centred at $O$; the circle is a cross-section (a "slice") of the sphere through its centre.`, `(a) Bulatan berjejari $${d}$ cm berpusat di $O$. (b) Sfera berjejari $${d}$ cm berpusat di $O$; bulatan itu ialah satu keratan rentas ("hirisan") sfera itu melalui pusatnya.`), sp: 'm' };
+    });
+    m.push((r) => {
+      const AB = r.int(6, 10);
+      const fig = gfig({ xr: [0, 10], yr: [0, 6], pts: [{ x: 5 - AB / 2, y: 3, l: 'A' }, { x: 5 + AB / 2, y: 3, l: 'B' }], vl: [{ x: 5 }] });
+      return { q: T(`$A$ and $B$ are two fixed points on a grid, $${AB}$ units apart. The diagram shows a locus (dashed). Describe this locus fully, and state one property of every point on it.`, `$A$ dan $B$ ialah dua titik tetap pada grid, berjarak $${AB}$ unit. Rajah menunjukkan satu lokus (putus-putus). Huraikan lokus ini dengan lengkap, dan nyatakan satu sifat setiap titik padanya.`), fig, a: T(`It is the perpendicular bisector of $AB$: a straight line perpendicular to $AB$ through its midpoint. Every point on it is equidistant from $A$ and $B$.`, `Ia ialah pembahagi dua sama serenjang bagi $AB$: satu garis lurus yang berserenjang dengan $AB$ melalui titik tengahnya. Setiap titik padanya sama jarak dari $A$ dan $B$.`), sp: 'm' };
+    });
+    m.push((r) => {
+      const k = r.pick([[T('a satellite orbiting the Earth at a constant altitude', 'sebuah satelit yang mengorbit Bumi pada altitud malar'), 0], [T('a plane wall built a constant perpendicular distance from a straight property boundary', 'sebuah tembok rata yang dibina pada jarak serenjang malar dari sempadan hartanah yang lurus'), 1]]);
+      return { q: T(`For ${k[0].en}, describe the locus, and state whether the description differs between a 2D (plan/cross-section) view and the full 3D situation.`, `Bagi ${k[0].ms}, huraikan lokus itu, dan nyatakan sama ada huraiannya berbeza antara pandangan 2D (pelan/keratan rentas) dan situasi 3D yang penuh.`), a: k[1] === 0
+        ? T('2D cross-section: a circle. Full 3D: a sphere (the set of all points at that fixed altitude above the centre of the Earth).', 'Keratan rentas 2D: bulatan. 3D penuh: sfera (set semua titik pada altitud tetap itu dari pusat Bumi).')
+        : T('2D cross-section: two parallel lines (one on each side). Full 3D: a pair of parallel planes.', 'Keratan rentas 2D: dua garis selari (satu pada setiap sebelah). 3D penuh: sepasang satah selari.'), sp: 'm' };
+    });
+
+    const a = [genLF, genCTX, genK, genMatch];
+    a.push((r) => {
+      const d = r.int(2, 5), AB = r.int(8, 12);
+      const rel = d + 3 > AB / 2 ? 2 : d + 3 === AB / 2 ? 1 : 0;
+      return { q: T(`Points $A$ and $B$ are ${AB} cm apart. Describe the two loci needed to find a point $P$ that is ${d + 3} cm from $A$ and equidistant from $A$ and $B$, and state how many such points exist.`, `Titik $A$ dan $B$ berjarak ${AB} cm. Huraikan dua lokus yang diperlukan untuk mencari titik $P$ yang berjarak ${d + 3} cm dari $A$ dan sama jarak dari $A$ dan $B$, dan nyatakan bilangan titik sedemikian.`), a: [
+        T(`Locus 1: a circle, centre $A$, radius ${d + 3} cm. Locus 2: the perpendicular bisector of $AB$. They meet at 2 points ($${d + 3} \\gt ${AB / 2}$).`, `Lokus 1: bulatan, pusat $A$, jejari ${d + 3} cm. Lokus 2: pembahagi dua sama serenjang $AB$. Kedua-duanya bertemu di 2 titik ($${d + 3} \\gt ${AB / 2}$).`),
+        T(`Locus 1: a circle, centre $A$, radius ${d + 3} cm. Locus 2: the perpendicular bisector of $AB$. They touch at exactly 1 point, the midpoint of $AB$ (${d + 3} = ${AB / 2}).`, `Lokus 1: bulatan, pusat $A$, jejari ${d + 3} cm. Lokus 2: pembahagi dua sama serenjang $AB$. Kedua-duanya bersentuhan tepat di 1 titik, iaitu titik tengah $AB$ (${d + 3} = ${AB / 2}).`),
+        T(`Locus 1: a circle, centre $A$, radius ${d + 3} cm. Locus 2: the perpendicular bisector of $AB$. They do not meet: no such point $P$ exists ($${d + 3} \\lt ${AB / 2}$).`, `Lokus 1: bulatan, pusat $A$, jejari ${d + 3} cm. Lokus 2: pembahagi dua sama serenjang $AB$. Kedua-duanya tidak bertemu: tiada titik $P$ sedemikian ($${d + 3} \\lt ${AB / 2}$).`),
+      ][rel], sp: 'l' };
+    });
+    a.push((r) => {
+      return { q: T('A point $P$ moves so that it is always $3$ cm from a straight line segment $AB$ (not an infinite line), where $AB = 6$ cm. Explain why the full locus of $P$ is not simply "two straight lines parallel to $AB$", and describe the actual locus.', 'Satu titik $P$ bergerak supaya ia sentiasa berjarak $3$ cm dari satu tembereng garis lurus $AB$ (bukan garis lurus tak terhingga), dengan $AB = 6$ cm. Terangkan mengapa lokus penuh $P$ bukan sekadar "dua garis lurus selari dengan $AB$", dan huraikan lokus sebenar itu.'), a: T('The "two parallel lines" description only applies to points level with the segment itself; near each end, points level with the endpoint but outside the segment are still 3 cm from the nearest point of $AB$ (the endpoint), tracing a semicircular arc there. The full locus is a rounded ("stadium"-shaped) outline: two straight segments of length 6 cm parallel to $AB$, each 3 cm away, joined at both ends by semicircular arcs of radius 3 cm centred at $A$ and $B$.', 'Huraian "dua garis selari" hanya terpakai bagi titik yang sejajar dengan tembereng itu sendiri; berhampiran setiap hujung, titik yang sejajar dengan titik hujung tetapi di luar tembereng itu masih berjarak 3 cm dari titik terdekat pada $AB$ (titik hujung itu), lalu membentuk lengkok separuh bulatan di situ. Lokus penuh ialah garis luar berbentuk bulat ("stadium"): dua tembereng lurus sepanjang 6 cm selari dengan $AB$, masing-masing sejauh 3 cm, disambungkan pada kedua-dua hujung oleh lengkok separuh bulatan berjejari 3 cm berpusat di $A$ dan $B$.'), sp: 'l' };
+    });
+    a.push((r) => {
+      const c = r.pick(CTX);
+      const others = SPM.makeRng('ctxwrong' + c.en.length).shuffle([0, 1, 2, 3, 4].filter((k) => k !== c.i)).slice(0, 2);
+      return { q: T(`For ${c.en}, a classmate suggests the locus is "${STD[others[0]].res.en}". Explain why this is the wrong standard locus, and give the correct one.`, `Bagi ${c.ms}, seorang rakan sekelas mencadangkan lokus itu ialah "${STD[others[0]].res.ms}". Terangkan mengapa ini adalah lokus piawai yang salah, dan berikan yang betul.`), a: T(`This scenario is about points ${STD[c.i].cond.en}, not the condition matching "${STD[others[0]].res.en}"; the correct locus is ${STD[c.i].res.en}.`, `Senario ini berkaitan titik yang ${STD[c.i].cond.ms}, bukan syarat yang sepadan dengan "${STD[others[0]].res.ms}"; lokus yang betul ialah ${STD[c.i].res.ms}.`), sp: 'm' };
+    });
+    a.push((r) => {
+      const d = r.int(3, 8);
+      const two = r.chance();
+      return { q: T(`A treasure is buried at a point that is exactly ${d} m from a large rock $R$, and also ${two ? 'equidistant from two straight paths that cross at a junction $J$' : 'equidistant from two straight, parallel fences'}. Describe the two standard loci that together give the possible position(s) of the treasure.`, `Sebuah harta karun ditanam pada satu titik yang tepat ${d} m dari sebuah batu besar $R$, dan juga ${two ? 'sama jarak dari dua laluan lurus yang bersilang di satu persimpangan $J$' : 'sama jarak dari dua pagar lurus yang selari'}. Huraikan dua lokus piawai yang bersama-sama memberikan kedudukan yang mungkin bagi harta karun itu.`), a: two
+        ? T(`Locus 1: a circle, centre $R$, radius ${d} m. Locus 2: the pair of angle bisectors of the angle between the two paths, through $J$.`, `Lokus 1: bulatan, pusat $R$, jejari ${d} m. Lokus 2: sepasang pembahagi dua sama sudut bagi sudut antara dua laluan itu, melalui $J$.`)
+        : T(`Locus 1: a circle, centre $R$, radius ${d} m. Locus 2: a straight line parallel to both fences, exactly midway between them.`, `Lokus 1: bulatan, pusat $R$, jejari ${d} m. Lokus 2: satu garis lurus yang selari dengan kedua-dua pagar, tepat di tengah-tengah antara kedua-duanya.`), sp: 'l' };
+    });
+
+    return { e, m, a };
+  })());
+
+  /* ===================================================================== 8.2 Intersection of loci and regions */
+  /** shade the part of a filled circle that lies within a vertical half-plane (x < k or x > k), via a clip-path.
+   *  cx, cy, r, k are all in PIXEL coordinates (already run through the figure's sx/sy). */
+  function clipHalf(id, cx, cy, r, k, keepLeft) {
+    const x0 = keepLeft ? -3000 : k;
+    const w = keepLeft ? k + 3000 : 6000;
+    return `<clipPath id="${id}"><rect x="${x0.toFixed(1)}" y="-3000" width="${w.toFixed(1)}" height="9000"/></clipPath><g clip-path="url(#${id})">${S.circle(cx, cy, r, { fill: 'currentColor', op: 0.16 })}</g>`;
+  }
+  let cid = 0;
+  /** build a "count of intersection points" case: {stemEn, stemMs, n, reason, fig?, wrongs?} */
+  function mkQ(stemEn, stemMs, n, reason, fig, wrongs) {
+    const w = wrongs || [0, 1, 2, 3, 4].filter((x) => x !== n).slice(0, 3);
+    return { stemEn, stemMs, n, valStr: String(n), wrongsStr: w.map(String), reason, fig };
+  }
+  const QF = [
+    (c) => ({ q: T(`${c.stemEn} How many points lie on both loci?`, `${c.stemMs} Berapakah bilangan titik yang terletak pada kedua-dua lokus itu?`), fig: c.fig, a: T(c.valStr), sp: 's' }),
+    (c) => ({ q: T(`${c.stemEn} How many points lie on both loci? State a reason.`, `${c.stemMs} Berapakah bilangan titik yang terletak pada kedua-dua lokus itu? Nyatakan sebab.`), fig: c.fig, a: T(`${c.valStr} (${c.reason.en})`, `${c.valStr} (${c.reason.ms})`), sp: 'm' }),
+    (c, r) => {
+      const opts = r.shuffle([c.valStr, ...c.wrongsStr]);
+      const L = ['A', 'B', 'C', 'D'];
+      const ans = L[opts.indexOf(c.valStr)];
+      return { q: T(`${c.stemEn} How many points lie on both loci?<br>${opts.map((o, i) => `${L[i]}) ${o}`).join('&emsp;')}`, `${c.stemMs} Berapakah bilangan titik yang terletak pada kedua-dua lokus itu?<br>${opts.map((o, i) => `${L[i]}) ${o}`).join('&emsp;')}`), fig: c.fig, a: T(`${ans}) ${c.valStr}`), sp: 's' };
+    },
+    (c, r) => {
+      const w0 = r.pick(c.wrongsStr);
+      return { q: T(`${c.stemEn} A student says the two loci meet at ${w0} point${w0 === '1' ? '' : 's'}. Is this correct? If not, give the correct number and a reason.`, `${c.stemMs} Seorang murid berkata kedua-dua lokus itu bertemu pada ${w0} titik. Adakah ini betul? Jika tidak, berikan bilangan yang betul berserta sebab.`), fig: c.fig, a: T(`Incorrect; ${c.valStr} (${c.reason.en})`, `Tidak betul; ${c.valStr} (${c.reason.ms})`), sp: 'm' };
+    },
+    (c) => ({ q: T(`Complete: ${c.stemEn} The two loci meet at ____ point(s).`, `Lengkapkan: ${c.stemMs} Kedua-dua lokus itu bertemu pada ____ titik.`), fig: c.fig, a: T(`${c.valStr} (${c.reason.en})`, `${c.valStr} (${c.reason.ms})`), sp: 'm' }),
+    (c) => ({ q: T(`${c.stemEn} Given that the two loci meet at $${c.valStr}$ point(s), explain why.`, `${c.stemMs} Diberi kedua-dua lokus itu bertemu pada $${c.valStr}$ titik, terangkan mengapa.`), fig: c.fig, a: T(c.reason.en, c.reason.ms), sp: 'm' }),
+    (c, r) => {
+      const w0 = r.pick(c.wrongsStr);
+      const opts = r.shuffle([c.reason, T(`there are always exactly ${w0} such point(s), regardless of the numbers given`, `sentiasa terdapat tepat ${w0} titik sedemikian, tidak kira nombor yang diberi`)]);
+      const correct = opts[0] === c.reason;
+      return { q: T(`${c.stemEn} Which statement correctly explains the number of intersection points?<br>A) ${opts[0].en}<br>B) ${opts[1].en}`, `${c.stemMs} Pernyataan manakah yang menerangkan dengan betul bilangan titik persilangan?<br>A) ${opts[0].ms}<br>B) ${opts[1].ms}`), fig: c.fig, a: T(correct ? `A) ${c.reason.en}` : `B) ${c.reason.en}`, correct ? `A) ${c.reason.ms}` : `B) ${c.reason.ms}`), sp: 's' };
+    },
+  ];
+  const genQ = (CASES) => (r) => QF[r.int(0, QF.length - 1)](r.pick(CASES)(r), r);
+
+  const QCASES = [
+    (r) => { const rr = r.int(3, 6), h = r.int(1, 7); need(h !== rr); const n2 = h < rr ? 2 : h > rr ? 0 : 1; const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'O' }], circles: [{ cx: 5, cy: 5, r: rr }], hl: [{ y: 5 - h, dash: false }] }); return mkQ(`A circle has centre $O$, radius $${rr}$ cm. A straight line is $${h}$ cm from $O$.`, `Sebuah bulatan berpusat $O$, berjejari $${rr}$ cm. Satu garis lurus berjarak $${h}$ cm dari $O$.`, n2, T('compare the distance from $O$ to the line with the radius: nearer than the radius gives 2 points, equal gives 1 (tangent), farther gives 0', 'bandingkan jarak dari $O$ ke garis itu dengan jejari: lebih dekat daripada jejari memberi 2 titik, sama memberi 1 (tangen), lebih jauh memberi 0'), fig); },
+    (r) => { const AB = r.pick([6, 8, 10]), rr = r.int(2, 7); need(rr !== AB / 2); const n2 = rr > AB / 2 ? 2 : rr < AB / 2 ? 0 : 1; const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: 5 - AB / 2, y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], circles: [{ cx: 5 - AB / 2, cy: 4, r: rr }], vl: [{ x: 5 }] }); return mkQ(`$A$ and $B$ are $${AB}$ cm apart. Locus 1: a circle centre $A$, radius $${rr}$ cm. Locus 2: the perpendicular bisector of $AB$.`, `$A$ dan $B$ berjarak $${AB}$ cm. Lokus 1: bulatan berpusat $A$, berjejari $${rr}$ cm. Lokus 2: pembahagi dua sama serenjang $AB$.`, n2, T('compare the radius with half of $AB$: greater gives 2 points, equal gives 1, less gives 0', 'bandingkan jejari dengan separuh $AB$: lebih besar memberi 2 titik, sama memberi 1, kurang memberi 0'), fig); },
+    (r) => { const [r1, r2, D] = r.pick([[3, 5, 6], [4, 6, 3], [5, 7, 12], [3, 4, 8], [6, 8, 2], [2, 9, 7]]); const n2 = (D > r1 + r2 || D < Math.abs(r1 - r2)) ? 0 : (D === r1 + r2 || D === Math.abs(r1 - r2)) ? 1 : 2; return mkQ(`Locus 1: a circle centre $O_1$, radius $${r1}$ cm. Locus 2: a circle centre $O_2$, radius $${r2}$ cm. $O_1O_2 = ${D}$ cm.`, `Lokus 1: bulatan berpusat $O_1$, berjejari $${r1}$ cm. Lokus 2: bulatan berpusat $O_2$, berjejari $${r2}$ cm. $O_1O_2 = ${D}$ cm.`, n2, T('compare the distance between centres with the sum and the difference of the radii', 'bandingkan jarak antara pusat dengan hasil tambah dan perbezaan jejari'), null); },
+    (r) => { const r1 = r.int(2, 5), r2 = r1 + r.int(1, 4); return mkQ(`Two circles share the same centre $O$: one has radius $${r1}$ cm, the other radius $${r2}$ cm (concentric circles).`, `Dua bulatan berkongsi pusat yang sama $O$: satu berjejari $${r1}$ cm, satu lagi berjejari $${r2}$ cm (bulatan sepusat).`, 0, T('concentric circles of different radii never meet, since every point of the smaller circle is exactly $' + r1 + '$ cm from $O$ and every point of the larger is exactly $' + r2 + '$ cm from $O$', 'bulatan sepusat berjejari berbeza tidak pernah bertemu, kerana setiap titik bulatan kecil tepat $' + r1 + '$ cm dari $O$ dan setiap titik bulatan besar tepat $' + r2 + '$ cm dari $O$'), null); },
+    (r) => { const rr = r.int(2, 8); return mkQ(`Locus 1: a straight line through a fixed point $V$ (an angle bisector). Locus 2: a circle with centre $V$ and radius $${rr}$ cm.`, `Lokus 1: satu garis lurus melalui titik tetap $V$ (pembahagi dua sama sudut). Lokus 2: bulatan berpusat $V$ berjejari $${rr}$ cm.`, 2, T('a straight line through the centre of a circle always crosses the circle at exactly 2 (diametrically opposite) points', 'satu garis lurus melalui pusat bulatan sentiasa memotong bulatan itu pada tepat 2 titik (bertentang pusat)'), null); },
+    (r) => { const AB = r.int(6, 12); return mkQ(`Locus 1: the perpendicular bisector of $AB$. Locus 2: the straight line $AB$ itself (extended if needed), where $AB = ${AB}$ cm.`, `Lokus 1: pembahagi dua sama serenjang $AB$. Lokus 2: garis lurus $AB$ itu sendiri (dipanjangkan jika perlu), dengan $AB = ${AB}$ cm.`, 1, T('the perpendicular bisector always crosses the line $AB$ at exactly one point, the midpoint of $AB$', 'pembahagi dua sama serenjang sentiasa memotong garis $AB$ pada tepat satu titik, iaitu titik tengah $AB$'), null); },
+    (r) => { const rr = r.int(2, 9); return mkQ(`Locus 1: a circle with centre $O$, radius $${rr}$ cm. Locus 2: a straight line tangent to this circle.`, `Lokus 1: bulatan berpusat $O$, berjejari $${rr}$ cm. Lokus 2: satu garis lurus tangen kepada bulatan ini.`, 1, T('by definition, a tangent touches a circle at exactly one point', 'mengikut definisi, tangen menyentuh bulatan pada tepat satu titik'), null); },
+    (r) => { const rr = r.int(2, 7), extra = r.int(1, 4); return mkQ(`Locus 1: a circle with centre $O$, radius $${rr}$ cm. Locus 2: a circle with centre $O$ (the same centre) and radius $${rr + extra}$ cm.`, `Lokus 1: bulatan berpusat $O$, berjejari $${rr}$ cm. Lokus 2: bulatan berpusat $O$ (pusat yang sama) dan berjejari $${rr + extra}$ cm.`, 0, T('two concentric circles with different radii never meet, since points on one are always $' + extra + '$ cm farther from $O$ than points on the other', 'dua bulatan sepusat dengan jejari berbeza tidak pernah bertemu, kerana titik pada satu bulatan sentiasa $' + extra + '$ cm lebih jauh dari $O$ berbanding titik pada bulatan yang satu lagi'), null); },
+    (r) => { const rr = r.int(2, 6); const D = 2 * rr; return mkQ(`Locus 1: a circle with centre $O_1$, radius $${rr}$ cm. Locus 2: a circle with centre $O_2$, radius $${rr}$ cm, where $O_1O_2 = ${D}$ cm (the circles touch externally).`, `Lokus 1: bulatan berpusat $O_1$, berjejari $${rr}$ cm. Lokus 2: bulatan berpusat $O_2$, berjejari $${rr}$ cm, dengan $O_1O_2 = ${D}$ cm (bulatan-bulatan itu bersentuh secara luaran).`, 1, T('the distance between centres equals the sum of the radii, so the circles touch externally at exactly one point', 'jarak antara pusat sama dengan hasil tambah jejari, maka bulatan-bulatan itu bersentuh secara luaran pada tepat satu titik'), null); },
+    (r) => { const AB = r.int(6, 12); const rr = r.pick([AB / 2 - 1, AB / 2 + 1, AB / 2 + 2].filter((x) => x > 0)); return mkQ(`Locus 1: the perpendicular bisector of $AB$, where $AB = ${AB}$ cm. Locus 2: a circle with centre at the midpoint of $AB$, radius $${rr}$ cm.`, `Lokus 1: pembahagi dua sama serenjang $AB$, dengan $AB = ${AB}$ cm. Lokus 2: bulatan berpusat di titik tengah $AB$, berjejari $${rr}$ cm.`, 2, T('the perpendicular bisector passes through the centre of the circle (the midpoint of $AB$), so it always crosses the circle at exactly 2 points, whatever the radius', 'pembahagi dua sama serenjang melalui pusat bulatan itu (titik tengah $AB$), maka ia sentiasa memotong bulatan itu pada tepat 2 titik, tidak kira jejarinya'), null); },
+    (r) => { const rr = r.int(2, 6); const D = r.pick([2 * rr - 2, 2 * rr + 2, 2 * rr + 4].filter((x) => x > 0)); const n2 = D < 2 * rr ? 2 : D > 2 * rr ? 0 : 1; return mkQ(`Locus 1: a circle with centre $O_1$, radius $${rr}$ cm. Locus 2: a circle with the same radius $${rr}$ cm, centre $O_2$, where $O_1O_2 = ${D}$ cm.`, `Lokus 1: bulatan berpusat $O_1$, berjejari $${rr}$ cm. Lokus 2: bulatan dengan jejari yang sama $${rr}$ cm, berpusat $O_2$, dengan $O_1O_2 = ${D}$ cm.`, n2, T('for two equal circles, compare the distance between centres with twice the common radius', 'bagi dua bulatan yang sama jejari, bandingkan jarak antara pusat dengan dua kali jejari sepunya itu'), null); },
+    (r) => { const AB = r.int(6, 10); const h = r.pick([AB / 2 - 2, AB / 2 + 2, AB / 2 + 4].filter((x) => x > 0)); const n2 = 1; const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: 5 - AB / 2, y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], vl: [{ x: 5 }], hl: [{ y: 4 - h, dash: false }] }); return mkQ(`$A$ and $B$ are $${AB}$ cm apart. Locus 1: the perpendicular bisector of $AB$. Locus 2: a straight line parallel to $AB$, $${h}$ cm from $AB$.`, `$A$ dan $B$ berjarak $${AB}$ cm. Lokus 1: pembahagi dua sama serenjang $AB$. Lokus 2: satu garis lurus yang selari dengan $AB$, $${h}$ cm dari $AB$.`, n2, T('a line parallel to $AB$ crosses the perpendicular bisector (which is perpendicular to $AB$) at exactly one point, however far away it is', 'satu garis selari dengan $AB$ memotong pembahagi dua sama serenjang itu (yang berserenjang dengan $AB$) pada tepat satu titik, tidak kira sejauh mana ia berada'), fig); },
+    (r) => { const [r1, r2, D] = r.pick([[4, 3, 8], [5, 2, 4], [6, 4, 11], [3, 3, 3], [7, 2, 9], [4, 4, 9]]); const s = r1 + r2, dd = Math.abs(r1 - r2); const n2 = (D > s || D < dd) ? 0 : (D === s || D === dd) ? 1 : 2; return mkQ(`Two coins are placed on a table: a circular outline of radius $${r1}$ cm and centre $O_1$, and another of radius $${r2}$ cm and centre $O_2$, with $O_1O_2 = ${D}$ cm.`, `Dua duit syiling diletakkan di atas meja: garis luar bulat berjejari $${r1}$ cm berpusat $O_1$, dan satu lagi berjejari $${r2}$ cm berpusat $O_2$, dengan $O_1O_2 = ${D}$ cm.`, n2, T('compare the distance between centres with the sum and the difference of the two radii', 'bandingkan jarak antara pusat dengan hasil tambah dan perbezaan dua jejari itu'), null); },
+  ];
+
+  /** region-description case: {stemEn, stemMs, descEn, descMs} */
+  const RF = [
+    (c) => ({ q: T(`${c.stemEn} Describe this region fully, including boundary inclusion.`, `${c.stemMs} Huraikan kawasan ini dengan lengkap, termasuk sama ada sempadan disertakan.`), fig: c.fig, a: T(c.descEn, c.descMs), sp: 'm' }),
+    (c) => ({ q: T(`Complete: ${c.stemEn} This region is ____.`, `Lengkapkan: ${c.stemMs} Kawasan ini ialah ____.`), fig: c.fig, a: T(c.descEn, c.descMs), sp: 'm' }),
+    (c) => ({ q: T(`${c.stemEn} Is the boundary included in this region? Explain.`, `${c.stemMs} Adakah sempadan termasuk dalam kawasan ini? Terangkan.`), fig: c.fig, a: T(c.boundEn, c.boundMs), sp: 's' }),
+    (c) => ({ q: T(`${c.stemEn} State, in your own words, the single condition (or pair of conditions) that a point must satisfy to lie in this region.`, `${c.stemMs} Nyatakan, dalam perkataan anda sendiri, syarat tunggal (atau sepasang syarat) yang mesti dipenuhi oleh satu titik untuk terletak dalam kawasan ini.`), fig: c.fig, a: T(c.descEn, c.descMs), sp: 'm' }),
+  ];
+  const genR = (CASES) => (r) => RF[r.int(0, RF.length - 1)](r.pick(CASES)(r), r);
+
+  const RCASES = [
+    (r) => { const d = r.int(2, 5); const incl = r.chance(); const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'O' }], circles: [{ cx: 5, cy: 5, r: d }], shade: (m) => S.circle(m.sx(5), m.sy(5), d * SC, { fill: 'currentColor', op: 0.16 }) }); return { stemEn: `The shaded region shows points ${incl ? 'at most' : 'less than'} $${d}$ cm from a fixed point $O$.`, stemMs: `Kawasan berlorek menunjukkan titik yang ${incl ? 'selebih-lebihnya' : 'kurang daripada'} $${d}$ cm dari titik tetap $O$.`, descEn: `A disc of radius $${d}$ cm centred at $O$, ${incl ? 'including' : 'excluding'} the boundary circle.`, descMs: `Cakera berjejari $${d}$ cm berpusat di $O$, ${incl ? 'termasuk' : 'tidak termasuk'} bulatan sempadan.`, boundEn: incl ? `Yes; "at most" includes the boundary (points exactly $${d}$ cm away).` : `No; "less than" excludes the boundary (points exactly $${d}$ cm away).`, boundMs: incl ? `Ya; "selebih-lebihnya" termasuk sempadan (titik yang tepat $${d}$ cm jauhnya).` : `Tidak; "kurang daripada" tidak termasuk sempadan (titik yang tepat $${d}$ cm jauhnya).`, fig }; },
+    (r) => { const d = r.int(2, 5); const incl = r.chance(); const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'O' }], circles: [{ cx: 5, cy: 5, r: d }] }); return { stemEn: `A region contains points ${incl ? 'at least' : 'more than'} $${d}$ cm from a fixed point $O$ (outside the circle shown).`, stemMs: `Satu kawasan mengandungi titik yang ${incl ? 'sekurang-kurangnya' : 'lebih daripada'} $${d}$ cm dari titik tetap $O$ (di luar bulatan yang ditunjukkan).`, descEn: `Every point outside a circle of radius $${d}$ cm centred at $O$ (the region extends without limit), ${incl ? 'including' : 'excluding'} the boundary circle.`, descMs: `Setiap titik di luar bulatan berjejari $${d}$ cm berpusat di $O$ (kawasan ini terbentang tanpa had), ${incl ? 'termasuk' : 'tidak termasuk'} bulatan sempadan.`, boundEn: incl ? `Yes; "at least" includes the boundary.` : `No; "more than" excludes the boundary.`, boundMs: incl ? `Ya; "sekurang-kurangnya" termasuk sempadan.` : `Tidak; "lebih daripada" tidak termasuk sempadan.`, fig }; },
+    (r) => { const AB = r.pick([6, 8, 10]); const incl = r.chance(); const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: 5 - AB / 2, y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], vl: [{ x: 5 }], shade: (m) => clipHalf('rc' + (cid++), m.sx(5), m.sy(4), 6 * SC, m.sx(5), true) }); return { stemEn: `$A$ and $B$ are $${AB}$ cm apart. The shaded region shows points closer to $A$ than to $B$ (boundary ${incl ? 'included' : 'excluded'}).`, stemMs: `$A$ dan $B$ berjarak $${AB}$ cm. Kawasan berlorek menunjukkan titik yang lebih dekat kepada $A$ berbanding $B$ (sempadan ${incl ? 'termasuk' : 'tidak termasuk'}).`, descEn: `Every point on the $A$-side of the perpendicular bisector of $AB$, ${incl ? 'including' : 'excluding'} the bisector itself.`, descMs: `Setiap titik pada sebelah $A$ bagi pembahagi dua sama serenjang $AB$, ${incl ? 'termasuk' : 'tidak termasuk'} pembahagi dua sama itu sendiri.`, boundEn: incl ? 'Yes; points on the bisector are equidistant, and "closer" here is taken to include ties.' : 'No; points on the bisector are equidistant from $A$ and $B$, not strictly closer to $A$.', boundMs: incl ? 'Ya; titik pada pembahagi dua sama adalah sama jarak, dan "lebih dekat" di sini dianggap termasuk keadaan sama jarak.' : 'Tidak; titik pada pembahagi dua sama adalah sama jarak dari $A$ dan $B$, bukan lebih dekat secara ketat kepada $A$.', fig }; },
+    (r) => { const AB = r.pick([6, 8, 10]), d = r.int(2, 4); cid++; const A2x = 5 - AB / 2; const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: A2x, y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], circles: [{ cx: A2x, cy: 4, r: d }], vl: [{ x: 5 }], shade: (m) => clipHalf('rc2' + cid, m.sx(A2x), m.sy(4), d * SC, m.sx(5), true) }); return { stemEn: `$A$ and $B$ are $${AB}$ cm apart. The shaded region shows points at most $${d}$ cm from $A$ AND closer to $A$ than to $B$ (boundaries included).`, stemMs: `$A$ dan $B$ berjarak $${AB}$ cm. Kawasan berlorek menunjukkan titik yang selebih-lebihnya $${d}$ cm dari $A$ DAN lebih dekat kepada $A$ berbanding $B$ (sempadan termasuk).`, descEn: `The part of the disc of radius $${d}$ cm centred at $A$ that lies on the $A$-side of the perpendicular bisector of $AB$.`, descMs: `Bahagian cakera berjejari $${d}$ cm berpusat di $A$ yang terletak pada sebelah $A$ bagi pembahagi dua sama serenjang $AB$.`, boundEn: 'Yes; both boundaries ("at most" and the bisector) are included here.', boundMs: 'Ya; kedua-dua sempadan ("selebih-lebihnya" dan pembahagi dua sama) termasuk di sini.', fig }; },
+    (r) => { const AB = r.pick([6, 8, 10]); const incl = r.chance(); const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: 5 - AB / 2, y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], vl: [{ x: 5 }], shade: (m) => clipHalf('rc3' + (cid++), m.sx(5), m.sy(4), 6 * SC, m.sx(5), false) }); return { stemEn: `$A$ and $B$ are $${AB}$ cm apart. The shaded region shows points farther from $A$ than from $B$ (boundary ${incl ? 'included' : 'excluded'}).`, stemMs: `$A$ dan $B$ berjarak $${AB}$ cm. Kawasan berlorek menunjukkan titik yang lebih jauh dari $A$ berbanding $B$ (sempadan ${incl ? 'termasuk' : 'tidak termasuk'}).`, descEn: `Every point on the $B$-side of the perpendicular bisector of $AB$, ${incl ? 'including' : 'excluding'} the bisector itself.`, descMs: `Setiap titik pada sebelah $B$ bagi pembahagi dua sama serenjang $AB$, ${incl ? 'termasuk' : 'tidak termasuk'} pembahagi dua sama itu sendiri.`, boundEn: incl ? 'Yes; ties (points on the bisector) are counted as included here.' : 'No; points on the bisector are equidistant, not strictly farther from $A$.', boundMs: incl ? 'Ya; keadaan sama jarak (titik pada pembahagi dua sama) dikira termasuk di sini.' : 'Tidak; titik pada pembahagi dua sama adalah sama jarak, bukan lebih jauh secara ketat dari $A$.', fig }; },
+    (r) => { const k = r.int(2, 4), gap = r.int(4, 7); const incl = r.chance(); const fig = gfig({ xr: [0, 10], yr: [0, k + gap + 3], pts: [], hl: [{ y: k, dash: false }, { y: k + gap, dash: false }], shade: (m) => `${S.rect(m.sx(0), m.sy(k + gap), m.sx(10) - m.sx(0), m.sy(k) - m.sy(k + gap), { fill: 'currentColor', op: 0.16 })}` }); return { stemEn: `Two straight parallel lines are $${gap}$ cm apart. The shaded region shows the points between them (boundary ${incl ? 'included' : 'excluded'}).`, stemMs: `Dua garis lurus selari berjarak $${gap}$ cm. Kawasan berlorek menunjukkan titik di antara kedua-duanya (sempadan ${incl ? 'termasuk' : 'tidak termasuk'}).`, descEn: `The strip of points lying between the two lines, ${incl ? 'including' : 'excluding'} the two lines themselves.`, descMs: `Jalur titik yang terletak di antara dua garis itu, ${incl ? 'termasuk' : 'tidak termasuk'} kedua-dua garis itu sendiri.`, boundEn: incl ? 'Yes; the two boundary lines are part of the region.' : 'No; the two boundary lines are excluded.', boundMs: incl ? 'Ya; kedua-dua garis sempadan adalah sebahagian daripada kawasan ini.' : 'Tidak; kedua-dua garis sempadan tidak termasuk.', fig }; },
+  ];
+  SPM.extend('F3-8.2', (function () {
+    const e = [genQ(QCASES), genR(RCASES)];
+    e.push((r) => {
+      const d = r.int(2, 4);
+      const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'O' }], circles: [{ cx: 5, cy: 5, r: d }], shade: (m) => S.circle(m.sx(5), m.sy(5), d * SC, { fill: 'currentColor', op: 0.16 }) });
+      return { q: T(`The diagram shades the region of points at most $${d}$ cm from $O$ (scale: 1 unit = 1 cm), including the boundary. What is the shape and size of this region?`, `Rajah melorekkan kawasan titik yang selebih-lebihnya $${d}$ cm dari $O$ (skala: 1 unit = 1 cm), termasuk sempadan. Apakah bentuk dan saiz kawasan ini?`), fig, a: T(`A disc (circle and its interior) with centre $O$ and radius $${d}$ cm`, `Cakera (bulatan dan bahagian dalamnya) berpusat $O$ dan berjejari $${d}$ cm`), sp: 's' };
+    });
+    e.push((r) => {
+      const claim = r.chance();
+      const d = r.int(3, 5);
+      return { q: T(`A region is defined as "the set of points less than $${d}$ cm from a fixed point $O$" (strictly less than, boundary excluded). Is a point exactly $${d}$ cm from $O$ included in this region?`, `Satu kawasan ditakrifkan sebagai "set titik yang kurang daripada $${d}$ cm dari titik tetap $O$" (kurang secara ketat, sempadan tidak termasuk). Adakah satu titik yang tepat $${d}$ cm dari $O$ termasuk dalam kawasan ini?`), a: T('No; the boundary (the circle itself, exactly $' + d + '$ cm from $O$) is excluded, since the condition is a strict inequality ("less than").', 'Tidak; sempadan (bulatan itu sendiri, tepat $' + d + '$ cm dari $O$) tidak termasuk, kerana syaratnya ialah ketaksamaan ketat ("kurang daripada").'), sp: 's' };
+    });
+
+    const m = [genQ(QCASES), genR(RCASES)];
+    m.push((r) => {
+      const d = r.int(3, 8);
+      return { q: T(`Locus 1: the set of points exactly $${d}$ cm from a fixed point $O$. Locus 2: the set of points exactly $${d}$ cm from the same point $O$ (an identical circle). How many points lie on both loci?`, `Lokus 1: set titik yang tepat $${d}$ cm dari titik tetap $O$. Lokus 2: set titik yang tepat $${d}$ cm dari titik $O$ yang sama (bulatan yang sama). Berapakah bilangan titik yang terletak pada kedua-dua lokus itu?`), a: T('Infinitely many; the two loci are exactly the same circle, so every one of its points lies on both.', 'Tak terhingga banyak; kedua-dua lokus itu ialah bulatan yang sama tepat, maka setiap titiknya terletak pada kedua-duanya.'), sp: 's' };
+    });
+    m.push((r) => {
+      const AB = r.pick([6, 8, 10]);
+      return { q: T(`$A$ and $B$ are $${AB}$ cm apart. A point $P$ satisfies both "$P$ is equidistant from $A$ and $B$" and "$P$ is equidistant from $A$ and $B$" (the same condition stated twice). How many possible positions does $P$ have?`, `$A$ dan $B$ berjarak $${AB}$ cm. Satu titik $P$ memenuhi kedua-dua "$P$ sama jarak dari $A$ dan $B$" dan "$P$ sama jarak dari $A$ dan $B$" (syarat yang sama dinyatakan dua kali). Berapakah bilangan kedudukan yang mungkin bagi $P$?`), a: T('Infinitely many; both conditions describe the same locus (the perpendicular bisector of $AB$), a whole line of points, not a finite count.', 'Tak terhingga banyak; kedua-dua syarat menghuraikan lokus yang sama (pembahagi dua sama serenjang $AB$), iaitu keseluruhan satu garis titik, bukan satu bilangan terhingga.'), sp: 's' };
+    });
+    m.push((r) => {
+      const [half, rr, dd] = r.pick([[4, 5, 3], [6, 10, 8], [3, 5, 4], [5, 13, 12], [8, 17, 15], [7, 25, 24]]);
+      const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: 5 - half, y: 4, l: 'A' }, { x: 5 + half, y: 4, l: 'B' }], circles: [{ cx: 5 - half, cy: 4, r: rr }], vl: [{ x: 5 }] });
+      return { q: T(`$A$ and $B$ are $${2 * half}$ cm apart. Find the distance from the midpoint of $AB$ to each point $P$ that is equidistant from $A$ and $B$ and $${rr}$ cm from $A$. How many such points are there?`, `$A$ dan $B$ berjarak $${2 * half}$ cm. Cari jarak dari titik tengah $AB$ ke setiap titik $P$ yang sama jarak dari $A$ dan $B$ dan berjarak $${rr}$ cm dari $A$. Berapakah bilangan titik sedemikian?`), fig, a: T(`$${dd}$ cm from the midpoint (on either side of $AB$): 2 points`, `$${dd}$ cm dari titik tengah (pada kedua-dua sisi $AB$): 2 titik`), w: T(`$\\sqrt{${rr}^2 - ${half}^2} = ${dd}$`, `$\\sqrt{${rr}^2 - ${half}^2} = ${dd}$`), sp: 'm' };
+    });
+    m.push((r) => {
+      const AB = r.pick([6, 8, 10]);
+      const d = r.int(2, 4);
+      cid++;
+      const A2 = [5 - AB / 2, 4], k = 5;
+      const shade = (m2) => clipHalf('r8s' + cid, m2.sx(A2[0]), m2.sy(A2[1]), d * SC, m2.sx(k), true);
+      const fig = gfig({ xr: [0, 10], yr: [0, 8], pts: [{ x: A2[0], y: 4, l: 'A' }, { x: 5 + AB / 2, y: 4, l: 'B' }], circles: [{ cx: A2[0], cy: 4, r: d }], vl: [{ x: 5 }], shade });
+      return { q: T(`$A$ and $B$ are $${AB}$ cm apart. The shaded region shows points that are at most $${d}$ cm from $A$ AND closer to $A$ than to $B$ (boundaries included). Describe this region in words.`, `$A$ dan $B$ berjarak $${AB}$ cm. Kawasan berlorek menunjukkan titik yang selebih-lebihnya $${d}$ cm dari $A$ DAN lebih dekat kepada $A$ berbanding $B$ (sempadan termasuk). Huraikan kawasan ini dengan perkataan.`), fig, a: T(`The region inside or on the circle of radius $${d}$ cm centred at $A$, restricted to the side of the perpendicular bisector of $AB$ that contains $A$.`, `Kawasan di dalam atau pada bulatan berjejari $${d}$ cm berpusat $A$, terhad kepada sebelah pembahagi dua sama serenjang $AB$ yang mengandungi $A$.`), sp: 'm' };
+    });
+    m.push((r) => {
+      const rr = r.int(3, 6), h = r.int(1, 7);
+      need(h !== rr);
+      const n2 = h < rr ? 2 : h > rr ? 0 : 1;
+      return { q: T(`A circle has radius $${rr}$ cm and centre $O$. A straight line is drawn $${h}$ cm from $O$. A student says the line meets the circle at exactly 2 points, regardless of the numbers. Is the student's reasoning valid? Justify using this example.`, `Sebuah bulatan berjejari $${rr}$ cm berpusat $O$. Satu garis lurus dilukis pada jarak $${h}$ cm dari $O$. Seorang murid berkata garis itu bertemu bulatan tepat pada 2 titik, tidak kira nombornya. Adakah penaakulan murid itu sah? Wajarkan menggunakan contoh ini.`), a: T(`No; the number of intersection points depends on comparing the distance to the radius: 2 points if the distance $<$ radius, 1 if equal (tangent), 0 if greater. Here, distance $= ${h}$ cm and radius $= ${rr}$ cm, so there ${n2 === 1 ? 'is' : 'are'} ${n2} point${n2 === 1 ? '' : 's'}.`, `Tidak; bilangan titik persilangan bergantung kepada perbandingan jarak dengan jejari: 2 titik jika jarak $<$ jejari, 1 jika sama (tangen), 0 jika lebih besar. Di sini, jarak $= ${h}$ cm dan jejari $= ${rr}$ cm, maka terdapat ${n2} titik.`), sp: 'm' };
+    });
+    m.push((r) => {
+      const xr = 5, yr = 4;
+      const d = r.int(2, 3);
+      let cnt = 0;
+      const pts = [];
+      for (let x = 0; x <= xr; x++) for (let y = 0; y <= yr; y++) { if (x * x + y * y <= d * d) { cnt++; pts.push([x, y]); } }
+      const fig = gfig({ xr: [0, xr], yr: [0, yr], pts: [{ x: 0, y: 0, l: 'O' }], circles: [{ cx: 0, cy: 0, r: d }] });
+      return { q: T(`$O$ is the origin of a grid with $x \\geq 0$ and $y \\geq 0$. How many points with integer coordinates (lattice points) are at most $${d}$ units from $O$, with $0 \\leq x \\leq ${xr}$ and $0 \\leq y \\leq ${yr}$?`, `$O$ ialah asalan bagi satu grid dengan $x \\geq 0$ dan $y \\geq 0$. Berapakah bilangan titik berkoordinat integer (titik kekisi) yang selebih-lebihnya $${d}$ unit dari $O$, dengan $0 \\leq x \\leq ${xr}$ dan $0 \\leq y \\leq ${yr}$?`), fig, a: T(`${cnt} points: ${pts.map((p) => `(${p[0]}, ${p[1]})`).join(', ')}`, `${cnt} titik: ${pts.map((p) => `(${p[0]}, ${p[1]})`).join(', ')}`), sp: 'm' };
+    });
+
+    const a = [genQ(QCASES), genR(RCASES)];
+    a.push((r) => {
+      const rr = r.int(3, 7), h1 = r.int(1, rr - 1), h2 = rr + r.int(1, 3);
+      const fig = gfig({ xr: [0, 10], yr: [0, 10], pts: [{ x: 5, y: 5, l: 'O' }], circles: [{ cx: 5, cy: 5, r: rr }], hl: [{ y: 5 - h1, dash: false }, { y: 5 - h2 }] });
+      return { q: T(`A circle has centre $O$ and radius $${rr}$ cm. Line $\\ell_1$ is $${h1}$ cm from $O$ (solid, in the diagram) and line $\\ell_2$ is $${h2}$ cm from $O$ (dashed). State the number of points where each line meets the circle, and explain the difference.`, `Sebuah bulatan berpusat $O$ dan berjejari $${rr}$ cm. Garis $\\ell_1$ berjarak $${h1}$ cm dari $O$ (tebal, dalam rajah) dan garis $\\ell_2$ berjarak $${h2}$ cm dari $O$ (putus-putus). Nyatakan bilangan titik pertemuan setiap garis dengan bulatan, dan terangkan perbezaannya.`), fig, a: T(`$\\ell_1$ meets the circle at 2 points, since $${h1} \\lt ${rr}$ (distance less than radius). $\\ell_2$ meets the circle at 0 points, since $${h2} \\gt ${rr}$ (distance greater than radius).`, `$\\ell_1$ bertemu bulatan pada 2 titik, kerana $${h1} \\lt ${rr}$ (jarak kurang daripada jejari). $\\ell_2$ bertemu bulatan pada 0 titik, kerana $${h2} \\gt ${rr}$ (jarak lebih besar daripada jejari).`), sp: 'm' };
+    });
+    a.push((r) => {
+      const ab = r.int(4, 6), bd = r.int(6, 9);
+      const AB = ab + 2, AD = bd + 2;
+      const fig = gfig({ xr: [0, AB + 1], yr: [0, AD + 1], pts: [{ x: 0, y: AD, l: 'A' }, { x: AB, y: AD, l: 'B' }, { x: AB, y: 0, l: 'C' }, { x: 0, y: 0, l: 'D' }], segs: [{ a: [0, AD], b: [AB, AD] }, { a: [AB, AD], b: [AB, 0] }, { a: [AB, 0], b: [0, 0] }, { a: [0, 0], b: [0, AD] }], circles: [{ cx: 0, cy: AD, r: 3 }, { cx: 0, cy: AD, r: ab }] });
+      return { q: T(`$ABCD$ is a rectangle with $AB = ${AB}$ cm and $AD = ${AD}$ cm. Describe the region $R$ containing points inside the rectangle that are (i) at least 3 cm from $A$, (ii) closer to $AB$ than to $AD$, (iii) at most $${ab}$ cm from $A$. Which loci must be drawn to find $R$?`, `$ABCD$ ialah sebuah segi empat tepat dengan $AB = ${AB}$ cm dan $AD = ${AD}$ cm. Huraikan kawasan $R$ yang mengandungi titik di dalam segi empat tepat yang (i) sekurang-kurangnya 3 cm dari $A$, (ii) lebih dekat kepada $AB$ berbanding $AD$, (iii) selebih-lebihnya $${ab}$ cm dari $A$. Lokus apakah yang mesti dilukis untuk mencari $R$?`), fig, a: T(`Draw (1) a circle centre $A$, radius 3 cm; (2) a circle centre $A$, radius $${ab}$ cm; (3) the bisector of $\\angle DAB$ (points equidistant from $AB$ and $AD$). $R$ is the region between the two circles, on the $AB$ side of the bisector.`, `Lukis (1) bulatan berpusat $A$ berjejari 3 cm; (2) bulatan berpusat $A$ berjejari $${ab}$ cm; (3) pembahagi dua sama $\\angle DAB$ (titik sama jarak dari $AB$ dan $AD$). $R$ ialah kawasan di antara dua bulatan itu, pada sisi $AB$ pembahagi dua sama itu.`), sp: 'xl' };
+    });
+    a.push((r) => {
+      const xr = 6, yr = 6;
+      const d1 = r.int(3, 4), d2 = r.int(1, 2);
+      need(d2 < d1);
+      let cnt = 0;
+      const pts = [];
+      for (let x = 0; x <= xr; x++) for (let y = 0; y <= yr; y++) { const dist = Math.sqrt(x * x + y * y); if (dist <= d1 && dist >= d2 && x <= y) { cnt++; pts.push([x, y]); } }
+      const fig = gfig({ xr: [0, xr], yr: [0, yr], pts: [{ x: 0, y: 0, l: 'O' }], circles: [{ cx: 0, cy: 0, r: d1 }, { cx: 0, cy: 0, r: d2 }], diag: [{ x: 0, y: 0, slope: 1 }] });
+      return { q: T(`$O$ is the origin of a grid with $x \\geq 0$ and $y \\geq 0$. Find the number of lattice points (integer coordinates) with $0 \\leq x \\leq ${xr}$, $0 \\leq y \\leq ${yr}$ that satisfy all three conditions: at most $${d1}$ units from $O$, at least $${d2}$ units from $O$, and $x \\leq y$.`, `$O$ ialah asalan bagi satu grid dengan $x \\geq 0$ dan $y \\geq 0$. Cari bilangan titik kekisi (koordinat integer) dengan $0 \\leq x \\leq ${xr}$, $0 \\leq y \\leq ${yr}$ yang memenuhi ketiga-tiga syarat: selebih-lebihnya $${d1}$ unit dari $O$, sekurang-kurangnya $${d2}$ unit dari $O$, dan $x \\leq y$.`), fig, a: T(`${cnt} points: ${pts.map((p) => `(${p[0]}, ${p[1]})`).join(', ')}`, `${cnt} titik: ${pts.map((p) => `(${p[0]}, ${p[1]})`).join(', ')}`), sp: 'l' };
+    });
+    a.push((r) => {
+      const AB = r.pick([6, 8, 10]), rr = r.int(2, 7);
+      need(rr !== AB / 2);
+      const n2 = rr > AB / 2 ? 2 : rr < AB / 2 ? 0 : 1;
+      return { q: T(`$A$ and $B$ are $${AB}$ cm apart. A circle, centre $A$, radius $${rr}$ cm, and the perpendicular bisector of $AB$ are drawn. (a) Find the number of points that lie on both loci. (b) Explain, in terms of comparing $${rr}$ with half of $AB$, why this number is what it is.`, `$A$ dan $B$ berjarak $${AB}$ cm. Sebuah bulatan, berpusat $A$, berjejari $${rr}$ cm, dan pembahagi dua sama serenjang $AB$ dilukis. (a) Cari bilangan titik yang terletak pada kedua-dua lokus. (b) Terangkan, dari segi perbandingan $${rr}$ dengan separuh $AB$, mengapa bilangan ini sedemikian.`), a: T(`(a) ${n2} point${n2 === 1 ? '' : 's'}. (b) Half of $AB$ is $${AB / 2}$ cm; since the radius $${rr}$ cm ${rr > AB / 2 ? 'is greater than' : rr < AB / 2 ? 'is less than' : 'equals'} $${AB / 2}$ cm, the circle ${rr > AB / 2 ? 'crosses the bisector line at two points' : rr < AB / 2 ? 'does not reach the bisector line' : 'just touches the bisector line at one point (the midpoint of $AB$)'}.`, `(a) ${n2} titik. (b) Separuh $AB$ ialah $${AB / 2}$ cm; oleh kerana jejari $${rr}$ cm ${rr > AB / 2 ? 'lebih besar daripada' : rr < AB / 2 ? 'kurang daripada' : 'sama dengan'} $${AB / 2}$ cm, bulatan itu ${rr > AB / 2 ? 'memotong garis pembahagi dua sama pada dua titik' : rr < AB / 2 ? 'tidak sampai ke garis pembahagi dua sama' : 'hanya menyentuh garis pembahagi dua sama pada satu titik (titik tengah $AB$)'}.`), sp: 'l' };
+    });
+
+    return { e, m, a };
+  })());
+})();

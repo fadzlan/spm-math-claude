@@ -121,6 +121,7 @@
 <script src="js/core.js"></script>
 <script src="js/svg.js"></script>
 <script src="js/figs.js"></script>
+<script src="js/vary.js"></script>
 <!--DATA-->
 <script src="js/data/f1a.js"></script>
 <script src="js/data/f1b.js"></script>
@@ -138,6 +139,9 @@
 <script src="js/data/f5a.js"></script>
 <script src="js/data/f5b.js"></script>
 <!--/DATA-->
+<!-- the x*.js "variety pack" generators (several MB together) are loaded lazily by js/packs.js, after this
+     point, so the page paints and the topic picker works immediately from the (much smaller) files above -->
+<script src="js/packs.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/app.js"></script>
 </body>

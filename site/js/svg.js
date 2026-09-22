@@ -442,7 +442,7 @@
   S.pie = (o) => {
     const r = o.r || 70;
     const W = o.w || r * 2 + 120,
-      H = r * 2 + 40;
+      H = r * 2 + 64;
     const cx = W / 2,
       cy = H / 2;
     const tot = o.slices.reduce((s, x) => s + x.v, 0);

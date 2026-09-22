@@ -12,10 +12,21 @@ ctx.window = ctx; ctx.globalThis = ctx;
 vm.createContext(ctx);
 const files = ['core.js', 'svg.js', 'i18n.js'];
 const dataDir = path.join(root, 'data');
-const dataFiles = fs.readdirSync(dataDir).filter((f) => f.endsWith('.js')).sort();
-for (const f of ['core.js', 'svg.js', 'figs.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
+const dataFiles = fs.readdirSync(dataDir).filter((f) => f.endsWith('.js') && (!process.env.SPM_PACKS || !/^x/.test(f) || process.env.SPM_PACKS.split(',').includes(f.replace('.js', '')))).sort();
+for (const f of ['core.js', 'svg.js', 'figs.js', 'vary.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 for (const f of dataFiles) vm.runInContext(fs.readFileSync(path.join(dataDir, f), 'utf8'), ctx, { filename: f });
 const SPM = ctx.SPM;
+let katex = null;
+try { katex = require(path.join(root, '..', 'vendor', 'katex', 'katex.min.js')); } catch (e) { console.log('(KaTeX not loadable in node – skipping the maths parse check)'); }
+const katexOk = new Map();
+function katexError(seg) {
+  if (!katex) return null;
+  if (katexOk.has(seg)) return katexOk.get(seg);
+  let err = null;
+  try { katex.renderToString(seg, { throwOnError: true, strict: 'ignore' }); } catch (e) { err = String(e.message).slice(0, 90); }
+  katexOk.set(seg, err);
+  return err;
+}
 
 const strip = (s) => String(s).replace(/<[^>]*>/g, ' ');
 function problems(q) {
@@ -27,7 +38,8 @@ function problems(q) {
     if (/undefined|NaN|\[object|Infinity|null/.test(v)) out.push('bad token in ' + k + ': ' + v.slice(0, 120));
     if ((v.split('$').length - 1) % 2) out.push('unbalanced $ in ' + k + ': ' + v.slice(0, 120));
     if (v.trim() === '' || v.trim() === '$$') out.push('empty ' + k);
-    if (/\$\s*\$/.test(v)) out.push('empty math in ' + k);
+    { const segs = v.split('$'); if (segs.some((x, i) => i % 2 && x.trim() === '')) out.push('empty math in ' + k);
+      for (let i = 1; i < segs.length; i += 2) { const ke = katexError(segs[i]); if (ke) { out.push('KaTeX error in ' + k + ': ' + ke + ' <- ' + segs[i].slice(0, 60)); break; } } }
     if (/\.\.\./.test(v)) out.push('ellipsis in ' + k);
     if (/\+ -\d|- -\d|\+ \+|(^|[^\d.\\a-zA-Z{^_])1[a-z]\b|\b0[a-z]\b/.test(v.split('$').filter((_, i) => i % 2).join(' ')) ) out.push('odd sign/coefficient in ' + k + ': ' + v.slice(0, 100));
   }
@@ -64,12 +76,15 @@ if (arg && arg !== 'all') {
 
 let bad = 0, total = 0, dupes = 0;
 const rows = [];
+const ONLY = (process.env.SPM_TOPICS || '').split(',').filter(Boolean); // e.g. SPM_TOPICS=F1-1.,F1-2.  (key prefixes)
+const NDRAW = +process.env.SPM_N || 150; // draws per topic and level
 for (const key of Object.keys(SPM.topics)) {
+  if (ONLY.length && !ONLY.some((p) => key.startsWith(p))) continue;
   const t = SPM.topics[key];
   for (const d of ['e', 'm', 'a']) {
     const r = SPM.makeRng('stress-' + key + d);
     let fails = 0; const texts = new Set();
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < NDRAW; i++) {
       try {
         const q = SPM.makeOne(t, d, r, new Set(), i);
         total++;
@@ -82,6 +97,6 @@ for (const key of Object.keys(SPM.topics)) {
     rows.push([key, d, texts.size]);
   }
 }
-const low = rows.filter((x) => x[2] < 20);
-console.log(`\nTopics: ${Object.keys(SPM.topics).length}, questions generated: ${total}, problems: ${bad}`);
-if (low.length) console.log('Low variety (unique of 150):', low.map((x) => x.join(':')).join(' '));
+const low = rows.filter((x) => x[2] < Math.min(20, NDRAW / 5));
+console.log(`\nTopics: ${ONLY.length ? rows.length / 3 : Object.keys(SPM.topics).length}, questions generated: ${total}, problems: ${bad}`);
+if (low.length) console.log(`Low variety (unique of ${NDRAW}):`, low.map((x) => x.join(':')).join(' '));

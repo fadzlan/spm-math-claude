@@ -77,7 +77,7 @@
   ];
   const g12a = [
     (r) => {
-      const [k, m, nn] = r.pick([[2, 3, 3], [3, 2, 3], [2, 2, 2], [3, 4, 2], [2, 5, 2], [4, 3, 2], [2, 3, 4]]);
+      const [k, m, nn] = r.pick([[3, 2, 3], [2, 5, 2], [4, 3, 2], [2, 3, 4], [3, 4, 3], [2, 3, 5], [5, 2, 3]]); // all m/nn already in lowest terms
       // k^n = base ; value of base^(m/n)
       const base = Math.pow(k, nn);
       const neg = r.chance();
@@ -95,7 +95,8 @@
     (r) => {
       const a = r.int(2, 4), p = r.int(1, 3), q = r.int(1, 3), k = r.int(2, 3);
       const numCoef = Math.pow(a, k);
-      return { q: T(`Simplify $(${a}x^{-${p}}y^{${q}})^{${k}}$ and write the answer with positive indices.`, `Ringkaskan $(${a}x^{-${p}}y^{${q}})^{${k}}$ dan tulis jawapan dengan indeks positif.`), a: T(`$\\dfrac{${numCoef}y^{${q * k}}}{x^{${p * k}}}$`), sp: 'm' };
+      const yTerm = (e) => (e === 1 ? 'y' : `y^{${e}}`);
+      return { q: T(`Simplify $(${a}x^{-${p}}${yTerm(q)})^{${k}}$ and write the answer with positive indices.`, `Ringkaskan $(${a}x^{-${p}}${yTerm(q)})^{${k}}$ dan tulis jawapan dengan indeks positif.`), a: T(`$\\dfrac{${numCoef}y^{${q * k}}}{x^{${p * k}}}$`), sp: 'm' };
     },
   ];
   const g13e = [
@@ -119,12 +120,12 @@
   ];
   const g13a = [
     (r) => {
-      // 4^(x+1) = 8^(x-1)  style: A^(x+a) = B^(x+b)
-      const [A, B, ea, eb] = r.pick([[4, 8, 2, 3], [9, 27, 2, 3], [4, 16, 2, 4], [8, 32, 3, 5]]);
-      const a = r.int(1, 3), b = r.int(-3, 1);
-      // ea(x + a) = eb(x + b)  => x (ea - eb) = eb b - ea a
-      const x = Fr.make(eb * b - ea * a, ea - eb);
-      return { q: T(`Solve $${A}^{x + ${a}} = ${B}^{x ${b < 0 ? '-' : '+'} ${Math.abs(b)}}$.`, `Selesaikan $${A}^{x + ${a}} = ${B}^{x ${b < 0 ? '-' : '+'} ${Math.abs(b)}}$.`), a: T(`$x = ${frT(x)}$`), w: T(`Write both sides with the same base: $${ea}(x + ${a}) = ${eb}(x ${b < 0 ? '-' : '+'} ${Math.abs(b)})$`, `Tulis kedua-dua belah dengan asas yang sama: $${ea}(x + ${a}) = ${eb}(x ${b < 0 ? '-' : '+'} ${Math.abs(b)})$`), sp: 'l' };
+      // core-compliant "hard": several law steps then a same-base equation, unknown confined to one exponent
+      // a = b^k so a^x * b^q = b^r  =>  b^(kx+q) = b^r
+      const b = r.pick([2, 3, 5]), k = r.int(2, 3), q = r.int(1, 4), rr = r.int(2, 8);
+      const a = Math.pow(b, k);
+      const x = Fr.make(rr - q, k);
+      return { q: T(`Solve $${a}^x \\times ${b}^{${q}} = ${b}^{${rr}}$.`, `Selesaikan $${a}^x \\times ${b}^{${q}} = ${b}^{${rr}}$.`), a: T(`$x = ${frT(x)}$`), w: T(`Write both sides with base $${b}$: $${a} = ${b}^{${k}}$, so $${b}^{${k}x + ${q}} = ${b}^{${rr}}$`, `Tulis kedua-dua belah dengan asas $${b}$: $${a} = ${b}^{${k}}$, jadi $${b}^{${k}x + ${q}} = ${b}^{${rr}}$`), sp: 'l' };
     },
     (r) => {
       const b = r.pick([2, 3]), p = r.int(4, 8), q = r.int(1, 3);

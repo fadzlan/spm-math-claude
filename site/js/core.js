@@ -172,7 +172,7 @@
   const round = (x, dp) => {
     dp = dp || 0;
     const m = Math.pow(10, dp);
-    const v = Math.sign(x) * Math.round(Math.abs(x) * m * (1 + 1e-12)) / m;
+    const v = Math.sign(x) * Math.round(Math.abs(x) * m * (1 + 4 * Number.EPSILON)) / m;
     return v === 0 ? 0 : v;
   };
   /** number to string, max 10 dp, trailing zeros trimmed */
