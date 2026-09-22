@@ -42,11 +42,13 @@ site/
   js/packs.js          lazy-loads js/data/x*.js in the background after the page paints (see below)
   js/data/f<form><part>.js   the original generators, chapter by chapter (f1a … f5b)
   js/data/x<form><part>.js   "variety packs" – extra generators added on top with SPM.extend (x1a … x5d)
-tools/check.js        stress test of every generator (see below)
+tools/check.js         stress test of every generator (see below)
 tools/variety.js       counts distinct question templates per topic against a 50×-baseline target (see below)
+tools/browser-test.js  real-browser smoke test (Playwright) of the page itself (see below)
 tools/PACKS.md         the brief used to write/extend a variety pack – the generator contract, what "variety"
                        means here, correctness/bilingual rules, and how to measure a pack
-syllabus/             the source syllabus
+package.json           dev-only tooling deps (Playwright, for tools/browser-test.js) – the site itself needs none
+syllabus/              the source syllabus
 ```
 
 Each topic is `{ id, en, ms, scope, gen: { e: [fn…], m: [fn…], a: [fn…] } }`; a generator `fn(rng)` builds the
@@ -75,3 +77,19 @@ node tools/variety.js 'F3-1*'            # just the topics starting with F3-1
 node tools/variety.js F3-1.2 --show 30   # also print 30 distinct template skeletons of one topic
 node tools/variety.js --baseline         # (re)write tools/variety-baseline.json from the current code
 ```
+
+`check.js` and `variety.js` run the generators directly in Node (no browser needed) – fast, and enough for every
+day-to-day change. There's also a real-browser smoke test, for changes to `index.html`/`app.js`/`packs.js` or
+anything about how the page itself loads and renders:
+
+```
+npm install                # once (dev-only; the site itself has no dependencies or build step)
+node tools/browser-test.js # or: npm run test:browser
+```
+
+It drives an actual Chromium (via Playwright) through the real UI – served over HTTP and opened directly via
+`file://` (the double-click case) – checks the topic picker renders before the variety packs finish loading, that
+they do finish loading and a worksheet can be generated across several forms, that the answers toggle works, and
+that there are no console errors, page errors or failed network requests; it also throttles the connection once to
+confirm the "preparing the question bank…" loading state appears and hands off cleanly. If no matching Chromium
+build is cached yet, run `npx playwright install chromium` first.

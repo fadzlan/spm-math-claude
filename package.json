@@ -1,0 +1,13 @@
+{
+  "name": "spm-math-claude",
+  "private": true,
+  "description": "Dev tooling for the site/ static app (the app itself has no dependencies and no build step).",
+  "scripts": {
+    "check": "node tools/check.js",
+    "variety": "node tools/variety.js",
+    "test:browser": "node tools/browser-test.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
