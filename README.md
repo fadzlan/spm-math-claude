@@ -8,7 +8,9 @@ files in `syllabus/`.
 
 Open `site/index.html` in a browser (double-click works – there are no modules or XHR/fetch calls; the page's own
 script tags, including the lazily-loaded ones described below, work the same from `file://` as from a server), or
-serve the `site/` folder from any static host (GitHub Pages, Netlify, `python3 -m http.server -d site`).
+serve the `site/` folder from any static host (GitHub Pages, Netlify, `python3 -m http.server -d site`), or run
+`npm run serve` for a dependency-free Node static server with gzip, keep-alive and caching headers
+(`tools/serve.js`).
 
 For development, `npm run dev` serves `site/` with Vite (live reload, no build) on port 5180, bound to this
 machine's Tailscale IPv4 address (`tailscale ip -4`) so it's reachable over the tailnet only. Set `SPM_HOST` to
@@ -43,10 +45,12 @@ site/
   js/vary.js          shared bilingual context banks (shops, foods, places, jobs …) used by the data files
   js/i18n.js          UI strings and worksheet strings (EN / BM)
   js/app.js           user interface
-  js/packs.js          lazy-loads js/data/x*.js in the background after the page paints (see below)
+  js/packs.js          loads js/data/x*.js on demand, then the rest in the background (see below)
+  js/pack-manifest.js  generated: which x*.js packs extend which topic (npm run manifest)
   js/data/f<form><part>.js   the original generators, chapter by chapter (f1a … f5b)
   js/data/x<form><part>.js   "variety packs" – extra generators added on top with SPM.extend (x1a … x5d)
 tools/check.js         stress test of every generator (see below)
+tools/pack-manifest.js writes site/js/pack-manifest.js (`npm run manifest`; `check.js` fails when it's stale)
 tools/variety.js       counts distinct question templates per topic against a 50×-baseline target (see below)
 tools/browser-test.js  real-browser smoke test (Playwright) of the page itself (see below)
 tools/PACKS.md         the brief used to write/extend a variety pack – the generator contract, what "variety"
@@ -62,11 +66,12 @@ and an answer-space size. `need(cond)` rejects a random draw and retries. `SPM.e
 originals.
 
 **Loading.** `js/data/f*.js` (~700 KB total) load normally and register every topic, so the topic picker and a
-first worksheet are ready immediately. `js/data/x*.js` (~5.6 MB together, the extra variety) are fetched in the
-background by `js/packs.js` right after, via dynamically-created `<script>` tags – this halves initial page weight
-and keeps the page interactive without waiting on them. If a worksheet is requested before they land (rare – only
-on a very first paint on a slow connection), the page shows a brief “preparing the question bank” message and
-finishes once they arrive; nothing is lost if one fails to load, since the base topics already work on their own.
+first worksheet are ready immediately. `js/data/x*.js` (~5.6 MB together, the extra variety) are loaded by
+`js/packs.js` via dynamically-created `<script>` tags: each worksheet first loads just the packs its topics need
+(looked up in `js/pack-manifest.js`), showing a brief “preparing the question bank” message only while one is
+still in flight, and after the first worksheet the remaining packs are fetched in the background, two at a time.
+Nothing is lost if one fails to load, since the base topics already work on their own. After adding a pack or an
+`SPM.extend` call, run `npm run manifest` (`npm run check` fails until you do).
 
 ## Checking the generators
 

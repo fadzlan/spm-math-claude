@@ -4,7 +4,9 @@
   "description": "Dev tooling for the site/ static app (the app itself has no dependencies and no build step).",
   "scripts": {
     "dev": "vite",
+    "serve": "node tools/serve.js",
     "check": "node tools/check.js",
+    "manifest": "node tools/pack-manifest.js",
     "variety": "node tools/variety.js",
     "test:browser": "node tools/browser-test.js"
   },

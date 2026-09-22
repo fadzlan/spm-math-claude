@@ -9,6 +9,13 @@
 <script>
   /* apply saved theme before first paint to avoid a flash */
   try { var t = JSON.parse(localStorage.getItem('spm-gen-v1') || '{}').theme; if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  /* preload KaTeX's main font so it doesn't wait for the first render; skipped on file://, where Chrome blocks the CORS-mode font fetch */
+  if (location.protocol !== 'file:') {
+    var pl = document.createElement('link');
+    pl.rel = 'preload'; pl.as = 'font'; pl.type = 'font/woff2'; pl.crossOrigin = 'anonymous';
+    pl.href = 'vendor/katex/fonts/KaTeX_Main-Regular.woff2';
+    document.head.appendChild(pl);
+  }
 </script>
 <link rel="stylesheet" href="vendor/katex/katex.min.css">
 <link rel="stylesheet" href="css/style.css">
@@ -117,32 +124,33 @@
   </main>
 </div>
 
-<script src="vendor/katex/katex.min.js"></script>
-<script src="js/core.js"></script>
-<script src="js/svg.js"></script>
-<script src="js/figs.js"></script>
-<script src="js/vary.js"></script>
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="js/core.js"></script>
+<script defer src="js/svg.js"></script>
+<script defer src="js/figs.js"></script>
+<script defer src="js/vary.js"></script>
 <!--DATA-->
-<script src="js/data/f1a.js"></script>
-<script src="js/data/f1b.js"></script>
-<script src="js/data/f1c.js"></script>
-<script src="js/data/f1d.js"></script>
-<script src="js/data/f2a.js"></script>
-<script src="js/data/f2b.js"></script>
-<script src="js/data/f2c.js"></script>
-<script src="js/data/f2d.js"></script>
-<script src="js/data/f3a.js"></script>
-<script src="js/data/f3b.js"></script>
-<script src="js/data/f4a.js"></script>
-<script src="js/data/f4b.js"></script>
-<script src="js/data/f4c.js"></script>
-<script src="js/data/f5a.js"></script>
-<script src="js/data/f5b.js"></script>
+<script defer src="js/data/f1a.js"></script>
+<script defer src="js/data/f1b.js"></script>
+<script defer src="js/data/f1c.js"></script>
+<script defer src="js/data/f1d.js"></script>
+<script defer src="js/data/f2a.js"></script>
+<script defer src="js/data/f2b.js"></script>
+<script defer src="js/data/f2c.js"></script>
+<script defer src="js/data/f2d.js"></script>
+<script defer src="js/data/f3a.js"></script>
+<script defer src="js/data/f3b.js"></script>
+<script defer src="js/data/f4a.js"></script>
+<script defer src="js/data/f4b.js"></script>
+<script defer src="js/data/f4c.js"></script>
+<script defer src="js/data/f5a.js"></script>
+<script defer src="js/data/f5b.js"></script>
 <!--/DATA-->
 <!-- the x*.js "variety pack" generators (several MB together) are loaded lazily by js/packs.js, after this
      point, so the page paints and the topic picker works immediately from the (much smaller) files above -->
-<script src="js/packs.js"></script>
-<script src="js/i18n.js"></script>
-<script src="js/app.js"></script>
+<script defer src="js/pack-manifest.js"></script>
+<script defer src="js/packs.js"></script>
+<script defer src="js/i18n.js"></script>
+<script defer src="js/app.js"></script>
 </body>
 </html>

@@ -144,26 +144,38 @@
   function randomSeed() {
     return String(Math.floor(Math.random() * 900000) + 100000);
   }
+  let genSeq = 0; // bumped by every generate(), so one still waiting on packs can tell it has been superseded
+  let prefetched = false;
   async function generate(newSeed) {
     if (newSeed === true || !state.seed) state.seed = randomSeed();
     $('#seed').value = state.seed;
-    state.keys = [...sel];
+    const keys = (state.keys = [...sel]);
     save();
-    // the js/data/x*.js "variety pack" generators load lazily (see js/packs.js); on the rare occasion a
-    // worksheet is requested before they land, show a brief loading state rather than generate from the
-    // (still complete, just less varied) base topics alone.
-    if (SPM.packsReady && !SPM.packsLoaded) {
-      const ui = UI();
-      $('#sheet').innerHTML = `<div class="empty"><h3>${esc(ui.loadingTitle)}</h3><p>${esc(ui.loadingBody)}</p></div>`;
-      await SPM.packsReady;
+    const seq = ++genSeq;
+    // the js/data/x*.js "variety pack" generators load on demand (see js/packs.js): wait for the ones these
+    // topics need rather than generate from the (still complete, just less varied) base topics alone, showing
+    // a loading state only if something is actually still in flight
+    if (SPM.ensurePacks) {
+      if (!SPM.havePacks(keys)) {
+        const ui = UI();
+        $('#sheet').innerHTML = `<div class="empty"><h3>${esc(ui.loadingTitle)}</h3><p>${esc(ui.loadingBody)}</p></div>`;
+      }
+      await SPM.ensurePacks(keys);
+      if (seq !== genSeq) return; // a newer generate() has taken over (and rendered, or will)
     }
     try {
-      current = SPM.generate({ keys: state.keys, count: state.count, difficulty: state.difficulty, seed: state.seed });
+      current = SPM.generate({ keys, count: state.count, difficulty: state.difficulty, seed: state.seed });
     } catch (e) {
       console.error(e);
       current = { items: [], error: e };
     }
     render();
+    // once the first worksheet is up, fetch the rest of the packs in the background (after this frame has
+    // painted, so the KaTeX fonts it needs are requested first)
+    if (!prefetched && SPM.prefetchAllPacks) {
+      prefetched = true;
+      requestAnimationFrame(() => setTimeout(SPM.prefetchAllPacks, 0));
+    }
   }
 
   /* ---------------------------------------------------------------- render */

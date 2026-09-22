@@ -128,6 +128,9 @@ the number alone is not the goal – a student generating 30 questions should se
 Be sceptical of your own numbers: check some answers by hand.
 
 `check.js` also parses every `$…$` with the real KaTeX and reports parse errors, so a clean run means it will render.
+It also fails while `site/js/pack-manifest.js` (generated: which pack extends which topic, so the page loads only the
+packs a worksheet needs) is stale – after adding an `SPM.extend` call, run `npm run manifest`. Always call it as
+`SPM.extend('<topic key>', …)` with a literal key; the generator refuses anything else.
 
 **Size budget.** All packs are loaded by the page as plain scripts, so keep them lean: aim for **≤ ~25 KB of source per
 topic** (≤ ~150 KB for the whole pack). Get variety from data-driven families (phrasing tables, context banks, shared
