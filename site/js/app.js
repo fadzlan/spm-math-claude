@@ -19,6 +19,7 @@
     header: true,
     labels: true,
     cols: false,
+    working: false,
     answersOpen: false,
   };
   let state = Object.assign({}, defaults);
@@ -246,7 +247,7 @@
     h += `<div class="ans-body" id="ans-body"><div class="ans-print-title">${esc(ws.answers)} <small>${esc(title)}</small></div><ol class="ans-list">`;
     items.forEach((it, i) => {
       const a = pick(it.a, lang);
-      const w = it.w ? pick(it.w, lang) : '';
+      const w = state.working && it.w ? pick(it.w, lang) : '';
       h += `<li><span class="an">${i + 1}.</span><div><div class="ans-final">${rt(a)}</div>${w ? `<div class="ans-work">${rt(w)}</div>` : ''}</div></li>`;
     });
     h += '</ol></div></section>';
@@ -298,6 +299,7 @@
     $('#opt-header').checked = state.header;
     $('#opt-labels').checked = state.labels;
     $('#opt-cols').checked = state.cols;
+    $('#opt-working').checked = state.working;
     if (state.theme) document.documentElement.setAttribute('data-theme', state.theme);
 
     // tree interaction
@@ -376,7 +378,7 @@
       $('#fmt-hint').textContent = state.format === 'normal' ? UI().hintNormal : UI().hintCompact;
       $('#cols-wrap').classList.toggle('off', state.format !== 'compact');
     }
-    for (const [id, key] of [['#opt-header', 'header'], ['#opt-labels', 'labels'], ['#opt-cols', 'cols']]) {
+    for (const [id, key] of [['#opt-header', 'header'], ['#opt-labels', 'labels'], ['#opt-cols', 'cols'], ['#opt-working', 'working']]) {
       $(id).addEventListener('change', (e) => {
         state[key] = e.target.checked;
         save();

@@ -59,6 +59,7 @@ const strip = (s) => String(s).replace(/<[^>]*>/g, ' ');
 function problems(q) {
   const out = [];
   const texts = { qen: q.q && q.q.en, qms: q.q && q.q.ms, aen: q.a && q.a.en, ams: q.a && q.a.ms, wen: q.w && q.w.en, wms: q.w && q.w.ms };
+  for (const k of ['q', 'a', 'w']) if (q[k] && typeof q[k] !== 'object') out.push(`${k} is a plain ${typeof q[k]}, not SPM.L(en, ms) – it would render as "undefined"`);
   for (const [k, v] of Object.entries(texts)) {
     if (v === undefined || v === null) { if (k[0] !== 'w') out.push('missing ' + k); continue; }
     if (typeof v !== 'string') { out.push('non-string ' + k); continue; }
@@ -68,12 +69,16 @@ function problems(q) {
     { const segs = v.split('$'); if (segs.some((x, i) => i % 2 && x.trim() === '')) out.push('empty math in ' + k);
       for (let i = 1; i < segs.length; i += 2) { const ke = katexError(segs[i]); if (ke) { out.push('KaTeX error in ' + k + ': ' + ke + ' <- ' + segs[i].slice(0, 60)); break; } } }
     if (/\.\.\./.test(v)) out.push('ellipsis in ' + k);
+    // a single backslash in a JS template literal is eaten, so `$\pm$` reaches KaTeX as the word "pm"
+    { const m = v.split('$').filter((_, i) => i % 2).join(' ').replace(/\\text\{[^}]*\}/g, ' ').match(/(^|[^\\a-zA-Z])(circ|dfrac|sqrt|cdot|approx|neq|times|div|theta|Rightarrow|overline|widehat)(?![a-zA-Z])/);
+      if (m) out.push('LaTeX command without its backslash in ' + k + ': "' + m[2] + '" (a lost \\ in a template literal?) <- ' + v.slice(0, 90)); }
     if (/\+ -\d|- -\d|\+ \+|(^|[^\d.\\a-zA-Z{^_])1[a-z]\b|\b0[a-z]\b/.test(v.split('$').filter((_, i) => i % 2).join(' ')) ) out.push('odd sign/coefficient in ' + k + ': ' + v.slice(0, 100));
   }
   // the same maths must appear in both languages (catches r.* calls inside L(en, ms) templates)
   const mathOf = (t) => String(t).split('$').filter((_, i) => i % 2).join('|').replace(/\\text\{[^}]*\}/g, '\\text{}').replace(/<[^>]*>/g, '');
   if (q.q && mathOf(q.q.en) !== mathOf(q.q.ms)) out.push('math differs en/ms in question: ' + mathOf(q.q.en).slice(0, 70) + ' <> ' + mathOf(q.q.ms).slice(0, 70));
   if (q.a && mathOf(q.a.en) !== mathOf(q.a.ms)) out.push('math differs en/ms in answer: ' + mathOf(q.a.en).slice(0, 70) + ' <> ' + mathOf(q.a.ms).slice(0, 70));
+  if (q.w && mathOf(q.w.en) !== mathOf(q.w.ms)) out.push('math differs en/ms in working: ' + mathOf(q.w.en).slice(0, 70) + ' <> ' + mathOf(q.w.ms).slice(0, 70));
   if (q.fig) { const figs = Array.isArray(q.fig) ? q.fig : [q.fig]; for (const f of figs) { const s = typeof f === 'string' ? f : f.en; if (/NaN|undefined/.test(s)) out.push('bad svg'); } }
   if (!q.sp) out.push('no sp');
   return out;
@@ -122,6 +127,16 @@ for (const key of Object.keys(SPM.topics)) {
     }
     if (fails) { bad += fails; }
     rows.push([key, d, texts.size]);
+    // makeOne quietly falls back to the topic's other generators, so also call each generator on its own:
+    // one that always throws or always rejects would otherwise never show up above
+    (t.gen[d] || []).forEach((g, gi) => {
+      const rg = SPM.makeRng('gen-' + key + d + gi);
+      let ok = false, err = null;
+      for (let i = 0; i < 200 && !ok; i++) {
+        try { ok = !!g(rg, { d }); } catch (e) { if (e !== SPM.REJECT) { err = e; break; } }
+      }
+      if (!ok) { bad++; console.log('GEN', key, d + '#' + gi, err ? 'throws: ' + err.message + ' ' + (err.stack || '').split('\n')[1] : 'rejects every draw (200 tries)'); }
+    });
   }
 }
 const low = rows.filter((x) => x[2] < Math.min(20, NDRAW / 5));

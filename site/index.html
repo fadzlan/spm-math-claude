@@ -97,15 +97,16 @@
         <p class="hint" id="fmt-hint"></p>
       </div>
 
-      <details class="more">
-        <summary data-i18n="more">More options</summary>
+      <div class="opt more" role="group" aria-labelledby="more-l">
+        <span class="lbl" id="more-l" data-i18n="more">More options</span>
         <div class="more-grid">
           <label class="check"><input type="checkbox" id="opt-header" checked> <span data-i18n="optHeader">Name / class / date line</span></label>
           <label class="check"><input type="checkbox" id="opt-labels" checked> <span data-i18n="optLabels">Show difficulty label on each question</span></label>
           <label class="check" id="cols-wrap"><input type="checkbox" id="opt-cols"> <span data-i18n="optCols">Two columns (compact only)</span></label>
+          <label class="check"><input type="checkbox" id="opt-working"> <span data-i18n="optWorking">Show working steps in the answers</span></label>
           <label class="seed"><span data-i18n="seed">Seed</span> <input type="text" id="seed" inputmode="numeric" size="10" spellcheck="false" autocomplete="off"></label>
         </div>
-      </details>
+      </div>
 
       <div class="actions">
         <button type="button" class="btn primary" id="new-btn">

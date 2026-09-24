@@ -23,6 +23,8 @@ bind elsewhere, e.g. `SPM_HOST=127.0.0.1 npm run dev`.
 * **Interface language** (EN / BM) and **question language** (EN / BM) are independent.
 * **Normal** format leaves working space under each question (sized to the question type);
   **Compact** has no gaps (optionally two columns) so a sheet can be reprinted many times.
+* **Working steps** – every question's answer can show the steps that lead to it (formula → substitution → result,
+  in both languages). Off by default; switch it on with “Show working steps in the answers” under *More options*.
 * **Print / Save as PDF** – the answers are always on their own last page(s), never sharing a page with questions.
   On screen the answers are collapsed until you expand them.
 * Light and dark mode (follows the system, can be toggled), responsive layout.
@@ -50,6 +52,7 @@ site/
   js/data/f<form><part>.js   the original generators, chapter by chapter (f1a … f5b)
   js/data/x<form><part>.js   "variety packs" – extra generators added on top with SPM.extend (x1a … x5d)
 tools/check.js         stress test of every generator (see below)
+tools/working.js       worked-solution coverage per topic (`npm run working [prefix] [list]`)
 tools/pack-manifest.js writes site/js/pack-manifest.js (`npm run manifest`; `check.js` fails when it's stale)
 tools/variety.js       counts distinct question templates per topic against a 50×-baseline target (see below)
 tools/browser-test.js  real-browser smoke test (Playwright) of the page itself (see below)
@@ -60,7 +63,8 @@ syllabus/              the source syllabus
 ```
 
 Each topic is `{ id, en, ms, scope, gen: { e: [fn…], m: [fn…], a: [fn…] } }`; a generator `fn(rng)` builds the
-numbers first and returns `{ q, a, w?, fig?, sp }` with English and Malay text (`SPM.L(en, ms)`), an optional SVG
+numbers first and returns `{ q, a, w, fig?, sp }` with English and Malay text (`SPM.L(en, ms)`), `w` = the worked
+solution (`SPM.lines(step, step, …)`; every generator has one – `npm run working` reports coverage), an optional SVG
 and an answer-space size. `need(cond)` rejects a random draw and retries. `SPM.extend(key, gen)` (used by the
 `x*.js` files) appends more generators to a topic already registered by `addChapter`, without touching the
 originals.

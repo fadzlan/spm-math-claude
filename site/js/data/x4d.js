@@ -25,6 +25,55 @@
   const sat = (a, b, c, op, x, y) => { const v = a * x + b * y; return op === '>' ? v > c : op === '>=' ? v >= c : op === '<' ? v < c : v <= c; };
   const onLine = (a, b, c, x, y) => a * x + b * y === c;
   const showLin = (a, b) => poly([[a, 'x'], [b, 'y']]);
+  const W = SPM.lines;
+  /** truth of "v op c" */
+  const cmp = (v, op, c) => (op === '>' ? v > c : op === '>=' ? v >= c : op === '<' ? v < c : v <= c);
+  /** substitution a(x) + b(y), signs tidy */
+  const subXY = (a, b, x, y) => [[a, x], [b, y]].filter(([k]) => k !== 0).map(([k, v], i) => {
+    const s = Math.abs(k) === 1 ? (v < 0 ? `(${v})` : `${v}`) : `${Math.abs(k)}(${v})`;
+    return i === 0 ? (k < 0 ? `-${s}` : s) : `${k < 0 ? '-' : '+'} ${s}`;
+  }).join(' ') || '0';
+  /** "$v op c$ is true/false" */
+  const chk = (v, op, c) => T(`$${v} ${SYM[op]} ${c}$ is ${cmp(v, op, c) ? 'true' : 'false'}`, `$${v} ${SYM[op]} ${c}$ adalah ${cmp(v, op, c) ? 'benar' : 'palsu'}`);
+  /** substitute (x, y) into ax + by, compare with c: one line */
+  const subChk = (a, b, x, y, op, c) => { const v = a * x + b * y; return T(`$(${x}, ${y})$: $${subXY(a, b, x, y)} = ${v}$; $${v} ${SYM[op]} ${c}$ is ${cmp(v, op, c) ? 'true' : 'false'}`, `$(${x}, ${y})$: $${subXY(a, b, x, y)} = ${v}$; $${v} ${SYM[op]} ${c}$ adalah ${cmp(v, op, c) ? 'benar' : 'palsu'}`); };
+  const MEAN = {
+    '>': T('greater than (not equal to)', 'lebih besar daripada (tidak sama dengan)'),
+    '>=': T('greater than or equal to', 'lebih besar daripada atau sama dengan'),
+    '<': T('less than (not equal to)', 'kurang daripada (tidak sama dengan)'),
+    '<=': T('less than or equal to', 'kurang daripada atau sama dengan'),
+  };
+  /** 6.2 helpers for a boundary {a, b, c, op} of the form ax + by (op) c */
+  const lineEq = (q) => (q.c === 0 && q.b === 1 && q.a !== 0 ? `y = ${lin(-q.a, 0)}` : `${showLin(q.a, q.b)} = ${q.c}`);
+  const ineqTex = (q) => (q.c === 0 && q.b === 1 && q.a !== 0 ? `y ${SYM[q.op]} ${lin(-q.a, 0)}` : `${showLin(q.a, q.b)} ${SYM[q.op]} ${q.c}`);
+  const isStrict = (op) => op === '>' || op === '<';
+  const LSTY = (op) => (isStrict(op) ? T('dashed', 'putus-putus') : T('solid', 'penuh'));
+  /** side of the boundary that is shaded */
+  const sideOf = (q) => { const up = q.op[0] === '>'; return q.b === 0 ? ((q.a > 0) === up ? T('to the right of', 'di sebelah kanan') : T('to the left of', 'di sebelah kiri')) : ((q.b > 0) === up ? T('above', 'di atas') : T('below', 'di bawah')); };
+  /** a test point that is not on the boundary */
+  const testPt = (q) => [[0, 0], [1, 0], [0, 1], [1, 1]].find(([x, y]) => q.a * x + q.b * y !== q.c);
+  /** points the boundary passes through, for drawing it */
+  const thru = (q) => (q.a !== 0 && q.b !== 0 ? (q.c === 0 ? ` through $(0, 0)$ and $(1, ${n(-q.a / q.b)})$` : ` through $(${n(q.c / q.a)}, 0)$ and $(0, ${n(q.c / q.b)})$`) : '');
+  const thruMs = (q) => thru(q).replace(' through ', ' melalui ').replace(' and ', ' dan ');
+  /** reading an inequality off a shaded diagram: one line */
+  const readLine = (q, pre) => T(`${pre || ''}Shaded ${sideOf(q).en} the ${LSTY(q.op).en} line $${lineEq(q)}$: $${ineqTex(q)}$`, `${pre || ''}Berlorek ${sideOf(q).ms} garis ${LSTY(q.op).ms} $${lineEq(q)}$: $${ineqTex(q)}$`);
+  /** drawing and shading one inequality: one line */
+  /** the test-point check "value op value" as written for q (y op mx for lines through the origin) */
+  const testTex = (q, x, y) => (q.c === 0 && q.b === 1 && q.a !== 0 ? `${y} ${SYM[q.op]} ${n(-q.a * x)}` : `${q.a * x + q.b * y} ${SYM[q.op]} ${q.c}`);
+  const shadeLine = (q, pre) => { const [x, y] = testPt(q), v = q.a * x + q.b * y, ok = cmp(v, q.op, q.c); return T(`${pre || ''}$${ineqTex(q)}$: ${LSTY(q.op).en} line $${lineEq(q)}$${thru(q)}; test $(${x}, ${y})$: $${testTex(q, x, y)}$ is ${ok ? 'true' : 'false'}, so shade the side ${ok ? 'containing' : 'away from'} $(${x}, ${y})$`, `${pre || ''}$${ineqTex(q)}$: garis ${LSTY(q.op).ms} $${lineEq(q)}$${thruMs(q)}; uji $(${x}, ${y})$: $${testTex(q, x, y)}$ adalah ${ok ? 'benar' : 'palsu'}, maka lorek sebelah yang ${ok ? 'mengandungi' : 'tidak mengandungi'} $(${x}, ${y})$`); };
+  /** the same as two lines, for a single inequality */
+  const shadeSteps = (q) => { const [x, y] = testPt(q), v = q.a * x + q.b * y, ok = cmp(v, q.op, q.c); return [T(`Draw $${lineEq(q)}$${thru(q)} as a ${LSTY(q.op).en} line ($${SYM[q.op]}$ ${isStrict(q.op) ? 'excludes' : 'includes'} "equal to")`, `Lukis $${lineEq(q)}$${thruMs(q)} sebagai garis ${LSTY(q.op).ms} ($${SYM[q.op]}$ ${isStrict(q.op) ? 'tidak termasuk' : 'termasuk'} "sama dengan")`), T(`Test $(${x}, ${y})$: $${testTex(q, x, y)}$ is ${ok ? 'true' : 'false'}, so shade the side ${ok ? 'containing' : 'away from'} $(${x}, ${y})$`, `Uji $(${x}, ${y})$: $${testTex(q, x, y)}$ adalah ${ok ? 'benar' : 'palsu'}, maka lorek sebelah yang ${ok ? 'mengandungi' : 'tidak mengandungi'} $(${x}, ${y})$`)]; };
+  const OVERLAP = T('The required region is where all the shaded parts overlap.', 'Rantau yang dikehendaki ialah kawasan pertindihan semua bahagian berlorek.');
+  const relSym = (v, c) => (v < c ? '<' : v > c ? '>' : '=');
+  /** value of the left side of q at (x, y) */
+  const evalTex = (q, x, y) => (q.a === 1 && q.b === 0 ? `x = ${x}` : q.a === 0 && q.b === 1 ? `y = ${y}` : `${showLin(q.a, q.b)} = ${subXY(q.a, q.b, x, y)} = ${q.a * x + q.b * y}`);
+  /** test one point against several inequalities: one line */
+  const ptLine = (p, qs, pre, sfx) => {
+    const all = qs.every((q) => cmp(q.a * p[0] + q.b * p[1], q.op, q.c));
+    const parts = qs.map((q) => { const v = q.a * p[0] + q.b * p[1]; return `$${evalTex(q, p[0], p[1])} ${relSym(v, q.c)} ${q.c}$ (${cmp(v, q.op, q.c) ? '✓' : '✗'})`; }).join(', ');
+    const s = sfx || [T('in the region', 'dalam rantau'), T('not in the region', 'bukan dalam rantau')];
+    return T(`${pre || ''}$(${p[0]}, ${p[1]})$: ${parts} – ${s[all ? 0 : 1].en}`, `${pre || ''}$(${p[0]}, ${p[1]})$: ${parts} – ${s[all ? 0 : 1].ms}`);
+  };
   const planeI = (ineqs, shade, extra) => S.plane(Object.assign({ x: [-2, 8], y: [-2, 8], scale: 20, ineqs, shade }, extra || {}));
 
   /* generic point-in-plane picker away from a given line, avoiding the line itself */
@@ -43,12 +92,12 @@
       const correct = `${showLin(a, b)} ${SYM[op]} ${c}`;
       const distractors = r.sample([
         `${showLin(a, b)} = ${c}`,
-        `${a}x ${SYM[op]} ${c}`,
-        `${a}x^2 + ${b}y ${SYM[op]} ${c}`,
-        `${a}x${b > 0 ? '+' : '-'}${Math.abs(b)}y`,
-        `${a}xy ${SYM[op]} ${c}`,
-        `\\dfrac{${a}}{x} + ${b}y ${SYM[op]} ${c}`,
-        `${a}x + ${b}x ${SYM[op]} ${c}`,
+        `${lin(a, 0)} ${SYM[op]} ${c}`,
+        `${poly([[a, 'x^2'], [b, 'y']])} ${SYM[op]} ${c}`,
+        `${showLin(a, b)}`,
+        `${poly([[a, 'xy']])} ${SYM[op]} ${c}`,
+        `\\dfrac{${a}}{x} + ${lin(b, 0, 'y')} ${SYM[op]} ${c}`,
+        `${poly([[a, 'x'], [b, 'x']])} ${SYM[op]} ${c}`,
       ], 3);
       const opts = r.shuffle([correct, ...distractors]);
       const L4 = 'ABCD';
@@ -57,6 +106,7 @@
       return {
         q: T(`Which of the following is a linear inequality in two variables?<br>${f('en')}`, `Antara yang berikut, yang manakah ketaksamaan linear dalam dua pemboleh ubah?<br>${f('ms')}`),
         a: T(`(${letter}) $${correct}$`),
+        w: W(T(`$${correct}$: two variables, each of power 1, joined by an inequality sign`, `$${correct}$: dua pemboleh ubah, setiap satu berkuasa 1, dihubungkan oleh simbol ketaksamaan`), T('The others are an equation or an expression, have only one variable, or contain $x^2$, $xy$ or $\\dfrac{1}{x}$.', 'Yang lain ialah persamaan atau ungkapan, hanya ada satu pemboleh ubah, atau mengandungi $x^2$, $xy$ atau $\\dfrac{1}{x}$.')),
         sp: 's',
       };
     },
@@ -72,6 +122,7 @@
       return {
         q: T(`Which symbol matches the phrase "${phrase.en}"? ${f('en')}`, `Simbol manakah yang sepadan dengan frasa "${phrase.ms}"? ${f('ms')}`),
         a: T(`(${letter}) $${SYM[op]}$`),
+        w: T(`"${phrase.en}" means ${MEAN[op].en}: $${SYM[op]}$`, `"${phrase.ms}" bermaksud ${MEAN[op].ms}: $${SYM[op]}$`),
         sp: 'xs',
       };
     },
@@ -84,6 +135,7 @@
       return {
         q: T(`Does the point $(${P[0]}, ${P[1]})$ satisfy the inequality $${showLin(a, b)} ${SYM[op]} ${c}$?`, `Adakah titik $(${P[0]}, ${P[1]})$ memenuhi ketaksamaan $${showLin(a, b)} ${SYM[op]} ${c}$?`),
         a: T(`${ok ? 'Yes' : 'No'}: $${v} ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Ya' : 'Tidak'}: $${v} ${SYM[op]} ${c}$ adalah ${ok ? 'benar' : 'palsu'}`),
+        w: W(`$${subXY(a, b, P[0], P[1])} = ${v}$`, chk(v, op, c)),
         sp: 's',
       };
     },
@@ -97,6 +149,7 @@
       return {
         q: T(`Does the point $(${P[0]}, ${P[1]})$ lie on the line $${showLin(a, b)} = ${c}$?`, `Adakah titik $(${P[0]}, ${P[1]})$ terletak pada garis $${showLin(a, b)} = ${c}$?`),
         a: T(onB ? 'Yes, it lies on the boundary line.' : 'No, it does not lie on the line.', onB ? 'Ya, ia terletak pada garis sempadan.' : 'Tidak, ia tidak terletak pada garis itu.'),
+        w: W(`$${subXY(a, b, P[0], P[1])} = ${a * P[0] + b * P[1]}$`, onB ? T(`This equals $${c}$, so the point is on the line.`, `Nilai ini sama dengan $${c}$, maka titik itu terletak pada garis.`) : T(`$${a * P[0] + b * P[1]} \\neq ${c}$, so the point is not on the line.`, `$${a * P[0] + b * P[1]} \\neq ${c}$, maka titik itu tidak terletak pada garis.`)),
         sp: 's',
       };
     },
@@ -108,6 +161,7 @@
       return {
         q: T(`The sum of $x$ and $y$ is ${phrase.en} ${c}. Complete: $x + y\\ \\_\\_\\_\\ ${c}$ (write $>$, $<$, $\\ge$ or $\\le$).`, `Hasil tambah $x$ dan $y$ adalah ${phrase.ms} ${c}. Lengkapkan: $x + y\\ \\_\\_\\_\\ ${c}$ (tulis $>$, $<$, $\\ge$ atau $\\le$).`),
         a: T(`$${SYM[op]}$`),
+        w: T(`"${phrase.en}" means ${MEAN[op].en}: $x + y ${SYM[op]} ${c}$`, `"${phrase.ms}" bermaksud ${MEAN[op].ms}: $x + y ${SYM[op]} ${c}$`),
         sp: 'xs',
       };
     },
@@ -120,6 +174,7 @@
       return {
         q: T(`True or false: the point $(${P[0]}, ${P[1]})$ satisfies $${poly([[a, 'x'], [-b, 'y']])} ${SYM[op]} ${c}$?`, `Benar atau palsu: titik $(${P[0]}, ${P[1]})$ memenuhi $${poly([[a, 'x'], [-b, 'y']])} ${SYM[op]} ${c}$?`),
         a: T(`${ok ? 'True' : 'False'}: $${v} ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Benar' : 'Palsu'}: $${v} ${SYM[op]} ${c}$ adalah ${ok ? 'benar' : 'palsu'}`),
+        w: W(`$${subXY(a, -b, P[0], P[1])} = ${v}$`, chk(v, op, c)),
         sp: 's',
       };
     },
@@ -136,6 +191,7 @@
       return {
         q: T(`Nurul buys $x$ ${i1.en} at RM${p1} each and $y$ ${i2.en} at RM${p2} each. The total cost ${verb.en} RM${tot}. Write an inequality in $x$ and $y$.`, `Nurul membeli $x$ ${i1.ms} pada harga RM${p1} sekeping dan $y$ ${i2.ms} pada harga RM${p2} sekeping. Jumlah kosnya ${verb.ms} RM${tot}. Tulis satu ketaksamaan dalam $x$ dan $y$.`),
         a: T(`$${poly([[p1, 'x'], [p2, 'y']])} ${SYM[op]} ${tot}$`),
+        w: W(T(`Total cost $= ${poly([[p1, 'x'], [p2, 'y']])}$`, `Jumlah kos $= ${poly([[p1, 'x'], [p2, 'y']])}$`), T(`"${verb.en}" means ${MEAN[op].en}: $${SYM[op]}$`, `"${verb.ms}" bermaksud ${MEAN[op].ms}: $${SYM[op]}$`), `$${poly([[p1, 'x'], [p2, 'y']])} ${SYM[op]} ${tot}$`),
         sp: 's',
       };
     },
@@ -145,10 +201,11 @@
       const cap = r.pick([50, 80, 100, 150, 200]);
       const op = r.pick(['<=', '>=']);
       const verb = op === '<=' ? r.pick(BUDGET_VERB) : r.pick(ATLEAST_VERB);
-      const unit = r.pick(['kg', 'litres']);
+      const unit = r.pick(['kg', 'litres']); const unitMs = unit === 'litres' ? 'liter' : unit;
       return {
-        q: T(`A ${cont.en} is filled with $x$ ${unit} of liquid $A$ and $y$ ${unit} of liquid $B$. The total volume ${verb.en} ${cap} ${unit}. Write an inequality in $x$ and $y$.`, `Sebuah ${cont.ms} diisi dengan $x$ ${unit} cecair $A$ dan $y$ ${unit} cecair $B$. Jumlah isi padunya ${verb.ms} ${cap} ${unit}. Tulis satu ketaksamaan dalam $x$ dan $y$.`),
+        q: T(`A ${cont.en} is filled with $x$ ${unit} of liquid $A$ and $y$ ${unit} of liquid $B$. The total volume ${verb.en} ${cap} ${unit}. Write an inequality in $x$ and $y$.`, `Sebuah ${cont.ms} diisi dengan $x$ ${unitMs} cecair $A$ dan $y$ ${unitMs} cecair $B$. Jumlah isi padunya ${verb.ms} ${cap} ${unitMs}. Tulis satu ketaksamaan dalam $x$ dan $y$.`),
         a: T(`$x + y ${SYM[op]} ${cap}$`),
+        w: W(T(`Total $= x + y$ ${unit}`, `Jumlah $= x + y$ ${unitMs}`), T(`"${verb.en}" means ${MEAN[op].en}: $x + y ${SYM[op]} ${cap}$`, `"${verb.ms}" bermaksud ${MEAN[op].ms}: $x + y ${SYM[op]} ${cap}$`)),
         sp: 's',
       };
     },
@@ -159,6 +216,7 @@
       return {
         q: T(`A shop stocks $x$ ${i1.en} and $y$ ${i2.en}. The number of ${i1.en} is at least ${k} times the number of ${i2.en}. Write an inequality in $x$ and $y$.`, `Sebuah kedai menstok $x$ ${i1.ms} dan $y$ ${i2.ms}. Bilangan ${i1.ms} sekurang-kurangnya ${k} kali bilangan ${i2.ms}. Tulis satu ketaksamaan dalam $x$ dan $y$.`),
         a: T(`$x \\ge ${k}y$`),
+        w: W(T(`${k} times the number of ${i2.en} $= ${k}y$`, `${k} kali bilangan ${i2.ms} $= ${k}y$`), T(`"At least" means greater than or equal to: $x \\ge ${k}y$`, `"Sekurang-kurangnya" bermaksud lebih besar daripada atau sama dengan: $x \\ge ${k}y$`)),
         sp: 's',
       };
     },
@@ -171,6 +229,7 @@
       return {
         q: T(`Which of these points satisfy $${showLin(a, b)} ${SYM[op]} ${c}$? ${list}`, `Titik manakah yang memenuhi $${showLin(a, b)} ${SYM[op]} ${c}$? ${list}`),
         a: T(good.length ? good.join(', ') : 'None of them', good.length ? good.join(', ') : 'Tiada satu pun'),
+        w: W(...pts.map((p) => subChk(a, b, p[0], p[1], op, c))),
         sp: 's',
       };
     },
@@ -182,6 +241,7 @@
       return {
         q: T(`The point $(${P[0]}, ${P[1]})$ lies exactly on the boundary line of $${showLin(a, b)} ${SYM[op]} k$. Find $k$.`, `Titik $(${P[0]}, ${P[1]})$ terletak tepat pada garis sempadan bagi $${showLin(a, b)} ${SYM[op]} k$. Cari $k$.`),
         a: T(`$k = ${c}$`),
+        w: W(T(`On the boundary line, $${showLin(a, b)} = k$`, `Pada garis sempadan, $${showLin(a, b)} = k$`), `$k = ${subXY(a, b, P[0], P[1])} = ${c}$`),
         sp: 'xs',
       };
     },
@@ -200,6 +260,7 @@
       return {
         q: T(`For $${showLin(a, b)} ${SYM[op]} ${c}$, is the point $(${P[0]}, ${P[1]})$ in the region, on the boundary, or outside? Justify with substitution.`, `Bagi $${showLin(a, b)} ${SYM[op]} ${c}$, adakah titik $(${P[0]}, ${P[1]})$ dalam rantau, pada sempadan, atau di luar? Wajarkan dengan penggantian.`),
         a: T(`$${v}$ vs $${c}$: the point is ${verdict.en}`, `$${v}$ berbanding $${c}$: titik itu ${verdict.ms}`),
+        w: W(`$${subXY(a, b, P[0], P[1])} = ${v}$`, v === c ? T(`$${v} = ${c}$: the point is on the boundary line, which is ${strict ? 'excluded (dashed line) for a strict inequality' : 'included (solid line) since the inequality includes equality'}`, `$${v} = ${c}$: titik itu pada garis sempadan, yang ${strict ? 'tidak termasuk (garis putus-putus) bagi ketaksamaan ketat' : 'termasuk (garis padu) kerana ketaksamaan itu termasuk sama dengan'}`) : chk(v, op, c)),
         sp: 's',
       };
     },
@@ -214,6 +275,7 @@
       return {
         q: T(`A student substitutes $(${P[0]}, ${P[1]})$ into $${showLin(a, b)} ${SYM[op]} ${c}$ and writes "$${wrongV} ${SYM[op]} ${c}$, so it is ${claimTrue ? 'a solution' : 'not a solution'}." Find the student's mistake and give the correct conclusion.`, `Seorang pelajar menggantikan $(${P[0]}, ${P[1]})$ ke dalam $${showLin(a, b)} ${SYM[op]} ${c}$ dan menulis "$${wrongV} ${SYM[op]} ${c}$, jadi ia ${claimTrue ? 'satu penyelesaian' : 'bukan penyelesaian'}." Cari kesilapan pelajar itu dan berikan kesimpulan yang betul.`),
         a: T(`The correct value is $${correctV}$ (not $${wrongV}$), so it is ${actualTrue ? 'a solution' : 'not a solution'}: $${correctV} ${SYM[op]} ${c}$ is ${actualTrue ? 'true' : 'false'}.`, `Nilai yang betul ialah $${correctV}$ (bukan $${wrongV}$), jadi ia ${actualTrue ? 'satu penyelesaian' : 'bukan penyelesaian'}: $${correctV} ${SYM[op]} ${c}$ adalah ${actualTrue ? 'benar' : 'palsu'}.`),
+        w: W(`$${subXY(a, b, P[0], P[1])} = ${a * P[0]} + ${b * P[1]} = ${correctV}$`, T(`The student added the $y$-term $${b * P[1]}$ twice: $${correctV} + ${b * P[1]} = ${wrongV}$`, `Pelajar itu menambah sebutan $y$, iaitu $${b * P[1]}$, dua kali: $${correctV} + ${b * P[1]} = ${wrongV}$`), chk(correctV, op, c)),
         sp: 's',
       };
     },
@@ -236,6 +298,7 @@
         q: T(`${ctx.en(h1, h2, H, minA)} The number of the second is not more than ${ratio === 1 ? 'the number of' : `${ratio} times the number of`} the first. Write three inequalities in $x$ and $y$.`,
           `${ctx.ms(h1, h2, H, minA)} Bilangan yang kedua tidak melebihi ${ratio === 1 ? 'bilangan' : `${ratio} kali bilangan`} yang pertama. Tulis tiga ketaksamaan dalam $x$ dan $y$.`),
         a: T(`$${h1}x + ${h2}y \\le ${H}$; $x \\ge ${minA}$; $y \\le ${ratio === 1 ? '' : ratio}x$`),
+        w: W(T(`Total used $= ${h1}x + ${h2}y$, at most ${H}: $${h1}x + ${h2}y \\le ${H}$`, `Jumlah digunakan $= ${h1}x + ${h2}y$, selebih-lebihnya ${H}: $${h1}x + ${h2}y \\le ${H}$`), T(`At least ${minA} of the first: $x \\ge ${minA}$`, `Sekurang-kurangnya ${minA} bagi yang pertama: $x \\ge ${minA}$`), T(`The second is not more than ${ratio === 1 ? '' : `${ratio} times `}the first: $y \\le ${ratio === 1 ? '' : ratio}x$`, `Yang kedua tidak melebihi ${ratio === 1 ? '' : `${ratio} kali `}yang pertama: $y \\le ${ratio === 1 ? '' : ratio}x$`)),
         sp: 'm',
       };
     },
@@ -249,6 +312,7 @@
       return {
         q: T(`Alia buys $x$ ${i1.en} at RM${p1} each and $y$ ${i2.en} at RM${p2} each, spending not more than RM${tot} in total. (a) Write an inequality in $x$ and $y$. (b) Does $x = ${Px}, y = ${Py}$ satisfy your inequality? (c) State one other possible pair of non-negative integer values of $x$ and $y$.`, `Alia membeli $x$ ${i1.ms} pada harga RM${p1} sekeping dan $y$ ${i2.ms} pada harga RM${p2} sekeping, membelanjakan tidak melebihi RM${tot} secara keseluruhannya. (a) Tulis satu ketaksamaan dalam $x$ dan $y$. (b) Adakah $x = ${Px}, y = ${Py}$ memenuhi ketaksamaan anda? (c) Nyatakan satu lagi pasangan nilai integer bukan negatif bagi $x$ dan $y$ yang mungkin.`),
         a: T(`(a) $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ (b) $${v} \\le ${tot}$ is ${ok ? 'true, so yes' : 'false, so no'} (c) e.g. $(0, 0)$`, `(a) $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ (b) $${v} \\le ${tot}$ adalah ${ok ? 'benar, jadi ya' : 'palsu, jadi tidak'} (c) cth. $(0, 0)$`),
+        w: W(T(`(a) Total cost $= ${poly([[p1, 'x'], [p2, 'y']])}$, not more than RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`, `(a) Jumlah kos $= ${poly([[p1, 'x'], [p2, 'y']])}$, tidak melebihi RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`), T(`(b) $${subXY(p1, p2, Px, Py)} = ${v}$; $${v} \\le ${tot}$ is ${ok ? 'true' : 'false'}`, `(b) $${subXY(p1, p2, Px, Py)} = ${v}$; $${v} \\le ${tot}$ adalah ${ok ? 'benar' : 'palsu'}`), T(`(c) $(0, 0)$: $${p1}(0) + ${p2}(0) = 0 \\le ${tot}$`, `(c) $(0, 0)$: $${p1}(0) + ${p2}(0) = 0 \\le ${tot}$`)),
         sp: 'm',
       };
     },
@@ -262,7 +326,8 @@
       const claim = r.chance(0.5); // claim: "all points satisfying x+y>k are ... true" (we test it correctly)
       return {
         q: T(`A student conjectures that every point $(x, y)$ with $${showLin(a, b)} ${SYM[op]} ${c}$ lies in the solution region of the inequality. Test the point $(${Pin[0]}, ${Pin[1]})$, the boundary point $(${Pbound[0]}, ${Pbound[1]})$ and $(${Pout[0]}, ${Pout[1]})$, then state whether the conjecture is true.`, `Seorang pelajar membuat konjektur bahawa setiap titik $(x, y)$ dengan $${showLin(a, b)} ${SYM[op]} ${c}$ terletak dalam rantau penyelesaian ketaksamaan itu. Uji titik $(${Pin[0]}, ${Pin[1]})$, titik sempadan $(${Pbound[0]}, ${Pbound[1]})$ dan $(${Pout[0]}, ${Pout[1]})$, kemudian nyatakan sama ada konjektur itu benar.`),
-        a: T(`$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'satisfies' : 'does not satisfy'}; boundary point: satisfies only if the inequality is inclusive ($${op}$ is ${op.length === 2 ? 'inclusive' : 'strict'}); $(${Pout[0]}, ${Pout[1]})$: does not satisfy. The conjecture is ${op.length === 2 ? 'true' : 'false (the boundary point is excluded)'}.`, `$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'memenuhi' : 'tidak memenuhi'}; titik sempadan: memenuhi hanya jika ketaksamaan itu terangkum ($${op}$ ${op.length === 2 ? 'terangkum' : 'ketat'}); $(${Pout[0]}, ${Pout[1]})$: tidak memenuhi. Konjektur itu ${op.length === 2 ? 'benar' : 'palsu (titik sempadan tidak termasuk)'}.`),
+        a: T(`$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'satisfies' : 'does not satisfy'}; boundary point: satisfies only if the inequality is inclusive ($${SYM[op]}$ is ${op.length === 2 ? 'inclusive' : 'strict'}); $(${Pout[0]}, ${Pout[1]})$: does not satisfy. The conjecture is ${op.length === 2 ? 'true' : 'false (the boundary point is excluded)'}.`, `$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'memenuhi' : 'tidak memenuhi'}; titik sempadan: memenuhi hanya jika ketaksamaan itu terangkum ($${SYM[op]}$ ${op.length === 2 ? 'terangkum' : 'ketat'}); $(${Pout[0]}, ${Pout[1]})$: tidak memenuhi. Konjektur itu ${op.length === 2 ? 'benar' : 'palsu (titik sempadan tidak termasuk)'}.`),
+        w: W(subChk(a, b, Pin[0], Pin[1], op, c), subChk(a, b, Pbound[0], Pbound[1], op, c), subChk(a, b, Pout[0], Pout[1], op, c), T(`$${SYM[op]}$ includes equality, so boundary points belong to the region: every point satisfying $${showLin(a, b)} ${SYM[op]} ${c}$ is in the region and the conjecture is true.`, `$${SYM[op]}$ termasuk sama dengan, maka titik sempadan termasuk dalam rantau: setiap titik yang memenuhi $${showLin(a, b)} ${SYM[op]} ${c}$ berada dalam rantau dan konjektur itu benar.`)),
         sp: 'l',
       };
     },
@@ -273,6 +338,7 @@
       return {
         q: T(`A farm keeps $x$ ${a1.en} and $y$ ${a2.en}. Each ${a1.en.replace(/s$/, '')} needs ${feed} kg of feed a day and each ${a2.en.replace(/s$/, '')} needs 1 kg; the daily feed supply is at most ${space} kg. The number of ${a2.en} must be at least twice the number of ${a1.en}, and neither number can be negative. Write four inequalities.`, `Sebuah ladang menternak $x$ ekor ${a1.ms} dan $y$ ekor ${a2.ms}. Setiap ekor ${a1.ms} memerlukan ${feed} kg makanan sehari dan setiap ekor ${a2.ms} memerlukan 1 kg; bekalan makanan harian selebih-lebihnya ${space} kg. Bilangan ${a2.ms} mestilah sekurang-kurangnya dua kali bilangan ${a1.ms}, dan kedua-dua bilangan tidak boleh negatif. Tulis empat ketaksamaan.`),
         a: T(`$${feed}x + y \\le ${space}$; $y \\ge 2x$; $x \\ge 0$; $y \\ge 0$`),
+        w: W(T(`Feed: $${feed}x + y$ kg, at most ${space} kg: $${feed}x + y \\le ${space}$`, `Makanan: $${feed}x + y$ kg, selebih-lebihnya ${space} kg: $${feed}x + y \\le ${space}$`), T(`At least twice the number of ${a1.en}: $y \\ge 2x$`, `Sekurang-kurangnya dua kali bilangan ${a1.ms}: $y \\ge 2x$`), T('Numbers of animals cannot be negative: $x \\ge 0$, $y \\ge 0$', 'Bilangan haiwan tidak boleh negatif: $x \\ge 0$, $y \\ge 0$')),
         sp: 'm',
       };
     },
@@ -291,6 +357,7 @@
         q: T(`Draw the line $${label} = ${c}$ (dashed if the inequality is strict, solid if inclusive) and shade the region $${label} ${SYM[op]} ${c}$.`, `Lukis garis $${label} = ${c}$ (putus-putus jika ketaksamaan itu ketat, penuh jika terangkum) dan lorekkan rantau $${label} ${SYM[op]} ${c}$.`),
         fig: S.plane({ x: [-2, 8], y: [-2, 8], scale: 20 }),
         a: T(planeI([q], true), planeI([q], true)),
+        w: W(...shadeSteps(q)),
         sp: 'xl',
       };
     },
@@ -301,6 +368,7 @@
       return {
         q: T(`For the inequality $x + y ${SYM[op]} 6$, should the boundary line be drawn solid or dashed?`, `Bagi ketaksamaan $x + y ${SYM[op]} 6$, patutkah garis sempadan dilukis penuh atau putus-putus?`),
         a: T(strict ? 'Dashed (the boundary is not included)' : 'Solid (the boundary is included)', strict ? 'Putus-putus (sempadan tidak termasuk)' : 'Penuh (sempadan termasuk)'),
+        w: T(`$${SYM[op]}$ ${strict ? 'is strict (no "equal to"), so points on the line $x + y = 6$ are not in the region' : 'includes "equal to", so points on the line $x + y = 6$ are in the region'}`, `$${SYM[op]}$ ${strict ? 'adalah ketat (tiada "sama dengan"), maka titik pada garis $x + y = 6$ tidak termasuk dalam rantau' : 'termasuk "sama dengan", maka titik pada garis $x + y = 6$ termasuk dalam rantau'}`),
         sp: 'xs',
       };
     },
@@ -314,6 +382,7 @@
         q: T(`The diagram shows the region satisfying an inequality. State one point that lies in the shaded region.`, `Rajah menunjukkan rantau yang memenuhi satu ketaksamaan. Nyatakan satu titik yang terletak dalam rantau berlorek.`),
         fig,
         a: T(`e.g. $(${inPt[0]}, ${inPt[1]})$`),
+        w: W(readLine(q), ptLine(inPt, [q])),
         sp: 's',
       };
     },
@@ -327,6 +396,7 @@
         q: T(`State the inequality shown by the shaded region (the boundary line is solid).`, `Nyatakan ketaksamaan yang ditunjukkan oleh rantau berlorek (garis sempadan adalah penuh).`),
         fig,
         a: T(`$${vert ? 'x' : 'y'} ${SYM[op]} ${c}$`),
+        w: W(readLine(q)),
         sp: 's',
       };
     },
@@ -344,6 +414,7 @@
         q: T(`Which inequality is represented by the shaded region?<br>${f('en')}`, `Ketaksamaan manakah yang diwakili oleh rantau berlorek?<br>${f('ms')}`),
         fig,
         a: T(`(${letter}) $${correct}$`),
+        w: W(readLine(q)),
         sp: 's',
       };
     },
@@ -351,8 +422,9 @@
     (r) => {
       const inclusive = r.chance(0.5);
       return {
-        q: T(`If the inequality defining a region is ${inclusive ? 'inclusive (\\u2265 or \\u2264)' : 'strict (> or <)'}, is its boundary line drawn solid or dashed?`, `Jika ketaksamaan yang menentukan rantau adalah ${inclusive ? 'terangkum (\\u2265 atau \\u2264)' : 'ketat (> atau <)'}, adakah garis sempadannya dilukis penuh atau putus-putus?`),
+        q: T(`If the inequality defining a region is ${inclusive ? 'inclusive ($\\ge$ or $\\le$)' : 'strict ($>$ or $<$)'}, is its boundary line drawn solid or dashed?`, `Jika ketaksamaan yang menentukan rantau adalah ${inclusive ? 'terangkum ($\\ge$ atau $\\le$)' : 'ketat ($>$ atau $<$)'}, adakah garis sempadannya dilukis penuh atau putus-putus?`),
         a: T(inclusive ? 'Solid' : 'Dashed', inclusive ? 'Penuh' : 'Putus-putus'),
+        w: inclusive ? T('$\\ge$ and $\\le$ include "equal to", so points on the line belong to the region: solid line.', '$\\ge$ dan $\\le$ termasuk "sama dengan", maka titik pada garis termasuk dalam rantau: garis penuh.') : T('$>$ and $<$ exclude "equal to", so points on the line are not in the region: dashed line.', '$>$ dan $<$ tidak termasuk "sama dengan", maka titik pada garis tidak termasuk dalam rantau: garis putus-putus.'),
         sp: 'xs',
       };
     },
@@ -365,6 +437,7 @@
         q: T(`Draw the line $y = ${m === 1 ? '' : m}x$ (dashed if the inequality is strict, solid if inclusive) and shade the region $y ${SYM[op]} ${m === 1 ? '' : m}x$.`, `Lukis garis $y = ${m === 1 ? '' : m}x$ (putus-putus jika ketaksamaan itu ketat, penuh jika terangkum) dan lorekkan rantau $y ${SYM[op]} ${m === 1 ? '' : m}x$.`),
         fig: S.plane({ x: [-2, 8], y: [-2, 8], scale: 20 }),
         a: T(planeI([q], true), planeI([q], true)),
+        w: W(...shadeSteps(q)),
         sp: 'xl',
       };
     },
@@ -379,9 +452,10 @@
       const descEn = axis === 'x' ? (side ? 'to the right of' : 'to the left of') : (side ? 'above' : 'below');
       const descMs = axis === 'x' ? (side ? 'di sebelah kanan' : 'di sebelah kiri') : (side ? 'di atas' : 'di bawah');
       return {
-        q: T(`The shaded region is ${descEn} the line $${axis} = ${c}$ (boundary included). Write the inequality.`, `Rantau berlorek terletak ${descMs} garis $${axis} = ${c}$ (sempadan disertakan).`),
+        q: T(`The shaded region is ${descEn} the line $${axis} = ${c}$ (boundary included). Write the inequality.`, `Rantau berlorek terletak ${descMs} garis $${axis} = ${c}$ (sempadan disertakan). Tulis ketaksamaan itu.`),
         fig,
         a: T(`$${axis} ${SYM[op]} ${c}$`),
+        w: W(readLine(q)),
         sp: 'xs',
       };
     },
@@ -391,6 +465,7 @@
       return {
         q: T(`State the $x$-intercept and $y$-intercept of the boundary line of $${p}x + ${q2}y ${SYM[op]} ${p * q2}$.`, `Nyatakan pintasan-$x$ dan pintasan-$y$ garis sempadan bagi $${p}x + ${q2}y ${SYM[op]} ${p * q2}$.`),
         a: T(`$x$-intercept $= ${q2}$, $y$-intercept $= ${p}$`, `Pintasan-$x$ $= ${q2}$, pintasan-$y$ $= ${p}$`),
+        w: W(T(`$x$-intercept: put $y = 0$: $${p}x = ${p * q2}$, so $x = ${q2}$`, `Pintasan-$x$: gantikan $y = 0$: $${p}x = ${p * q2}$, maka $x = ${q2}$`), T(`$y$-intercept: put $x = 0$: $${q2}y = ${p * q2}$, so $y = ${p}$`, `Pintasan-$y$: gantikan $x = 0$: $${q2}y = ${p * q2}$, maka $y = ${p}$`)),
         sp: 's',
       };
     },
@@ -402,6 +477,7 @@
       return {
         q: T(`Does the origin $(0, 0)$ satisfy the inequality $${p}x + ${q2}y ${SYM[op]} ${c}$? This is a common way to decide which side of a line to shade.`, `Adakah asalan $(0, 0)$ memenuhi ketaksamaan $${p}x + ${q2}y ${SYM[op]} ${c}$? Ini adalah satu cara lazim untuk menentukan sebelah mana garis perlu dilorek.`),
         a: T(`${ok ? 'Yes' : 'No'}: $0 ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Ya' : 'Tidak'}: $0 ${SYM[op]} ${c}$ adalah ${ok ? 'benar' : 'palsu'}`),
+        w: W(`$${subXY(p, q2, 0, 0)} = 0$`, chk(0, op, c)),
         sp: 's',
       };
     },
@@ -412,6 +488,7 @@
       return {
         q: T(`True or false: the inequality $x + y ${SYM[op]} 5$ is a strict inequality.`, `Benar atau palsu: ketaksamaan $x + y ${SYM[op]} 5$ ialah ketaksamaan ketat.`),
         a: T(strict ? 'True' : 'False, it is inclusive', strict ? 'Benar' : 'Palsu, ia terangkum'),
+        w: T(`$${SYM[op]}$ ${strict ? 'does not include "equal to", so the inequality is strict' : 'includes "equal to", so the inequality is inclusive, not strict'}`, `$${SYM[op]}$ ${strict ? 'tidak termasuk "sama dengan", maka ketaksamaan itu ketat' : 'termasuk "sama dengan", maka ketaksamaan itu terangkum, bukan ketat'}`),
         sp: 'xs',
       };
     },
@@ -443,6 +520,7 @@
       return {
         q: T(`Which description matches the inequality $${correct.ineq}$?<br>${f('en')}`, `Penerangan manakah yang sepadan dengan ketaksamaan $${correct.ineq}$?<br>${f('ms')}`),
         a: T(`(${letter})`),
+        w: T(`Read $${correct.ineq}$ in words: ${correct.en}; each other option describes a different inequality.`, `Baca $${correct.ineq}$ dalam perkataan: ${correct.ms}; setiap pilihan lain memerihalkan ketaksamaan yang berbeza.`),
         sp: 's',
       };
     },
@@ -458,6 +536,7 @@
         q: T('Write the two inequalities that define the shaded region (a solid line means the boundary is included).', 'Tulis dua ketaksamaan yang menentukan kawasan berlorek (garis penuh bermaksud sempadan disertakan).'),
         fig,
         a: T(`$${A.op === '>=' ? `x \\ge ${A.c}` : `x \\le ${A.c}`}$ and $${B.op === '>=' ? `y \\ge ${B.c}` : `y \\le ${B.c}`}$`),
+        w: W(readLine(A), readLine(B)),
         sp: 's',
       };
     },
@@ -472,6 +551,7 @@
         q: T(`Draw the lines $x + y = ${c}$ and $${axis} = ${k}$, then shade the region satisfying $x + y ${SYM[op1]} ${c}$ and $${axis} ${SYM[op2]} ${k}$.`, `Lukis garis $x + y = ${c}$ dan $${axis} = ${k}$, kemudian lorekkan rantau yang memenuhi $x + y ${SYM[op1]} ${c}$ dan $${axis} ${SYM[op2]} ${k}$.`),
         fig: S.plane({ x: [-2, 8], y: [-2, 8], scale: 20 }),
         a: T(planeI([A, B], true), planeI([A, B], true)),
+        w: W(shadeLine(A), shadeLine(B), OVERLAP),
         sp: 'xl',
       };
     },
@@ -486,6 +566,7 @@
         q: T(`The diagram shows the region satisfying $x + y \\le ${c}$ and $x \\ge ${k}$. Which of these points lie in the region? ${pts.map((p) => `$(${p[0]}, ${p[1]})$`).join(', ')}`, `Rajah menunjukkan rantau yang memenuhi $x + y \\le ${c}$ dan $x \\ge ${k}$. Titik manakah yang terletak dalam rantau itu? ${pts.map((p) => `$(${p[0]}, ${p[1]})$`).join(', ')}`),
         fig,
         a: T(good.length ? good.join(', ') : 'None', good.length ? good.join(', ') : 'Tiada'),
+        w: W(...pts.map((p) => ptLine(p, [A, B]))),
         sp: 's',
       };
     },
@@ -500,6 +581,7 @@
         q: T(`The diagram shows the region satisfying $x \\ge 0$, $y \\ge 0$ and $x + y \\le ${c}$ (all boundaries solid). How many points with integer coordinates lie in the region, including its boundary?`, `Rajah menunjukkan rantau yang memenuhi $x \\ge 0$, $y \\ge 0$ dan $x + y \\le ${c}$ (semua sempadan penuh). Berapakah bilangan titik dengan koordinat integer yang terletak dalam rantau itu, termasuk sempadannya?`),
         fig,
         a: T(`${pts.length}`),
+        w: T(`For $x = 0, 1, …, ${c}$, $y$ can be $0, 1, …, ${c} - x$: $${range(0, c).map((x) => c - x + 1).join(' + ')} = ${pts.length}$`, `Bagi $x = 0, 1, …, ${c}$, $y$ boleh jadi $0, 1, …, ${c} - x$: $${range(0, c).map((x) => c - x + 1).join(' + ')} = ${pts.length}$`),
         sp: 's',
       };
     },
@@ -513,6 +595,7 @@
         q: T(`Write the two inequalities that define the shaded region (both boundaries solid): one line passes through the origin.`, `Tulis dua ketaksamaan yang menentukan kawasan berlorek (kedua-dua sempadan penuh): satu garis melalui asalan.`),
         fig,
         a: T(`$y ${SYM[op1]} ${m === 1 ? '' : m}x$ and $y ${SYM[op2]} ${h}$`),
+        w: W(readLine(A), readLine(B)),
         sp: 's',
       };
     },
@@ -528,6 +611,7 @@
         q: T(`A student claims the shaded region satisfies $x ${SYM[wrongA]} ${k}$ and $y ${SYM[wrongB]} ${h}$. One of the two is wrong. Identify which one and write the correct inequality.`, `Seorang pelajar mendakwa rantau berlorek memenuhi $x ${SYM[wrongA]} ${k}$ dan $y ${SYM[wrongB]} ${h}$. Salah satu daripadanya adalah salah. Kenal pasti yang mana satu dan tulis ketaksamaan yang betul.`),
         fig,
         a: T(`$${flipWhich}$ is wrong: it should be $${flipWhich} ${SYM[flipWhich === 'x' ? opA : opB]} ${flipWhich === 'x' ? k : h}$`, `$${flipWhich}$ adalah salah: ia sepatutnya $${flipWhich} ${SYM[flipWhich === 'x' ? opA : opB]} ${flipWhich === 'x' ? k : h}$`),
+        w: W(readLine(flipWhich === 'x' ? A : B), T(`The student wrote $${flipWhich} ${SYM[flipWhich === 'x' ? wrongA : wrongB]} ${flipWhich === 'x' ? k : h}$: the sign is reversed.`, `Pelajar itu menulis $${flipWhich} ${SYM[flipWhich === 'x' ? wrongA : wrongB]} ${flipWhich === 'x' ? k : h}$: simbolnya terbalik.`)),
         sp: 's',
       };
     },
@@ -539,11 +623,13 @@
       const fig = planeI([A, B], true);
       const claimTrue = claimedOp1 === '<=' && claimedOp2 === '>=';
       const P = [k + 1, 1];
+      need(P[0] + P[1] <= c); // the question says P lies in the shaded region
       const testOk = sat(1, 1, c, claimedOp1, P[0], P[1]) && sat(1, 0, k, claimedOp2, P[0], P[1]);
       return {
         q: T(`A student claims the shaded region satisfies $x + y ${SYM[claimedOp1]} ${c}$ and $x ${SYM[claimedOp2]} ${k}$. Test the point $(${P[0]}, ${P[1]})$, which lies in the shaded region, to check the claim.`, `Seorang pelajar mendakwa rantau berlorek memenuhi $x + y ${SYM[claimedOp1]} ${c}$ dan $x ${SYM[claimedOp2]} ${k}$. Uji titik $(${P[0]}, ${P[1]})$, yang terletak dalam rantau berlorek, untuk menyemak dakwaan itu.`),
         fig,
         a: T(`${testOk ? 'The point satisfies both, consistent with the claim' : 'The point fails at least one, so the claim is wrong'}: the correct system is $x + y \\le ${c}$ and $x \\ge ${k}$.`, `${testOk ? 'Titik itu memenuhi kedua-duanya, konsisten dengan dakwaan' : 'Titik itu gagal sekurang-kurangnya satu, jadi dakwaan itu salah'}: sistem yang betul ialah $x + y \\le ${c}$ dan $x \\ge ${k}$.`),
+        w: W(ptLine(P, [{ a: 1, b: 1, c, op: claimedOp1 }, { a: 1, b: 0, c: k, op: claimedOp2 }], '', [T("satisfies the student's system", 'memenuhi sistem pelajar itu'), T("fails the student's system, so the claim is wrong", 'tidak memenuhi sistem pelajar itu, maka dakwaan itu salah')]), T('One test point cannot confirm a claim; read each boundary from the diagram:', 'Satu titik ujian tidak dapat mengesahkan dakwaan; baca setiap sempadan daripada rajah:'), readLine(A), readLine(B)),
         sp: 'm',
       };
     },
@@ -559,6 +645,7 @@
         q: T(`The table shows points on the boundary line $x + y = ${c}$. For each, state whether the point also satisfies $x \\ge ${k}$ (the second condition of the shaded region).<br>${SPM.table([['x', ...xs.map(n)], ['y', ...rows.map((v) => (v === null ? '-' : n(v)))]], { rowHead: true })}`, `Jadual menunjukkan titik pada garis sempadan $x + y = ${c}$. Bagi setiap satu, nyatakan sama ada titik itu turut memenuhi $x \\ge ${k}$ (syarat kedua rantau berlorek).<br>${SPM.table([['x', ...xs.map(n)], ['y', ...rows.map((v) => (v === null ? '-' : n(v)))]], { rowHead: true })}`),
         fig,
         a: T(xs.map((x, i) => `$x=${x}$: ${marks[i]}`).join('; '), xs.map((x, i) => `$x=${x}$: ${marksMs[i]}`).join('; ')),
+        w: T(`The condition $x \\ge ${k}$ depends only on $x$: true for $x = ${xs.filter((x) => x >= k).join(', ')}$, false for $x = ${xs.filter((x) => x < k).join(', ')}$`, `Syarat $x \\ge ${k}$ bergantung pada $x$ sahaja: benar bagi $x = ${xs.filter((x) => x >= k).join(', ')}$, palsu bagi $x = ${xs.filter((x) => x < k).join(', ')}$`),
         sp: 'm',
       };
     },
@@ -575,7 +662,7 @@
         q: T(`The boundary line of a shaded region crosses the $x$-axis at $(${xi}, 0)$ and the $y$-axis at $(0, ${yi})$; the origin is ${shadeOrigin ? '' : 'not '}in the shaded region. Find the inequality that defines the region, in the form $ax + by \\le c$ or $ax + by \\ge c$.`, `Garis sempadan rantau berlorek memotong paksi-$x$ pada $(${xi}, 0)$ dan paksi-$y$ pada $(0, ${yi})$; asalan ${shadeOrigin ? '' : 'tidak '}terletak dalam rantau berlorek. Cari ketaksamaan yang menentukan rantau itu, dalam bentuk $ax + by \\le c$ atau $ax + by \\ge c$.`),
         fig,
         a: T(`$${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`),
-        w: T(`Line through $(${xi},0)$ and $(0,${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, i.e. $${yi}x + ${xi}y = ${xi * yi}$`, `Garis melalui $(${xi},0)$ dan $(0,${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, iaitu $${yi}x + ${xi}y = ${xi * yi}$`),
+        w: W(T(`Line through $(${xi}, 0)$ and $(0, ${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, i.e. $${yi}x + ${xi}y = ${xi * yi}$`, `Garis melalui $(${xi}, 0)$ dan $(0, ${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, iaitu $${yi}x + ${xi}y = ${xi * yi}$`), T(`The origin gives $0 ${SYM[op]} ${xi * yi}$, which must be ${shadeOrigin ? 'true (origin inside)' : 'false (origin outside)'}: $${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`, `Asalan memberi $0 ${SYM[op]} ${xi * yi}$, yang mesti ${shadeOrigin ? 'benar (asalan di dalam)' : 'palsu (asalan di luar)'}: $${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`)),
         sp: 'm',
       };
     },
@@ -588,6 +675,7 @@
       return {
         q: T(`A ${item.en} park has space for fewer than ${cap} vehicles in two zones, $x$ in zone $P$ and $y$ in zone $Q$: $x + y < ${cap}$. Explain why the point $(${P[0]}, ${P[1]})$ does NOT represent a possible number of vehicles in the two zones.`, `Sebuah tempat letak ${item.ms} mempunyai ruang untuk kurang daripada ${cap} kenderaan dalam dua zon, $x$ di zon $P$ dan $y$ di zon $Q$: $x + y < ${cap}$. Terangkan mengapa titik $(${P[0]}, ${P[1]})$ TIDAK mewakili bilangan kenderaan yang mungkin di kedua-dua zon.`),
         a: T(`$${P[0]} + ${P[1]} = ${cap}$, which is not less than ${cap}; the inequality is strict, so points on the boundary line $x + y = ${cap}$ are excluded.`, `$${P[0]} + ${P[1]} = ${cap}$, iaitu tidak kurang daripada ${cap}; ketaksamaan itu ketat, jadi titik pada garis sempadan $x + y = ${cap}$ tidak termasuk.`),
+        w: W(`$${P[0]} + ${P[1]} = ${cap}$`, T(`$${cap} < ${cap}$ is false: the point lies on the boundary line $x + y = ${cap}$, which is excluded because the inequality is strict (dashed line).`, `$${cap} < ${cap}$ adalah palsu: titik itu terletak pada garis sempadan $x + y = ${cap}$, yang tidak termasuk kerana ketaksamaan itu ketat (garis putus-putus).`)),
         sp: 's',
       };
     },
@@ -600,6 +688,7 @@
         q: T('Write the two inequalities that define the shaded region between the two lines through the origin (both boundaries solid).', 'Tulis dua ketaksamaan yang menentukan kawasan berlorek di antara dua garis yang melalui asalan (kedua-dua sempadan penuh).'),
         fig,
         a: T(`$y \\ge ${m1 === 1 ? '' : m1}x$ and $y \\le ${m2}x$`),
+        w: W(readLine(A), readLine(B)),
         sp: 'm',
       };
     },
@@ -609,6 +698,7 @@
       return {
         q: T(`The region $R_1$ satisfies $x \\ge ${k}$ and $y \\le ${h}$. The region $R_2$ satisfies $x \\ge ${k + inc}$ and $y \\le ${h}$. Describe how $R_2$ compares with $R_1$.`, `Rantau $R_1$ memenuhi $x \\ge ${k}$ dan $y \\le ${h}$. Rantau $R_2$ memenuhi $x \\ge ${k + inc}$ dan $y \\le ${h}$. Terangkan bagaimana $R_2$ berbanding dengan $R_1$.`),
         a: T(`$R_2$ is smaller than $R_1$: it is the part of $R_1$ with $x \\ge ${k + inc}$ (the left strip $${k} \\le x < ${k + inc}$ is removed).`, `$R_2$ lebih kecil daripada $R_1$: ia adalah bahagian $R_1$ dengan $x \\ge ${k + inc}$ (jalur kiri $${k} \\le x < ${k + inc}$ dibuang).`),
+        w: W(T(`Every point with $x \\ge ${k + inc}$ also has $x \\ge ${k}$, so $R_2$ lies inside $R_1$.`, `Setiap titik dengan $x \\ge ${k + inc}$ juga memenuhi $x \\ge ${k}$, maka $R_2$ terletak di dalam $R_1$.`), T(`Points with $${k} \\le x < ${k + inc}$ (and $y \\le ${h}$) are in $R_1$ but not in $R_2$, so $R_2$ is smaller.`, `Titik dengan $${k} \\le x < ${k + inc}$ (dan $y \\le ${h}$) berada dalam $R_1$ tetapi bukan dalam $R_2$, maka $R_2$ lebih kecil.`)),
         sp: 'm',
       };
     },
@@ -619,6 +709,7 @@
       return {
         q: T(`Write a system of two inequalities in $x$ and $y$ (each of the form $x \\ge k$ or $y \\ge k$) so that the point $(${Pin[0]}, ${Pin[1]})$ satisfies both but the point $(${Pout[0]}, ${Pout[1]})$ does not satisfy at least one.`, `Tulis satu sistem dua ketaksamaan dalam $x$ dan $y$ (setiap satu dalam bentuk $x \\ge k$ atau $y \\ge k$) supaya titik $(${Pin[0]}, ${Pin[1]})$ memenuhi kedua-duanya tetapi titik $(${Pout[0]}, ${Pout[1]})$ tidak memenuhi sekurang-kurangnya satu.`),
         a: T(`e.g. $x \\ge ${Pin[0]}$ and $y \\ge ${Pin[1]}$ (since $(${Pout[0]}, ${Pout[1]})$ fails $x \\ge ${Pin[0]}$)`, `cth. $x \\ge ${Pin[0]}$ dan $y \\ge ${Pin[1]}$ (kerana $(${Pout[0]}, ${Pout[1]})$ gagal memenuhi $x \\ge ${Pin[0]}$)`),
+        w: W(T(`Use the coordinates of $(${Pin[0]}, ${Pin[1]})$ as the bounds: $x \\ge ${Pin[0]}$, $y \\ge ${Pin[1]}$`, `Guna koordinat $(${Pin[0]}, ${Pin[1]})$ sebagai had: $x \\ge ${Pin[0]}$, $y \\ge ${Pin[1]}$`), ptLine(Pin, [{ a: 1, b: 0, c: Pin[0], op: '>=' }, { a: 0, b: 1, c: Pin[1], op: '>=' }]), ptLine(Pout, [{ a: 1, b: 0, c: Pin[0], op: '>=' }, { a: 0, b: 1, c: Pin[1], op: '>=' }])),
         sp: 's',
       };
     },
@@ -632,6 +723,7 @@
         q: T(`The diagram shows a shaded region. (a) Write the two inequalities that define it. (b) Is the point $(${Pb[0]}, ${Pb[1]})$, which lies on a boundary line, included in the region? (c) State one point with integer coordinates strictly inside the region.`, `Rajah menunjukkan rantau berlorek. (a) Tulis dua ketaksamaan yang menentukannya. (b) Adakah titik $(${Pb[0]}, ${Pb[1]})$, yang terletak pada satu garis sempadan, termasuk dalam rantau itu? (c) Nyatakan satu titik dengan koordinat integer yang terletak betul-betul di dalam rantau itu.`),
         fig,
         a: T(`(a) $x + y \\le ${c}$ and $x \\ge ${k}$ (b) Yes, both boundaries are solid, so it is included (c) e.g. $(${k + 1}, ${Math.max(0, c - k - 2)})$`, `(a) $x + y \\le ${c}$ dan $x \\ge ${k}$ (b) Ya, kedua-dua sempadan adalah penuh, jadi ia termasuk (c) cth. $(${k + 1}, ${Math.max(0, c - k - 2)})$`),
+        w: W(readLine(A, '(a) '), readLine(B, '(a) '), T(`(b) $${Pb[0]} + ${Pb[1]} = ${c}$, so the point is on the solid line $x + y = ${c}$ (and $x = ${k}$); solid lines are included`, `(b) $${Pb[0]} + ${Pb[1]} = ${c}$, maka titik itu terletak pada garis penuh $x + y = ${c}$ (dan $x = ${k}$); garis penuh termasuk`), ptLine([k + 1, Math.max(0, c - k - 2)], [A, B], '(c) ')),
         sp: 'm',
       };
     },
@@ -643,6 +735,7 @@
       return {
         q: T(`A shop sells $x$ ${i1.en} at RM${p1} each and $y$ ${i2.en} at RM${p2} each. The total takings must not exceed RM${tot}, and the shop must sell at least ${k} times as many ${i1.en} as ${i2.en}. Write two inequalities in $x$ and $y$.`, `Sebuah kedai menjual $x$ ${i1.ms} pada harga RM${p1} sekeping dan $y$ ${i2.ms} pada harga RM${p2} sekeping. Jumlah kutipan tidak boleh melebihi RM${tot}, dan kedai itu mesti menjual sekurang-kurangnya ${k} kali ganda ${i1.ms} berbanding ${i2.ms}. Tulis dua ketaksamaan dalam $x$ dan $y$.`),
         a: T(`$${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ and $x \\ge ${k}y$`),
+        w: W(T(`Total takings $= ${poly([[p1, 'x'], [p2, 'y']])}$, must not exceed RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`, `Jumlah kutipan $= ${poly([[p1, 'x'], [p2, 'y']])}$, tidak boleh melebihi RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`), T(`At least ${k} times as many ${i1.en} as ${i2.en}: $x \\ge ${k}y$`, `Sekurang-kurangnya ${k} kali ganda ${i1.ms} berbanding ${i2.ms}: $x \\ge ${k}y$`)),
         sp: 'm',
       };
     },
@@ -656,6 +749,7 @@
       return {
         q: T(`Which system of inequalities has the origin $(0, 0)$ in its solution region?<br>${f('en')}`, `Sistem ketaksamaan manakah yang mempunyai asalan $(0, 0)$ dalam rantau penyelesaiannya?<br>${f('ms')}`),
         a: T(`(${'ABCD'[okIdx]})`),
+        w: W(T('Substitute $x = 0$, $y = 0$ into each system:', 'Gantikan $x = 0$, $y = 0$ ke dalam setiap sistem:'), ...opts.map((o, i) => T(`(${'ABCD'[i]}) $0 ${SYM[o.op1]} ${o.k}$ is ${cmp(0, o.op1, o.k) ? 'true' : 'false'}, $0 ${SYM[o.op2]} ${o.h}$ is ${cmp(0, o.op2, o.h) ? 'true' : 'false'}`, `(${'ABCD'[i]}) $0 ${SYM[o.op1]} ${o.k}$ ${cmp(0, o.op1, o.k) ? 'benar' : 'palsu'}, $0 ${SYM[o.op2]} ${o.h}$ ${cmp(0, o.op2, o.h) ? 'benar' : 'palsu'}`))),
         sp: 's',
       };
     },
@@ -667,6 +761,7 @@
       return {
         q: T(`Without drawing a diagram, determine which of the points $(0, 0)$, $(${k}, 0)$, $(${c}, 0)$, $(${k}, ${c - k})$ satisfy both $x + y \\le ${c}$ and $x \\ge ${k}$.`, `Tanpa melukis rajah, tentukan titik manakah antara $(0, 0)$, $(${k}, 0)$, $(${c}, 0)$, $(${k}, ${c - k})$ yang memenuhi kedua-dua $x + y \\le ${c}$ dan $x \\ge ${k}$.`),
         a: T(good.length ? good.join(', ') : 'None', good.length ? good.join(', ') : 'Tiada'),
+        w: W(...pts.map((p) => ptLine(p, [{ a: 1, b: 1, c, op: '<=' }, { a: 1, b: 0, c: k, op: '>=' }]))),
         sp: 's',
       };
     },
@@ -704,6 +799,7 @@
       return {
         q: T(`${correct.en} Which system of inequalities models this?<br>${f('en')}`, `${correct.ms} Sistem ketaksamaan manakah yang memodelkan ini?<br>${f('ms')}`),
         a: T(`(${letter}) ${correctTxt}`),
+        w: W(T(`At most ${c} in total: $${s0}$`, `Selebih-lebihnya ${c} secara keseluruhan: $${s0}$`), T(`${s1.includes('\\ge') ? 'At least' : 'Not more than'} ${k}: $${s1}$`, `${s1.includes('\\ge') ? 'Sekurang-kurangnya' : 'Tidak melebihi'} ${k}: $${s1}$`)),
         sp: 's',
       };
     },
@@ -718,6 +814,7 @@
         q: T('The shaded region is bounded by three lines (all solid). Write the three inequalities that define it.', 'Kawasan berlorek dibatasi oleh tiga garis (semuanya penuh). Tulis tiga ketaksamaan yang menentukannya.'),
         fig,
         a: T(`$x \\ge ${k}$, $y \\le ${h}$, $y \\ge ${m === 1 ? '' : m}x$`),
+        w: W(readLine(A), readLine(B), readLine(C)),
         sp: 'm',
       };
     }),
@@ -728,6 +825,7 @@
         q: T(`Shade the region that satisfies all of $x + y \\le ${A.c}$, $x \\ge ${B.c}$ and $y \\ge ${C.c}$, and state the coordinates of one point in the region.`, `Lorekkan rantau yang memenuhi semua $x + y \\le ${A.c}$, $x \\ge ${B.c}$ dan $y \\ge ${C.c}$, dan nyatakan koordinat satu titik dalam rantau itu.`),
         fig: S.plane({ x: [-2, 8], y: [-2, 8], scale: 20 }),
         a: T(`${planeI([A, B, C], true)} e.g. $(${B.c + 1}, ${C.c + 1})$`, `${planeI([A, B, C], true)} cth. $(${B.c + 1}, ${C.c + 1})$`),
+        w: W(shadeLine(A), shadeLine(B), shadeLine(C), OVERLAP, ptLine([B.c + 1, C.c + 1], [A, B, C])),
         sp: 'xl',
       };
     },
@@ -743,6 +841,7 @@
         q: T(`The shaded region satisfies $x \\ge ${k}$, $y \\le ${h}$ and $y \\ge x$ (all boundaries solid). Find the number of points with integer coordinates in the region, including the boundary.`, `Rantau berlorek memenuhi $x \\ge ${k}$, $y \\le ${h}$ dan $y \\ge x$ (semua sempadan penuh). Cari bilangan titik dengan koordinat integer dalam rantau itu, termasuk sempadan.`),
         fig,
         a: T(`${cnt}`),
+        w: T(`For each $x$ from ${k} to ${h}, $y$ runs from $x$ to ${h}: $${range(k, h).map((x) => h - x + 1).join(' + ')} = ${cnt}$`, `Bagi setiap $x$ dari ${k} hingga ${h}, $y$ dari $x$ hingga ${h}: $${range(k, h).map((x) => h - x + 1).join(' + ')} = ${cnt}$`),
         sp: 'm',
       };
     }),
@@ -756,6 +855,7 @@
         q: T(`A shop orders $x$ boxes of ${i1.en} and $y$ boxes of ${i2.en}. The total number of boxes is at most ${H}. At least ${minA} box(es) of ${i1.en} must be ordered, and $y$ cannot be negative. Write three inequalities, then draw and shade the region that satisfies all of them.`, `Sebuah kedai menempah $x$ kotak ${i1.ms} dan $y$ kotak ${i2.ms}. Jumlah bilangan kotak selebih-lebihnya ${H}. Sekurang-kurangnya ${minA} kotak ${i1.ms} mesti ditempah, dan $y$ tidak boleh negatif. Tulis tiga ketaksamaan, kemudian lukis dan lorekkan rantau yang memenuhi kesemuanya.`),
         fig: S.plane({ x: [-2, 8], y: [-2, 8], scale: 20 }),
         a: T(`$x + y \\le ${H}$, $x \\ge ${minA}$, $y \\ge 0$; ${planeI([A, B, C], true)}`, `$x + y \\le ${H}$, $x \\ge ${minA}$, $y \\ge 0$; ${planeI([A, B, C], true)}`),
+        w: W(T(`At most ${H} boxes: $x + y \\le ${H}$; at least ${minA}: $x \\ge ${minA}$; $y \\ge 0$`, `Selebih-lebihnya ${H} kotak: $x + y \\le ${H}$; sekurang-kurangnya ${minA}: $x \\ge ${minA}$; $y \\ge 0$`), shadeLine(A), shadeLine(B), shadeLine(C), OVERLAP),
         sp: 'xl',
       };
     },
@@ -767,8 +867,8 @@
       const maxV = Math.max(...vals), best = verts[vals.indexOf(maxV)];
       return {
         q: T(`[Enrichment] The feasible region satisfies $x + y \\le ${A.c}$, $x \\ge ${B.c}$ and $y \\ge ${C.c}$, with vertices $(${verts.map((p) => `${p[0]}, ${p[1]}`).join(')$, $(')})$. Find the maximum value of $x + y$ over this region and the vertex at which it occurs.`, `[Pengayaan] Rantau tersaur memenuhi $x + y \\le ${A.c}$, $x \\ge ${B.c}$ dan $y \\ge ${C.c}$, dengan bucu $(${verts.map((p) => `${p[0]}, ${p[1]}`).join(')$, $(')})$. Cari nilai maksimum $x + y$ dalam rantau ini dan bucu tempat ia berlaku.`),
-        a: T(`Maximum $= ${maxV}$ at $(${best[0]}, ${best[1]})$`, `Maksimum $= ${maxV}$ pada $(${best[0]}, ${best[1]})$`),
-        w: T('Compare $x + y$ at each vertex of the feasible region.', 'Bandingkan $x + y$ pada setiap bucu rantau tersaur.'),
+        a: T(`Maximum $= ${maxV}$, at both $(${verts[1][0]}, ${verts[1][1]})$ and $(${verts[2][0]}, ${verts[2][1]})$ (every point of the edge on $x + y = ${A.c}$)`, `Maksimum $= ${maxV}$, pada kedua-dua $(${verts[1][0]}, ${verts[1][1]})$ dan $(${verts[2][0]}, ${verts[2][1]})$ (setiap titik pada tepi $x + y = ${A.c}$)`),
+        w: W(T('Evaluate $x + y$ at each vertex:', 'Nilaikan $x + y$ pada setiap bucu:'), ...verts.map((p, i) => `$(${p[0]}, ${p[1]}): ${p[0]} + ${p[1]} = ${vals[i]}$`), T(`The largest value ${maxV} occurs at two vertices, both on the boundary $x + y = ${A.c}$.`, `Nilai terbesar ${maxV} berlaku pada dua bucu, kedua-duanya pada sempadan $x + y = ${A.c}$.`)),
         sp: 'm',
         scope: 'enrichment',
       };
@@ -776,13 +876,14 @@
     // (6) enrichment: minimise a linear objective (different task word from maximise)
     (r) => {
       const A = { a: 1, b: 1, c: r.int(6, 8), op: '<=' }, B = { a: 1, b: 0, c: r.int(2, 3), op: '>=' }, C = { a: 0, b: 1, c: r.int(2, 3), op: '>=' };
+      need(A.c > B.c + C.c); // otherwise the region is a single point
       const verts = [[B.c, C.c], [A.c - C.c, C.c], [B.c, A.c - B.c]];
       const vals = verts.map((p) => 2 * p[0] + p[1]);
       const minV = Math.min(...vals), best = verts[vals.indexOf(minV)];
       return {
         q: T(`[Enrichment] The feasible region satisfies $x + y \\le ${A.c}$, $x \\ge ${B.c}$ and $y \\ge ${C.c}$, with vertices $(${verts.map((p) => `${p[0]}, ${p[1]}`).join(')$, $(')})$. Find the minimum value of $2x + y$ over this region and the vertex at which it occurs.`, `[Pengayaan] Rantau tersaur memenuhi $x + y \\le ${A.c}$, $x \\ge ${B.c}$ dan $y \\ge ${C.c}$, dengan bucu $(${verts.map((p) => `${p[0]}, ${p[1]}`).join(')$, $(')})$. Cari nilai minimum $2x + y$ dalam rantau ini dan bucu tempat ia berlaku.`),
         a: T(`Minimum $= ${minV}$ at $(${best[0]}, ${best[1]})$`, `Minimum $= ${minV}$ pada $(${best[0]}, ${best[1]})$`),
-        w: T('Compare $2x + y$ at each vertex of the feasible region.', 'Bandingkan $2x + y$ pada setiap bucu rantau tersaur.'),
+        w: W(T('Evaluate $2x + y$ at each vertex:', 'Nilaikan $2x + y$ pada setiap bucu:'), ...verts.map((p, i) => `$(${p[0]}, ${p[1]}): 2(${p[0]}) + ${p[1]} = ${vals[i]}$`), T(`Smallest value: ${minV} at $(${best[0]}, ${best[1]})$`, `Nilai terkecil: ${minV} pada $(${best[0]}, ${best[1]})$`)),
         sp: 'm',
         scope: 'enrichment',
       };
@@ -799,6 +900,7 @@
         q: T(`A student writes the three inequalities for the shaded region (all boundaries solid) as $${wrong[0]}$, $${wrong[1]}$, $${wrong[2]}$. One is wrong. Identify and correct it.`, `Seorang pelajar menulis tiga ketaksamaan bagi rantau berlorek (semua sempadan penuh) sebagai $${wrong[0]}$, $${wrong[1]}$, $${wrong[2]}$. Satu daripadanya salah. Kenal pasti dan betulkan.`),
         fig,
         a: T(`The ${['first', 'second', 'third'][flipIdx]} is wrong: it should be $${[`x \\ge ${k}`, `y \\le ${h}`, `y \\ge ${m === 1 ? '' : m}x`][flipIdx]}$`, `Yang ${['pertama', 'kedua', 'ketiga'][flipIdx]} adalah salah: ia sepatutnya $${[`x \\ge ${k}`, `y \\le ${h}`, `y \\ge ${m === 1 ? '' : m}x`][flipIdx]}$`),
+        w: W(readLine([A, B, C][flipIdx]), T(`The student reversed the sign of the ${['first', 'second', 'third'][flipIdx]} inequality.`, `Pelajar itu menterbalikkan simbol ketaksamaan yang ${['pertama', 'kedua', 'ketiga'][flipIdx]}.`)),
         sp: 'm',
       };
     }),
@@ -814,6 +916,7 @@
         q: T(`The ${club.en} has $x$ junior members and $y$ senior members. The total membership is at most ${H}, and there must be at least ${minA} of each. (a) Write three inequalities in $x$ and $y$. (b) Draw and shade the region that satisfies all of them. (c) Find the number of possible combinations of $(x, y)$ with integer values.`, `${club.ms} mempunyai $x$ ahli junior dan $y$ ahli senior. Jumlah keahlian selebih-lebihnya ${H}, dan mesti ada sekurang-kurangnya ${minA} bagi setiap satu. (a) Tulis tiga ketaksamaan dalam $x$ dan $y$. (b) Lukis dan lorekkan rantau yang memenuhi kesemuanya. (c) Cari bilangan kombinasi $(x, y)$ yang mungkin dengan nilai integer.`),
         fig: S.plane({ x: [-2, 8], y: [-2, 8], scale: 20 }),
         a: T(`(a) $x + y \\le ${H}$, $x \\ge ${minA}$, $y \\ge ${minA}$ (b) ${fig} (c) ${cnt}`, `(a) $x + y \\le ${H}$, $x \\ge ${minA}$, $y \\ge ${minA}$ (b) ${fig} (c) ${cnt}`),
+        w: W(T(`(a) At most ${H} in total: $x + y \\le ${H}$; at least ${minA} of each: $x \\ge ${minA}$, $y \\ge ${minA}$`, `(a) Selebih-lebihnya ${H} secara keseluruhan: $x + y \\le ${H}$; sekurang-kurangnya ${minA} bagi setiap satu: $x \\ge ${minA}$, $y \\ge ${minA}$`), shadeLine(A, '(b) '), shadeLine(B, '(b) '), shadeLine(C, '(b) '), T(`(c) For $x = ${minA}, …, ${H - minA}$, $y$ runs from ${minA} to $${H} - x$: $${range(minA, H - minA).map((x) => H - x - minA + 1).join(' + ')} = ${cnt}$`, `(c) Bagi $x = ${minA}, …, ${H - minA}$, $y$ dari ${minA} hingga $${H} - x$: $${range(minA, H - minA).map((x) => H - x - minA + 1).join(' + ')} = ${cnt}$`)),
         sp: 'xl',
       };
     }),
@@ -826,6 +929,7 @@
       return {
         q: T(`Region $R_1$ satisfies $x \\ge 0$, $y \\ge 0$, $x + y < ${c}$; region $R_2$ satisfies the same first two conditions but $x + y \\le ${c}$. Explain, with a count, why $R_2$ has more integer-coordinate points than $R_1$.`, `Rantau $R_1$ memenuhi $x \\ge 0$, $y \\ge 0$, $x + y < ${c}$; rantau $R_2$ memenuhi dua syarat pertama yang sama tetapi $x + y \\le ${c}$. Terangkan, dengan pengiraan, mengapa $R_2$ mempunyai lebih banyak titik berkoordinat integer daripada $R_1$.`),
         a: T(`$R_1$ has ${cntStrict} points, $R_2$ has ${cntIncl} points: $R_2$ additionally includes the ${cntIncl - cntStrict} points on the line $x + y = ${c}$, which the strict inequality in $R_1$ excludes.`, `$R_1$ mempunyai ${cntStrict} titik, $R_2$ mempunyai ${cntIncl} titik: $R_2$ turut merangkumi ${cntIncl - cntStrict} titik pada garis $x + y = ${c}$, yang tidak termasuk dalam $R_1$ kerana ketaksamaan ketat.`),
+        w: W(T(`$R_2$: for $x = 0, 1, …, ${c}$ there are $${c} - x + 1$ values of $y$: $${range(0, c).map((x) => c - x + 1).join(' + ')} = ${cntIncl}$`, `$R_2$: bagi $x = 0, 1, …, ${c}$ terdapat $${c} - x + 1$ nilai $y$: $${range(0, c).map((x) => c - x + 1).join(' + ')} = ${cntIncl}$`), T(`The points $(0, ${c}), (1, ${c - 1}), …, (${c}, 0)$ on $x + y = ${c}$ are excluded from $R_1$: $${cntIncl} - ${c + 1} = ${cntStrict}$`, `Titik $(0, ${c}), (1, ${c - 1}), …, (${c}, 0)$ pada $x + y = ${c}$ tidak termasuk dalam $R_1$: $${cntIncl} - ${c + 1} = ${cntStrict}$`)),
         sp: 'm',
       };
     }),
@@ -844,6 +948,7 @@
       return {
         q: T(`A farm keeps $x$ ${a1.en} and $y$ ${a2.en}, with $y \\ge 2x$. Each ${a1.en.replace(/s$/, '')} needs ${feed} kg of feed a day and each ${a2.en.replace(/s$/, '')} needs 1 kg; the daily supply is at most ${space} kg. (a) Write three inequalities (including non-negativity). (b) Could the farm have $(${P1[0]}, ${P1[1]})$? (c) Could it have $(${P2[0]}, ${P2[1]})$? Justify both.`, `Sebuah ladang menternak $x$ ekor ${a1.ms} dan $y$ ekor ${a2.ms}, dengan $y \\ge 2x$. Setiap ekor ${a1.ms} memerlukan ${feed} kg makanan sehari dan setiap ekor ${a2.ms} memerlukan 1 kg; bekalan harian selebih-lebihnya ${space} kg. (a) Tulis tiga ketaksamaan (termasuk bukan-negatif). (b) Bolehkah ladang itu mempunyai $(${P1[0]}, ${P1[1]})$? (c) Bolehkah ia mempunyai $(${P2[0]}, ${P2[1]})$? Wajarkan kedua-duanya.`),
         a: T(`(a) $${feed}x + y \\le ${space}$, $y \\ge 2x$, $x, y \\ge 0$ (b) ${justify(P1, v1, ok1, 'en')} (c) ${justify(P2, v2, ok2, 'en')}`, `(a) $${feed}x + y \\le ${space}$, $y \\ge 2x$, $x, y \\ge 0$ (b) ${justify(P1, v1, ok1, 'ms')} (c) ${justify(P2, v2, ok2, 'ms')}`),
+        w: W(T(`(a) Feed: $${feed}x + y \\le ${space}$; ratio: $y \\ge 2x$; $x \\ge 0$, $y \\ge 0$`, `(a) Makanan: $${feed}x + y \\le ${space}$; nisbah: $y \\ge 2x$; $x \\ge 0$, $y \\ge 0$`), ...[[P1, v1, ok1, '(b)'], [P2, v2, ok2, '(c)']].map(([P, v, ok, tag]) => T(`${tag} $${feed}(${P[0]}) + ${P[1]} = ${v} ${v <= space ? '\\le' : '>'} ${space}$; $${P[1]} ${P[1] >= 2 * P[0] ? '\\ge' : '<'} 2(${P[0]})$ – ${ok ? 'both hold, possible' : 'not possible'}`, `${tag} $${feed}(${P[0]}) + ${P[1]} = ${v} ${v <= space ? '\\le' : '>'} ${space}$; $${P[1]} ${P[1] >= 2 * P[0] ? '\\ge' : '<'} 2(${P[0]})$ – ${ok ? 'kedua-duanya dipenuhi, mungkin' : 'tidak mungkin'}`))),
         sp: 'l',
       };
     },
@@ -875,6 +980,7 @@
       return {
         q: T(`${correct.en} Which system of inequalities models this?<br>${f('en')}`, `${correct.ms} Sistem ketaksamaan manakah yang memodelkan ini?<br>${f('ms')}`),
         a: T(`(${letter}) ${correctTxt}`),
+        w: W(T(`At most ${c} in total: $${s0}$`, `Selebih-lebihnya ${c} secara keseluruhan: $${s0}$`), T(`At least ${k} of one kind: $${s1}$`, `Sekurang-kurangnya ${k} bagi satu jenis: $${s1}$`), T(`The other number cannot be negative: $${s2}$`, `Bilangan yang satu lagi tidak boleh negatif: $${s2}$`)),
         sp: 'm',
       };
     },
@@ -882,6 +988,11 @@
   SPM.extend('F4-6.2', { e: g62e, m: g62m, a: g62a });
 
   /* =============================================================================== 7.1 / 7.2 */
+  /** a/b as an integer, a 2-dp decimal, or a reduced \dfrac; apx adds "≈ 2-dp value" when a/b has no exact 2-dp form */
+  const exact2 = (a, b) => Math.abs((a * 100) / b - Math.round((a * 100) / b)) < 1e-9;
+  const fq = (a, b) => { const g = gcd(Math.abs(a), Math.abs(b)) || 1; a /= g; b /= g; return b === 1 ? n(a) : exact2(a, b) ? n(a / b) : `\\dfrac{${a}}{${b}}`; };
+  const apx = (a, b) => (exact2(a, b) || fq(a, b).indexOf('dfrac') < 0 ? '' : ` \\approx ${n(round(a / b, 2))}`);
+  const eqs = (a, b) => (exact2(a, b) ? '=' : '\\approx');
   const distFig = (pts, xmax, ymax, lang, extra) => S.graph({ w: 320, h: 210, xr: [0, xmax, xmax > 8 ? 2 : 1], yr: [0, ymax, ymax > 60 ? 20 : 10], xlabel: lang === 'en' ? 'Time (h)' : 'Masa (j)', ylabel: lang === 'en' ? 'Distance (km)' : 'Jarak (km)', series: [{ pts, type: 'line', dotsToo: true }], extra });
   const distFigT = (pts, xmax, ymax, extra) => T(distFig(pts, xmax, ymax, 'en', extra), distFig(pts, xmax, ymax, 'ms', extra));
   const speedFig = (pts, xmax, ymax, lang, extra) => S.graph({ w: 320, h: 210, xr: [0, xmax, xmax > 12 ? 2 : 1], yr: [0, ymax, ymax > 30 ? 10 : 5], xlabel: lang === 'en' ? 'Time (s)' : 'Masa (s)', ylabel: lang === 'en' ? 'Speed (m/s)' : 'Laju (m/s)', series: [{ pts, type: 'line', dotsToo: true }], extra });
@@ -911,6 +1022,7 @@
       return {
         q: T(`What does ${correct.en} represent?<br>${f('en')}`, `Apakah maksud ${correct.ms}?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`On a distance-time graph, the height is the distance from the reference point and the gradient is the speed; so ${correct.en} gives: ${correct.ans.en}.`, `Pada graf jarak-masa, ketinggian ialah jarak dari titik rujukan dan kecerunan ialah laju; maka ${correct.ms} memberi: ${correct.ans.ms}.`),
         sp: 's',
       };
     },
@@ -923,7 +1035,7 @@
         q: T('The graph shows the journey of a cyclist from home. Find the speed during the journey.', 'Graf menunjukkan perjalanan seorang penunggang basikal dari rumah. Cari laju sepanjang perjalanan itu.'),
         fig,
         a: T(`${v} km/h`, `${v} km/j`),
-        w: T(`$\\dfrac{${t * v}}{${t}}$`),
+        w: W(T('Speed = gradient = distance ÷ time', 'Laju = kecerunan = jarak ÷ masa'), T(`Speed $= \\dfrac{${t * v}}{${t}} = ${v}$ km/h`, `Laju $= \\dfrac{${t * v}}{${t}} = ${v}$ km/j`)),
         sp: 's',
       };
     },
@@ -939,6 +1051,7 @@
           : T(`The graph shows a journey. At what time is the distance travelled equal to ${t * v} km?`, `Graf menunjukkan satu perjalanan. Pada masa manakah jarak yang dilalui bersamaan ${t * v} km?`),
         fig,
         a: askTime ? T(`${t * v} km`) : T(`$t = ${t}$ h`, `$t = ${t}$ j`),
+        w: askTime ? T(`Read the graph at $t = ${t}$ h: the distance is ${t * v} km (the line rises ${v} km each hour: $${v} \\times ${t} = ${t * v}$)`, `Baca graf pada $t = ${t}$ j: jaraknya ${t * v} km (garis naik ${v} km setiap jam: $${v} \\times ${t} = ${t * v}$)`) : T(`Read across from ${t * v} km to the line, then down to the time axis: $t = ${t}$ h (check: $${t * v} \\div ${v} = ${t}$)`, `Baca melintang dari ${t * v} km ke garis, kemudian ke bawah ke paksi masa: $t = ${t}$ j (semak: $${t * v} \\div ${v} = ${t}$)`),
         sp: 's',
       };
     },
@@ -953,6 +1066,7 @@
         q: T(`The graph shows a journey with a stop. True or false: the object is stationary for ${claimed} h.`, `Graf menunjukkan satu perjalanan dengan satu perhentian. Benar atau palsu: objek itu pegun selama ${claimed} j.`),
         fig,
         a: T(`${ok ? 'True' : 'False'}, it is stationary for ${rest} h`, `${ok ? 'Benar' : 'Palsu'}, ia pegun selama ${rest} j`),
+        w: W(T(`The horizontal segment runs from $t = ${t1}$ h to $t = ${t1 + rest}$ h (the distance stays at ${d} km)`, `Segmen mendatar dari $t = ${t1}$ j hingga $t = ${t1 + rest}$ j (jarak kekal ${d} km)`), T(`Stationary time $= ${t1 + rest} - ${t1} = ${rest}$ h`, `Masa pegun $= ${t1 + rest} - ${t1} = ${rest}$ j`)),
         sp: 's',
       };
     },
@@ -975,7 +1089,7 @@
         q: T('Using the distance-time graph of the whole journey (out, rest, and back), find the average speed for the whole journey. Remember to include the resting time in the total time.', 'Menggunakan graf jarak-masa bagi keseluruhan perjalanan (pergi, rehat, dan pulang), cari laju purata bagi keseluruhan perjalanan. Ingat untuk memasukkan masa berehat dalam jumlah masa.'),
         fig,
         a: T(`${n(round(avg, 2))} km/h`, `${n(round(avg, 2))} km/j`),
-        w: T(`$\\dfrac{${d} + ${d}}{${n(round(Ttot, 2))}}$`),
+        w: W(T(`Total distance $= ${d} + ${d} = ${2 * d}$ km (out and back)`, `Jumlah jarak $= ${d} + ${d} = ${2 * d}$ km (pergi dan balik)`), T(`Total time $= ${t1} + ${rest} + ${n(t3b)} = ${n(Ttot)}$ h (the rest counts)`, `Jumlah masa $= ${t1} + ${rest} + ${n(t3b)} = ${n(Ttot)}$ j (masa rehat dikira)`), T(`Average speed $= \\dfrac{${2 * d}}{${n(Ttot)}} ${eqs(2 * d, Ttot)} ${n(round(avg, 2))}$ km/h`, `Laju purata $= \\dfrac{${2 * d}}{${n(Ttot)}} ${eqs(2 * d, Ttot)} ${n(round(avg, 2))}$ km/j`)),
         sp: 'm',
       };
     },
@@ -992,7 +1106,8 @@
       return {
         q: T(`A student finds the average speed for this out-and-back journey by computing $\\dfrac{${v1} + ${v2}}{2} = ${n(avgWrong)}$ km/h. Explain the mistake and find the correct average speed.`, `Seorang pelajar mencari laju purata bagi perjalanan pergi-balik ini dengan mengira $\\dfrac{${v1} + ${v2}}{2} = ${n(avgWrong)}$ km/j. Terangkan kesilapan itu dan cari laju purata yang betul.`),
         fig,
-        a: T(`The mistake: averaging the two speeds ignores that the two stages take different times. Correct: total distance $\\div$ total time $= \\dfrac{${2 * d}}{${n(round(Ttot, 2))}} = ${n(round(avgCorrect, 2))}$ km/h`, `Kesilapan: purata dua laju itu mengabaikan bahawa kedua-dua peringkat mengambil masa yang berbeza. Betul: jumlah jarak $\\div$ jumlah masa $= \\dfrac{${2 * d}}{${n(round(Ttot, 2))}} = ${n(round(avgCorrect, 2))}$ km/j`),
+        a: T(`The mistake: averaging the two speeds ignores that the two stages take different times. Correct: total distance $\\div$ total time $= \\dfrac{${2 * d}}{${t1} + ${fq(d, v2)}} ${eqs(2 * d * v2, t1 * v2 + d)} ${n(round(avgCorrect, 2))}$ km/h`, `Kesilapan: purata dua laju itu mengabaikan bahawa kedua-dua peringkat mengambil masa yang berbeza. Betul: jumlah jarak $\\div$ jumlah masa $= \\dfrac{${2 * d}}{${t1} + ${fq(d, v2)}} ${eqs(2 * d * v2, t1 * v2 + d)} ${n(round(avgCorrect, 2))}$ km/j`),
+        w: W(T(`Return time $= \\dfrac{${d}}{${v2}} = ${fq(d, v2)}$ h; total time $= ${t1} + ${fq(d, v2)}$ h`, `Masa pulang $= \\dfrac{${d}}{${v2}} = ${fq(d, v2)}$ j; jumlah masa $= ${t1} + ${fq(d, v2)}$ j`), T(`Average speed $= \\dfrac{${2 * d}}{${t1} + ${fq(d, v2)}} ${eqs(2 * d * v2, t1 * v2 + d)} ${n(round(avgCorrect, 2))}$ km/h`, `Laju purata $= \\dfrac{${2 * d}}{${t1} + ${fq(d, v2)}} ${eqs(2 * d * v2, t1 * v2 + d)} ${n(round(avgCorrect, 2))}$ km/j`), T('The mean of the two speeds is wrong because the two stages take different times.', 'Min dua laju itu salah kerana kedua-dua peringkat mengambil masa yang berbeza.')),
         sp: 'm',
       };
     },
@@ -1006,6 +1121,7 @@
         q: T(`The graph shows an object moving toward the reference point (negative gradient). A student says its speed is $-${v}$ km/h. True or false, with a correction if needed.`, `Graf menunjukkan objek bergerak menghampiri titik rujukan (kecerunan negatif). Seorang pelajar berkata lajunya ialah $-${v}$ km/j. Benar atau palsu, dengan pembetulan jika perlu.`),
         fig,
         a: T(`False: speed is the magnitude of the gradient, so the speed is ${v} km/h (not negative); the negative sign only shows the direction is toward the reference point.`, `Palsu: laju ialah magnitud kecerunan, jadi lajunya ialah ${v} km/j (bukan negatif); tanda negatif hanya menunjukkan arah menghampiri titik rujukan.`),
+        w: W(T(`Gradient $= \\dfrac{0 - ${d0}}{${t} - 0} = -${v}$`, `Kecerunan $= \\dfrac{0 - ${d0}}{${t} - 0} = -${v}$`), T(`Speed is the magnitude of the gradient: ${v} km/h; the negative sign only shows the direction (toward the reference point).`, `Laju ialah magnitud kecerunan: ${v} km/j; tanda negatif hanya menunjukkan arah (menghampiri titik rujukan).`)),
         sp: 'm',
       };
     },
@@ -1017,11 +1133,11 @@
       // total distance D, total time unknown t2 such that (d + d) / (t1+t2) = avg  =>  t2 = 2d/avg - t1
       const t2 = round((2 * d) / avg - t1, 2);
       need(t2 > 0.2 && t2 < 8);
-      const backSpeed = round(d / t2, 2);
+      const backSpeed = round((d * avg) / (2 * d - t1 * avg), 2); // from the exact return time, not the rounded t2
       return {
         q: T(`A cyclist rides out at ${v1} km/h for ${t1} h, then returns by the same route. The average speed for the whole journey (no rest) is ${avg} km/h. Find the time taken for the return trip.`, `Seorang penunggang basikal menunggang keluar pada ${v1} km/j selama ${t1} j, kemudian pulang melalui laluan yang sama. Laju purata bagi keseluruhan perjalanan (tanpa rehat) ialah ${avg} km/j. Cari masa yang diambil untuk perjalanan pulang.`),
         a: T(`${n(t2)} h (return speed $\\approx ${n(backSpeed)}$ km/h)`, `${n(t2)} j (laju pulang $\\approx ${n(backSpeed)}$ km/j)`),
-        w: T(`$\\dfrac{${d} + ${d}}{${t1} + t} = ${avg}$`),
+        w: W(T(`Distance out $= ${v1} \\times ${t1} = ${d}$ km; total distance $= ${2 * d}$ km`, `Jarak pergi $= ${v1} \\times ${t1} = ${d}$ km; jumlah jarak $= ${2 * d}$ km`), T(`Total time $= \\dfrac{${2 * d}}{${avg}} = ${fq(2 * d, avg)}$ h`, `Jumlah masa $= \\dfrac{${2 * d}}{${avg}} = ${fq(2 * d, avg)}$ j`), T(`Return time $= ${fq(2 * d, avg)} - ${t1} = ${fq(2 * d - t1 * avg, avg)}${apx(2 * d - t1 * avg, avg)}$ h`, `Masa pulang $= ${fq(2 * d, avg)} - ${t1} = ${fq(2 * d - t1 * avg, avg)}${apx(2 * d - t1 * avg, avg)}$ j`), T(`Return speed $= ${d} \\div ${fq(2 * d - t1 * avg, avg)} = ${fq(d * avg, 2 * d - t1 * avg)}${apx(d * avg, 2 * d - t1 * avg)}$ km/h`, `Laju pulang $= ${d} \\div ${fq(2 * d - t1 * avg, avg)} = ${fq(d * avg, 2 * d - t1 * avg)}${apx(d * avg, 2 * d - t1 * avg)}$ km/j`)),
         sp: 'm',
       };
     },
@@ -1035,7 +1151,7 @@
         q: T(`Two cyclists $A$ (solid) and $B$ (dashed) leave the same point at the same time, travelling in the same direction along the same road at constant speeds. Find how far apart they are at $t = ${t}$ h.`, `Dua penunggang basikal $A$ (garis penuh) dan $B$ (putus-putus) bertolak dari titik yang sama pada masa yang sama, bergerak dalam arah yang sama di sepanjang jalan yang sama pada laju malar. Cari jarak antara mereka pada $t = ${t}$ j.`),
         fig: T(f('en'), f('ms')),
         a: T(`${gap} km`),
-        w: T(`$(${v2} - ${v1}) \\times ${t}$`),
+        w: W(T(`From the graph, at $t = ${t}$ h: $A$ has gone $${v1} \\times ${t} = ${v1 * t}$ km, $B$ has gone $${v2} \\times ${t} = ${v2 * t}$ km`, `Daripada graf, pada $t = ${t}$ j: $A$ telah bergerak $${v1} \\times ${t} = ${v1 * t}$ km, $B$ telah bergerak $${v2} \\times ${t} = ${v2 * t}$ km`), `$${v2 * t} - ${v1 * t} = ${gap}$ km`),
         sp: 'm',
       };
     },
@@ -1049,6 +1165,7 @@
         q: T('The graph shows a two-stage journey. Which stage was faster, and by how much?', 'Graf menunjukkan perjalanan dua peringkat. Peringkat manakah yang lebih laju, dan berapa banyak lebih laju?'),
         fig,
         a: T(`Stage ${v2 > v1 ? 2 : 1} was faster, by ${Math.abs(v2 - v1)} km/h`, `Peringkat ${v2 > v1 ? 2 : 1} lebih laju, sebanyak ${Math.abs(v2 - v1)} km/j`),
+        w: W(T(`Stage 1: $\\dfrac{${d1}}{${t1}} = ${v1}$ km/h; stage 2: $\\dfrac{${d1 + d2} - ${d1}}{${t2}} = ${v2}$ km/h`, `Peringkat 1: $\\dfrac{${d1}}{${t1}} = ${v1}$ km/j; peringkat 2: $\\dfrac{${d1 + d2} - ${d1}}{${t2}} = ${v2}$ km/j`), T(`Difference $= ${Math.max(v1, v2)} - ${Math.min(v1, v2)} = ${Math.abs(v2 - v1)}$ km/h`, `Beza $= ${Math.max(v1, v2)} - ${Math.min(v1, v2)} = ${Math.abs(v2 - v1)}$ km/j`)),
         sp: 'm',
       };
     },
@@ -1074,6 +1191,7 @@
       return {
         q: T(`If ${correct.en}, what can be concluded?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang boleh disimpulkan?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`The gradient of a distance-time graph is the speed, and equal distances at the same time mean the objects meet; so if ${correct.en}, ${correct.ans.en}.`, `Kecerunan graf jarak-masa ialah laju, dan jarak yang sama pada masa yang sama bermaksud objek bertemu; maka jika ${correct.ms}, ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -1093,7 +1211,7 @@
         q: T(`Towns $P$ and $Q$ are ${D} km apart. Car $A$ (solid) leaves $P$ for $Q$ at ${v1} km/h; car $B$ (dashed) leaves $Q$ for $P$ at the same time, at ${v2} km/h. Find the time at which the distance between them is ${gap} km.`, `Bandar $P$ dan $Q$ berjarak ${D} km. Kereta $A$ (garis penuh) bertolak dari $P$ ke $Q$ pada ${v1} km/j; kereta $B$ (putus-putus) bertolak dari $Q$ ke $P$ pada masa yang sama, pada ${v2} km/j. Cari masa apabila jarak antara mereka ialah ${gap} km.`),
         fig: T(f('en'), f('ms')),
         a: T(`$t = ${n(round(t, 2))}$ h`, `$t = ${n(round(t, 2))}$ j`),
-        w: T(`$${v1}t + ${v2}t = ${D} - ${gap}$`),
+        w: W(T(`After $t$ hours the cars have covered $${v1}t + ${v2}t$ km between them, so the gap is $${D} - ${v1 + v2}t$`, `Selepas $t$ jam kedua-dua kereta telah bergerak $${v1}t + ${v2}t$ km, maka jarak antara mereka ialah $${D} - ${v1 + v2}t$`), `$${D} - ${v1 + v2}t = ${gap}$`, `$${v1 + v2}t = ${D - gap}$`, T(`$t = ${fq(D - gap, v1 + v2)}${apx(D - gap, v1 + v2)}$ h`, `$t = ${fq(D - gap, v1 + v2)}${apx(D - gap, v1 + v2)}$ j`)),
         sp: 'l',
       };
     },
@@ -1105,6 +1223,7 @@
         q: T(`The graph shows a straight segment from $t = 0$ to $t = ${t1}$ h followed by a curved segment from $t = ${t1}$ to $t = ${t2}$ h that bends upward. (a) Find the speed for the straight segment. (b) Can you find an exact numerical speed at $t = ${(t1 + t2) / 2}$ h on the curved part? Explain what can be concluded about the motion instead.`, `Graf menunjukkan segmen lurus dari $t = 0$ hingga $t = ${t1}$ j diikuti oleh segmen melengkung dari $t = ${t1}$ hingga $t = ${t2}$ j yang mencerun ke atas. (a) Cari laju bagi segmen lurus. (b) Bolehkah anda mencari laju berangka yang tepat pada $t = ${(t1 + t2) / 2}$ j pada bahagian melengkung itu? Terangkan apa yang boleh disimpulkan tentang gerakan itu sebaliknya.`),
         fig: T(f('en'), f('ms')),
         a: T(`(a) ${n(round(15 / t1, 2))} km/h (b) No exact value can be found without a stated method (e.g. a tangent); since the curve bends upward while rising, only the qualitative conclusion that the speed is increasing can be made.`, `(a) ${n(round(15 / t1, 2))} km/j (b) Tiada nilai tepat dapat dicari tanpa kaedah yang dinyatakan (cth. tangen); memandangkan lengkung itu mencerun ke atas semasa meningkat, hanya kesimpulan kualitatif bahawa laju semakin bertambah dapat dibuat.`),
+        w: W(T(`(a) Speed $= \\dfrac{15}{${t1}} = ${n(round(15 / t1, 2))}$ km/h`, `(a) Laju $= \\dfrac{15}{${t1}} = ${n(round(15 / t1, 2))}$ km/j`), T('(b) The gradient of a curve changes from point to point, so no single exact value can be read off; the curve gets steeper, so the speed is increasing.', '(b) Kecerunan lengkung berubah dari titik ke titik, maka tiada nilai tepat tunggal dapat dibaca; lengkung itu semakin curam, maka laju semakin bertambah.')),
         sp: 'l',
       };
     },
@@ -1114,10 +1233,11 @@
       const d = v1 * t1;
       const t3 = round(d / v2, 2);
       const Ttot = round(t1 + rest + t3, 2);
-      const avg = round((2 * d) / Ttot, 2);
+      const avg = round((2 * d) / (t1 + rest + d / v2), 2); // exact total time, not the rounded one
       return {
         q: T(`Aiman cycles away from home at ${v1} km/h for ${t1} h, rests for ${rest} h, then cycles straight back at ${v2} km/h. (a) Sketch the distance-time graph, marking all key values. (b) Find the total time for the whole journey. (c) Find the average speed for the whole journey.`, `Aiman berbasikal menjauhi rumah pada ${v1} km/j selama ${t1} j, berehat selama ${rest} j, kemudian berbasikal terus pulang pada ${v2} km/j. (a) Lakarkan graf jarak-masa, tandakan semua nilai penting. (b) Cari jumlah masa bagi keseluruhan perjalanan. (c) Cari laju purata bagi keseluruhan perjalanan.`),
         a: T(`(a) Key points: $(0,0)$, $(${t1},${d})$, $(${t1 + rest},${d})$, $(${n(Ttot)},0)$ (b) ${n(Ttot)} h (c) ${n(avg)} km/h`, `(a) Titik penting: $(0,0)$, $(${t1},${d})$, $(${t1 + rest},${d})$, $(${n(Ttot)},0)$ (b) ${n(Ttot)} j (c) ${n(avg)} km/j`),
+        w: W(T(`(a) Out: $${v1} \\times ${t1} = ${d}$ km, so $(${t1}, ${d})$; rest until $(${t1 + rest}, ${d})$; back takes $\\dfrac{${d}}{${v2}} ${eqs(d, v2)} ${n(t3)}$ h`, `(a) Pergi: $${v1} \\times ${t1} = ${d}$ km, maka $(${t1}, ${d})$; rehat hingga $(${t1 + rest}, ${d})$; pulang mengambil $\\dfrac{${d}}{${v2}} ${eqs(d, v2)} ${n(t3)}$ j`), T(`(b) Total time $= ${t1} + ${rest} + ${n(t3)} = ${n(Ttot)}$ h`, `(b) Jumlah masa $= ${t1} + ${rest} + ${n(t3)} = ${n(Ttot)}$ j`), T(`(c) Average speed $= \\dfrac{${d} + ${d}}{${t1 + rest} + ${fq(d, v2)}} ${eqs(2 * d * v2, (t1 + rest) * v2 + d)} ${n(avg)}$ km/h`, `(c) Laju purata $= \\dfrac{${d} + ${d}}{${t1 + rest} + ${fq(d, v2)}} ${eqs(2 * d * v2, (t1 + rest) * v2 + d)} ${n(avg)}$ km/j`)),
         sp: 'l',
       };
     },
@@ -1132,12 +1252,13 @@
       const d = v1 * t1;
       const t3 = round(d / v2, 2);
       const Ttot = round(t1 + rest + t3, 2);
-      const avg = round((2 * d) / Ttot, 2);
+      const avg = round((2 * d) / (t1 + rest + d / v2), 2); // exact total time, not the rounded one
       const fig = distFigT([[0, 0], [t1, d], [t1 + rest, d], [Ttot, 0]], Ttot + 0.5, d + 10);
       return {
         q: T(`${scen.subj} ${scen.en}, travelling at ${v1} km/h out and ${v2} km/h back, with a wait of ${rest} h. (a) Find the distance to the farthest point. (b) Find the total time for the whole trip. (c) Find the average speed for the whole trip.`, `${scen.subjMs} ${scen.ms}, bergerak pada ${v1} km/j semasa pergi dan ${v2} km/j semasa pulang, dengan tempoh menunggu selama ${rest} j. (a) Cari jarak ke titik paling jauh. (b) Cari jumlah masa bagi keseluruhan perjalanan. (c) Cari laju purata bagi keseluruhan perjalanan.`),
         fig,
         a: T(`(a) ${d} km (b) ${n(Ttot)} h (c) ${n(avg)} km/h`, `(a) ${d} km (b) ${n(Ttot)} j (c) ${n(avg)} km/j`),
+        w: W(T(`(a) Distance $= ${v1} \\times ${t1} = ${d}$ km`, `(a) Jarak $= ${v1} \\times ${t1} = ${d}$ km`), T(`(b) Return time $= \\dfrac{${d}}{${v2}} ${eqs(d, v2)} ${n(t3)}$ h; total $= ${t1} + ${rest} + ${n(t3)} = ${n(Ttot)}$ h`, `(b) Masa pulang $= \\dfrac{${d}}{${v2}} ${eqs(d, v2)} ${n(t3)}$ j; jumlah $= ${t1} + ${rest} + ${n(t3)} = ${n(Ttot)}$ j`), T(`(c) Average speed $= \\dfrac{${d} + ${d}}{${t1 + rest} + ${fq(d, v2)}} ${eqs(2 * d * v2, (t1 + rest) * v2 + d)} ${n(avg)}$ km/h (the waiting time counts)`, `(c) Laju purata $= \\dfrac{${d} + ${d}}{${t1 + rest} + ${fq(d, v2)}} ${eqs(2 * d * v2, (t1 + rest) * v2 + d)} ${n(avg)}$ km/j (masa menunggu dikira)`)),
         sp: 'l',
       };
     },
@@ -1151,6 +1272,7 @@
       return {
         q: T(`Car $A$ leaves town $P$ at $t = 0$ h at ${v1} km/h; car $B$ leaves $P$ along the same road ${delay} h later at ${v2} km/h. A student claims they meet ${tWrong} h after $B$ leaves. Explain why this reasoning is incomplete and find the correct meeting time (measured from when $A$ leaves).`, `Kereta $A$ bertolak dari bandar $P$ pada $t = 0$ j dengan ${v1} km/j; kereta $B$ bertolak dari $P$ di jalan yang sama ${delay} j kemudian dengan ${v2} km/j. Seorang pelajar mendakwa mereka bertemu ${tWrong} j selepas $B$ bertolak. Terangkan mengapa penaakulan ini tidak lengkap dan cari masa pertemuan yang betul (diukur dari saat $A$ bertolak).`),
         a: T(`The claim has no justification connecting it to the actual speeds; solving $${v1}t = ${v2}(t - ${delay})$ gives $t = ${n(round(tCorrect, 2))}$ h from when $A$ leaves.`, `Dakwaan itu tiada justifikasi yang mengaitkannya dengan laju sebenar; menyelesaikan $${v1}t = ${v2}(t - ${delay})$ memberikan $t = ${n(round(tCorrect, 2))}$ j dari saat $A$ bertolak.`),
+        w: W(T(`They meet when both are the same distance from $P$: $${v1}t = ${v2}(t - ${delay})$`, `Mereka bertemu apabila kedua-duanya pada jarak yang sama dari $P$: $${v1}t = ${v2}(t - ${delay})$`), `$${v1}t = ${v2}t - ${v2 * delay}$`, `$${v2 - v1}t = ${v2 * delay}$`, T(`$t = ${fq(v2 * delay, v2 - v1)}${apx(v2 * delay, v2 - v1)}$ h after $A$ leaves`, `$t = ${fq(v2 * delay, v2 - v1)}${apx(v2 * delay, v2 - v1)}$ j selepas $A$ bertolak`), 2 * v1 === v2 ? T(`The claimed time happens to be right here (both ${2 * v1 * delay} km from $P$), but only solving the equation justifies it.`, `Masa yang didakwa kebetulan betul di sini (kedua-duanya ${2 * v1 * delay} km dari $P$), tetapi hanya penyelesaian persamaan yang mewajarkannya.`) : T(`Check the claim: at $t = ${2 * delay}$ h, $A$ is ${2 * v1 * delay} km and $B$ is ${v2 * delay} km from $P$ – not the same place.`, `Semak dakwaan: pada $t = ${2 * delay}$ j, $A$ berada ${2 * v1 * delay} km dan $B$ ${v2 * delay} km dari $P$ – bukan tempat yang sama.`)),
         sp: 'l',
       };
     },
@@ -1174,6 +1296,7 @@
       return {
         q: T(`If ${correct.en}, which conclusion is correct?<br>${f('en')}`, `Jika ${correct.ms}, kesimpulan manakah yang betul?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`Average speed = total distance ÷ total time; the gradient is the speed and a crossing of two graphs is a meeting. So if ${correct.en}, ${correct.ans.en}.`, `Laju purata = jumlah jarak ÷ jumlah masa; kecerunan ialah laju dan persilangan dua graf ialah pertemuan. Maka jika ${correct.ms}, ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -1203,6 +1326,7 @@
       return {
         q: T(`What does ${correct.en} represent?<br>${f('en')}`, `Apakah maksud ${correct.ms}?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`On a speed-time graph, the height is the speed, the gradient is the acceleration and the area is the distance; so ${correct.en} gives: ${correct.ans.en}.`, `Pada graf laju-masa, ketinggian ialah laju, kecerunan ialah pecutan dan luas ialah jarak; maka ${correct.ms} memberi: ${correct.ans.ms}.`),
         sp: 's',
       };
     },
@@ -1215,6 +1339,7 @@
         q: T('The speed-time graph shows a car accelerating uniformly from rest. Find the acceleration.', 'Graf laju-masa menunjukkan sebuah kereta memecut secara seragam dari keadaan pegun. Cari pecutannya.'),
         fig,
         a: T(`${n(v / t1)} m/s²`),
+        w: W(T('Acceleration = gradient = change in speed ÷ time', 'Pecutan = kecerunan = perubahan laju ÷ masa'), `$\\dfrac{${v} - 0}{${t1} - 0} = ${n(v / t1)}$ m/s²`),
         sp: 's',
       };
     },
@@ -1230,6 +1355,7 @@
           : T(`The graph shows a car accelerating uniformly from rest. At what time does its speed reach ${v} m/s?`, `Graf menunjukkan sebuah kereta memecut secara seragam dari keadaan pegun. Pada masa manakah lajunya mencapai ${v} m/s?`),
         fig,
         a: askSpeed ? T(`${v} m/s`) : T(`$t = ${t1}$ s`),
+        w: askSpeed ? T(`Read up from $t = ${t1}$ s to the line, then across: ${v} m/s`, `Baca dari $t = ${t1}$ s ke atas hingga garis, kemudian melintang: ${v} m/s`) : T(`Read across from ${v} m/s to the line, then down: $t = ${t1}$ s`, `Baca melintang dari ${v} m/s hingga garis, kemudian ke bawah: $t = ${t1}$ s`),
         sp: 's',
       };
     },
@@ -1242,7 +1368,7 @@
         q: T(`The graph shows a car moving at a uniform speed. Find the distance travelled in the first ${t} s.`, `Graf menunjukkan sebuah kereta bergerak pada laju seragam. Cari jarak yang dilalui dalam ${t} s yang pertama.`),
         fig,
         a: T(`${v * t} m`),
-        w: T(`$${v} \\times ${t}$`),
+        w: W(T('Distance = area under the graph (a rectangle)', 'Jarak = luas di bawah graf (segi empat tepat)'), `$${v} \\times ${t} = ${v * t}$ m`),
         sp: 's',
       };
     },
@@ -1255,6 +1381,7 @@
         q: T(`The graph shows a horizontal segment at speed ${v} m/s. A student says "the acceleration is ${v} m/s² because that is the height of the graph." True or false?`, `Graf menunjukkan segmen mendatar pada laju ${v} m/s. Seorang pelajar berkata "pecutannya ialah ${v} m/s² kerana itulah ketinggian graf itu." Benar atau palsu?`),
         fig,
         a: T('False: a horizontal segment has zero gradient, so the acceleration is 0 m/s²; the height of the graph gives the speed, not the acceleration.', 'Palsu: segmen mendatar mempunyai kecerunan sifar, jadi pecutannya ialah 0 m/s²; ketinggian graf memberikan laju, bukan pecutan.'),
+        w: W(T('Acceleration is the gradient of a speed-time graph; a horizontal segment has gradient 0.', 'Pecutan ialah kecerunan graf laju-masa; segmen mendatar mempunyai kecerunan 0.'), T(`So the acceleration is 0 m/s²; the height, ${v} m/s, is the speed.`, `Maka pecutannya 0 m/s²; ketinggian, ${v} m/s, ialah laju.`)),
         sp: 's',
       };
     },
@@ -1273,6 +1400,7 @@
         q: T(`A student finds the total distance for this trapezium-shaped speed-time graph as $${v} \\times ${xm} = ${wrongDist}$ m (speed $\\times$ total time). Explain the mistake and find the correct total distance.`, `Seorang pelajar mencari jumlah jarak bagi graf laju-masa berbentuk trapezium ini sebagai $${v} \\times ${xm} = ${wrongDist}$ m (laju $\\times$ jumlah masa). Terangkan kesilapan itu dan cari jumlah jarak yang betul.`),
         fig,
         a: T(`The mistake: this treats the whole graph as a rectangle, but the speed is not constant throughout. Correct: split into a trapezium (or triangle + rectangle + triangle) and use area $= \\frac12(${tu} + ${xm}) \\times ${v} = ${n(correctDist)}$ m`, `Kesilapan: ini menganggap keseluruhan graf sebagai segi empat tepat, tetapi laju tidak malar sepanjang masa. Betul: pecahkan kepada trapezium (atau segi tiga + segi empat tepat + segi tiga) dan guna luas $= \\frac12(${tu} + ${xm}) \\times ${v} = ${n(correctDist)}$ m`),
+        w: W(T(`Distance = area of the trapezium: parallel sides ${tu} s (uniform speed) and ${xm} s (whole journey), height ${v} m/s`, `Jarak = luas trapezium: sisi selari ${tu} s (laju seragam) dan ${xm} s (seluruh perjalanan), tinggi ${v} m/s`), `$\\dfrac{1}{2}(${tu} + ${xm}) \\times ${v} = ${n(correctDist)}$ m`, T('Speed × total time is right only if the speed is constant the whole time.', 'Laju × jumlah masa betul hanya jika laju malar sepanjang masa.')),
         sp: 'm',
       };
     },
@@ -1287,7 +1415,7 @@
         q: T(`A car travels at a uniform speed of ${vkmh} km/h, shown on the speed-time graph in m/s. Find the distance travelled in the first ${t} s, in metres.`, `Sebuah kereta bergerak pada laju seragam ${vkmh} km/j, ditunjukkan pada graf laju-masa dalam m/s. Cari jarak yang dilalui dalam ${t} s yang pertama, dalam meter.`),
         fig,
         a: T(`${n(round(dist, 1))} m`),
-        w: T(`${vkmh} km/h $= ${n(round(vms, 2))}$ m/s; distance $= ${n(round(vms, 2))} \\times ${t}$`, `${vkmh} km/j $= ${n(round(vms, 2))}$ m/s; jarak $= ${n(round(vms, 2))} \\times ${t}$`),
+        w: W(T(`$${vkmh}$ km/h $= \\dfrac{${vkmh} \\times 1000}{3600} = ${n(vms)}$ m/s`, `$${vkmh}$ km/j $= \\dfrac{${vkmh} \\times 1000}{3600} = ${n(vms)}$ m/s`), T(`Distance = area $= ${n(vms)} \\times ${t} = ${n(round(dist, 1))}$ m`, `Jarak = luas $= ${n(vms)} \\times ${t} = ${n(round(dist, 1))}$ m`)),
         sp: 'm',
       };
     },
@@ -1300,6 +1428,7 @@
         q: T('The graph shows a car decelerating uniformly to rest. Find the deceleration.', 'Graf menunjukkan sebuah kereta menyahpecut secara seragam sehingga berhenti. Cari nyahpecutannya.'),
         fig,
         a: T(`${n(round(v / t, 2))} m/s²`),
+        w: W(T(`Gradient $= \\dfrac{0 - ${v}}{${t} - 0} = -${fq(v, t)}$`, `Kecerunan $= \\dfrac{0 - ${v}}{${t} - 0} = -${fq(v, t)}$`), T(`Deceleration = size of the gradient $${eqs(v, t)} ${n(round(v / t, 2))}$ m/s²`, `Nyahpecutan = magnitud kecerunan $${eqs(v, t)} ${n(round(v / t, 2))}$ m/s²`)),
         sp: 's',
       };
     },
@@ -1323,6 +1452,7 @@
       return {
         q: T(`If ${correct.en}, what can be concluded?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang boleh disimpulkan?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`On a speed-time graph the gradient is the acceleration and the area is the distance; so if ${correct.en}, ${correct.ans.en}.`, `Pada graf laju-masa, kecerunan ialah pecutan dan luas ialah jarak; maka jika ${correct.ms}, ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -1333,7 +1463,7 @@
       return {
         q: T(`A cyclist moves at a uniform speed of ${v} m/s and covers ${dist} m. Find the time taken.`, `Seorang penunggang basikal bergerak pada laju seragam ${v} m/s dan melalui ${dist} m. Cari masa yang diambil.`),
         a: T(`${t} s`),
-        w: T(`$t = ${dist} \\div ${v}$`),
+        w: W(T('Distance = speed × time, so time = distance ÷ speed', 'Jarak = laju × masa, maka masa = jarak ÷ laju'), `$t = \\dfrac{${dist}}{${v}} = ${t}$ s`),
         sp: 's',
       };
     },
@@ -1345,11 +1475,11 @@
       const t1 = r.int(3, 5), tu = r.int(4, 8), D = r.pick([200, 250, 300, 350]);
       const v = round(D / (t1 + tu), 2);
       need(v > 4 && v < 40);
-      const a = round(v / t1, 2);
+      const a = round(D / (t1 + tu) / t1, 2); // from the exact v, not the rounded one
       return {
         q: T(`A car accelerates uniformly from rest to $v$ m/s in ${t1} s, then travels at $v$ m/s for ${tu} s before decelerating uniformly to rest in the same time it took to accelerate. The total distance is ${D} m. Find (a) $v$, (b) the acceleration in the first stage.`, `Sebuah kereta memecut secara seragam dari keadaan pegun kepada $v$ m/s dalam ${t1} s, kemudian bergerak pada $v$ m/s selama ${tu} s sebelum menyahpecut secara seragam sehingga berhenti dalam masa yang sama seperti ia memecut. Jumlah jarak ialah ${D} m. Cari (a) $v$, (b) pecutan pada peringkat pertama.`),
         a: T(`(a) $v = ${n(v)}$ m/s (b) ${n(a)} m/s²`),
-        w: T(`$\\frac12(${tu} + (${tu} + 2 \\times ${t1}))v = ${D}$`),
+        w: W(T(`Distance = area of the trapezium: $\\dfrac{1}{2}(${tu} + ${tu + 2 * t1})v = ${tu + t1}v$`, `Jarak = luas trapezium: $\\dfrac{1}{2}(${tu} + ${tu + 2 * t1})v = ${tu + t1}v$`), `$${tu + t1}v = ${D}$`, `(a) $v = \\dfrac{${D}}{${tu + t1}} ${eqs(D, tu + t1)} ${n(v)}$ m/s`, T(`(b) Acceleration $= \\dfrac{v}{${t1}} = \\dfrac{${D}}{${(tu + t1) * t1}} ${eqs(D, (tu + t1) * t1)} ${n(a)}$ m/s²`, `(b) Pecutan $= \\dfrac{v}{${t1}} = \\dfrac{${D}}{${(tu + t1) * t1}} ${eqs(D, (tu + t1) * t1)} ${n(a)}$ m/s²`)),
         sp: 'l',
       };
     },
@@ -1358,11 +1488,13 @@
       const v1 = r.pick([15, 20]), t1a = r.int(4, 6);
       const v2 = r.pick([18, 24]), t1b = r.int(3, 5);
       const distA = (v1 * t1a) / 2, distB = (v2 * t1b) / 2;
+      need(distA !== distB); // a tie would make "which travels further" unanswerable
       const f = (lang) => S.graph({ w: 320, h: 210, xr: [0, Math.max(t1a, t1b) + 1, 1], yr: [0, Math.max(v1, v2) + 5, 5], xlabel: lang === 'en' ? 'Time (s)' : 'Masa (s)', ylabel: lang === 'en' ? 'Speed (m/s)' : 'Laju (m/s)', series: [{ pts: [[0, 0], [t1a, v1]], type: 'line' }, { pts: [[0, 0], [t1b, v2]], type: 'line', dash: true }] });
       return {
         q: T(`Vehicle $A$ (solid) accelerates uniformly from rest to ${v1} m/s in ${t1a} s, then stops accelerating. Vehicle $B$ (dashed) accelerates uniformly from rest to ${v2} m/s in ${t1b} s, then stops accelerating. Which vehicle travels further in its acceleration stage, and which has the greater acceleration?`, `Kenderaan $A$ (garis penuh) memecut secara seragam dari keadaan pegun kepada ${v1} m/s dalam ${t1a} s, kemudian berhenti memecut. Kenderaan $B$ (putus-putus) memecut secara seragam dari keadaan pegun kepada ${v2} m/s dalam ${t1b} s, kemudian berhenti memecut. Kenderaan manakah melalui jarak yang lebih jauh semasa peringkat pecutannya, dan yang manakah mempunyai pecutan yang lebih besar?`),
         fig: T(f('en'), f('ms')),
         a: T(`Distance: $A$ = ${n(distA)} m, $B$ = ${n(distB)} m, so ${distA > distB ? '$A$' : '$B$'} travels further. Acceleration: $A$ = ${n(round(v1 / t1a, 2))} m/s², $B$ = ${n(round(v2 / t1b, 2))} m/s², so ${(v1 / t1a) > (v2 / t1b) ? '$A$' : '$B$'} has the greater acceleration.`, `Jarak: $A$ = ${n(distA)} m, $B$ = ${n(distB)} m, jadi ${distA > distB ? '$A$' : '$B$'} melalui jarak yang lebih jauh. Pecutan: $A$ = ${n(round(v1 / t1a, 2))} m/s², $B$ = ${n(round(v2 / t1b, 2))} m/s², jadi ${(v1 / t1a) > (v2 / t1b) ? '$A$' : '$B$'} mempunyai pecutan yang lebih besar.`),
+        w: W(T(`Distance = area of each triangle: $A$: $\\dfrac{1}{2} \\times ${t1a} \\times ${v1} = ${n(distA)}$ m; $B$: $\\dfrac{1}{2} \\times ${t1b} \\times ${v2} = ${n(distB)}$ m`, `Jarak = luas setiap segi tiga: $A$: $\\dfrac{1}{2} \\times ${t1a} \\times ${v1} = ${n(distA)}$ m; $B$: $\\dfrac{1}{2} \\times ${t1b} \\times ${v2} = ${n(distB)}$ m`), T(`Acceleration = gradient: $A$: $\\dfrac{${v1}}{${t1a}} ${eqs(v1, t1a)} ${n(round(v1 / t1a, 2))}$, $B$: $\\dfrac{${v2}}{${t1b}} ${eqs(v2, t1b)} ${n(round(v2 / t1b, 2))}$ m/s²`, `Pecutan = kecerunan: $A$: $\\dfrac{${v1}}{${t1a}} ${eqs(v1, t1a)} ${n(round(v1 / t1a, 2))}$, $B$: $\\dfrac{${v2}}{${t1b}} ${eqs(v2, t1b)} ${n(round(v2 / t1b, 2))}$ m/s²`)),
         sp: 'l',
       };
     },
@@ -1377,7 +1509,7 @@
         q: T(`The graph shows a car accelerating uniformly from rest to ${v} m/s in ${t1} s. Find its speed at $t = ${tq}$ s.`, `Graf menunjukkan sebuah kereta memecut secara seragam dari keadaan pegun kepada ${v} m/s dalam ${t1} s. Cari lajunya pada $t = ${tq}$ s.`),
         fig,
         a: T(`${n(vq)} m/s`),
-        w: T(`$\\dfrac{${v}}{${t1}} \\times ${tq}$`),
+        w: W(T(`Acceleration $= \\dfrac{${v}}{${t1}}$ m/s², so the speed rises by the same amount every second`, `Pecutan $= \\dfrac{${v}}{${t1}}$ m/s², maka laju bertambah dengan jumlah yang sama setiap saat`), `$\\dfrac{${v}}{${t1}} \\times ${tq} = ${fq(v * tq, t1)}${apx(v * tq, t1)}$ m/s`),
         sp: 's',
       };
     },
@@ -1391,7 +1523,7 @@
         q: T(`A bus accelerates uniformly from rest to ${v} m/s in ${t1} s, then travels at ${v} m/s for ${tu} s. Find the total distance travelled, in kilometres.`, `Sebuah bas memecut secara seragam dari keadaan pegun kepada ${v} m/s dalam ${t1} s, kemudian bergerak pada ${v} m/s selama ${tu} s. Cari jumlah jarak yang dilalui, dalam kilometer.`),
         fig,
         a: T(`${n(distKm)} km`),
-        w: T(`$\\left(\\frac12 \\times ${t1} \\times ${v} + ${v} \\times ${tu}\\right) \\div 1000$`),
+        w: W(T(`Area: triangle $\\dfrac{1}{2} \\times ${t1} \\times ${v} = ${n((v * t1) / 2)}$ m, rectangle $${v} \\times ${tu} = ${v * tu}$ m`, `Luas: segi tiga $\\dfrac{1}{2} \\times ${t1} \\times ${v} = ${n((v * t1) / 2)}$ m, segi empat tepat $${v} \\times ${tu} = ${v * tu}$ m`), `$${n((v * t1) / 2)} + ${v * tu} = ${n(dist)}$ m`, `$${n(dist)} \\div 1000 = ${n(distKm)}$ km`),
         sp: 'm',
       };
     },
@@ -1415,6 +1547,7 @@
       return {
         q: T(`If ${correct.en}, what can be concluded?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang boleh disimpulkan?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`On a speed-time graph the gradient is the acceleration and the area is the distance (in consistent units); so if ${correct.en}, ${correct.ans.en}.`, `Pada graf laju-masa, kecerunan ialah pecutan dan luas ialah jarak (dalam unit yang selaras); maka jika ${correct.ms}, ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -1485,6 +1618,24 @@
     { en: 'saving for a house renovation over the next 8 years', ms: 'menyimpan untuk pengubahsuaian rumah dalam tempoh 8 tahun akan datang', ans: 'long' },
   ];
 
+  const STAGE_WHY = [
+    T('deciding what to achieve, how much and by when', 'menentukan apa yang hendak dicapai, berapa banyak dan bila'),
+    T('finding out the current income, expenses and savings', 'mengetahui pendapatan, perbelanjaan dan simpanan semasa'),
+    T('deciding how the goal will be reached (budget, amount to save)', 'menentukan cara mencapai matlamat (belanjawan, jumlah simpanan)'),
+    T('actually doing what the plan says', 'benar-benar melakukan apa yang dirancang'),
+    T('checking progress and adjusting the plan when things change', 'menyemak kemajuan dan melaraskan pelan apabila keadaan berubah'),
+  ];
+  const SMART_WHY = {
+    S: T('it does not say exactly what the goal is', 'ia tidak menyatakan dengan tepat apa matlamatnya'),
+    M: T('there is no amount to measure progress against', 'tiada jumlah untuk mengukur kemajuan'),
+    A: T('the amount is not realistic for the income', 'jumlah itu tidak realistik berbanding pendapatan'),
+    R: T('it is not related to a financial need', 'ia tidak berkaitan dengan keperluan kewangan'),
+    T: T('there is no deadline', 'tiada tarikh akhir'),
+  };
+  const termW = (ans) => (ans === 'short' ? T('It is to be reached within a year: short-term goals take less than 1 year.', 'Ia perlu dicapai dalam masa setahun: matlamat jangka pendek mengambil masa kurang daripada 1 tahun.') : T('It takes more than 5 years: long-term goals take more than 5 years.', 'Ia mengambil masa lebih daripada 5 tahun: matlamat jangka panjang mengambil masa lebih daripada 5 tahun.'));
+  const needWantW = (ans) => (ans === 'need' ? T('A need is essential for daily living; we cannot do without it.', 'Keperluan ialah perkara asas untuk kehidupan harian; kita tidak boleh hidup tanpanya.') : T('A want adds comfort or enjoyment but is not essential.', 'Kehendak menambah keselesaan atau keseronokan tetapi tidak penting untuk hidup.'));
+  const fixVarW = (ans) => (ans === 'fixed' ? T('A fixed expense is the same amount every month.', 'Perbelanjaan tetap ialah jumlah yang sama setiap bulan.') : T('A variable expense changes from month to month.', 'Perbelanjaan boleh ubah berubah dari bulan ke bulan.'));
+
   const g101e = [
     // (1) which stage of the cycle does this action belong to? (MCQ, big action bank)
     (r) => {
@@ -1493,6 +1644,7 @@
       return {
         q: T(`${act.en}. Which stage of the financial management cycle is this?`, `${act.ms}. Peringkat kitaran pengurusan kewangan manakah ini?`),
         a: STAGE5[act.i],
+        w: W(T(`This is ${STAGE_WHY[act.i].en}.`, `Ini ialah ${STAGE_WHY[act.i].ms}.`), T(`Stage ${act.i + 1} of the cycle: ${STAGE5[act.i].en}`, `Peringkat ${act.i + 1} dalam kitaran: ${STAGE5[act.i].ms}`)),
         sp: 's',
       };
     },
@@ -1502,6 +1654,7 @@
       return {
         q: T(`Is this a short-term or a long-term financial goal? "${g.en}"`, `Adakah ini matlamat kewangan jangka pendek atau jangka panjang? "${g.ms}"`),
         a: g.ans === 'short' ? T('Short-term', 'Jangka pendek') : T('Long-term', 'Jangka panjang'),
+        w: termW(g.ans),
         sp: 's',
       };
     },
@@ -1511,6 +1664,7 @@
       return {
         q: T(`Is this a need or a want: ${it.en}?`, `Adakah ini keperluan atau kehendak: ${it.ms}?`),
         a: it.ans === 'need' ? T('Need', 'Keperluan') : T('Want', 'Kehendak'),
+        w: needWantW(it.ans),
         sp: 'xs',
       };
     },
@@ -1520,6 +1674,7 @@
       return {
         q: T(`Is this a fixed or a variable expense: ${it.en}?`, `Adakah ini perbelanjaan tetap atau perbelanjaan boleh ubah: ${it.ms}?`),
         a: it.ans === 'fixed' ? T('Fixed expense', 'Perbelanjaan tetap') : T('Variable expense', 'Perbelanjaan boleh ubah'),
+        w: fixVarW(it.ans),
         sp: 'xs',
       };
     },
@@ -1532,6 +1687,7 @@
       return {
         q: T(`Which SMART criterion is missing from this goal? ${g.en}<br>(${f('en')})`, `Kriteria SMART manakah yang tiada dalam matlamat ini? ${g.ms}<br>(${f('ms')})`),
         a: T(`$${letter}$ (${SMART_LETTERS[letter].en})`, `$${letter}$ (${SMART_LETTERS[letter].ms})`),
+        w: T(`The goal is not ${SMART_LETTERS[letter].en.toLowerCase()}: ${SMART_WHY[letter].en}.`, `Matlamat itu tidak ${SMART_LETTERS[letter].ms.toLowerCase()}: ${SMART_WHY[letter].ms}.`),
         sp: 's',
       };
     },
@@ -1546,6 +1702,7 @@
       return {
         q: T(`Aiman wants to save ${rm(goal)} for ${item.en} in ${mo} months. How much must he save each month? Write the goal in SMART form.`, `Aiman ingin menyimpan ${rm(goal)} untuk ${item.ms} dalam ${mo} bulan. Berapakah yang mesti disimpannya setiap bulan? Tulis matlamat itu dalam bentuk SMART.`),
         a: T(`${rm(goal / mo)} per month. Example: "Save ${rm(goal / mo)} every month for ${mo} months to buy ${item.en} costing ${rm(goal)}."`, `${rm(goal / mo)} sebulan. Contoh: "Simpan ${rm(goal / mo)} setiap bulan selama ${mo} bulan untuk ${item.ms} berharga ${rm(goal)}."`),
+        w: W(T(`Monthly saving = ${rm(goal)} ÷ ${mo} = ${rm(goal / mo)}`, `Simpanan bulanan = ${rm(goal)} ÷ ${mo} = ${rm(goal / mo)}`), T('A SMART goal says what (specific), how much (measurable), a realistic amount (achievable), why (relevant) and by when (time-bound).', 'Matlamat SMART menyatakan apa (spesifik), berapa banyak (boleh diukur), jumlah yang realistik (boleh dicapai), mengapa (relevan) dan bila (bertempoh masa).')),
         sp: 's',
       };
     },
@@ -1558,6 +1715,7 @@
       return {
         q: T(`Farid's monthly income is ${rm(inc)}. His expenses are ${exp.map(([n_, v]) => `${n_.en} ${rm(v)}`).join(', ')}. Evaluate his current financial status: find his monthly surplus or deficit.`, `Pendapatan bulanan Farid ialah ${rm(inc)}. Perbelanjaannya ialah ${exp.map(([n_, v]) => `${n_.ms} ${rm(v)}`).join(', ')}. Nilai status kewangan semasanya: cari lebihan atau defisit bulanannya.`),
         a: T(`${surplus >= 0 ? 'Surplus' : 'Deficit'} of ${rm(Math.abs(surplus))}`, `${surplus >= 0 ? 'Lebihan' : 'Defisit'} sebanyak ${rm(Math.abs(surplus))}`),
+        w: W(T(`Total expenses = ${exp.map(([, v]) => rm(v)).join(' + ')} = ${rm(totExp)}`, `Jumlah perbelanjaan = ${exp.map(([, v]) => rm(v)).join(' + ')} = ${rm(totExp)}`), T(`Income − expenses = ${rm(inc)} − ${rm(totExp)} = ${rmS(surplus)}: ${surplus >= 0 ? 'surplus' : 'deficit'}`, `Pendapatan − perbelanjaan = ${rm(inc)} − ${rm(totExp)} = ${rmS(surplus)}: ${surplus >= 0 ? 'lebihan' : 'defisit'}`)),
         sp: 's',
       };
     },
@@ -1570,6 +1728,7 @@
       return {
         q: T(`Siti's monthly income is ${rm(inc)} and her monthly expenses are ${rm(exp)}. She wants to have a monthly surplus of at least ${rm(target)} to save. By how much must she cut her expenses?`, `Pendapatan bulanan Siti ialah ${rm(inc)} dan perbelanjaan bulanannya ialah ${rm(exp)}. Dia mahu mempunyai lebihan bulanan sekurang-kurangnya ${rm(target)} untuk disimpan. Berapakah perbelanjaannya perlu dikurangkan?`),
         a: T(`Current deficit ${rm(deficit)}; she must cut expenses by ${rm(cut)} to reach a surplus of ${rm(target)}`, `Defisit semasa ${rm(deficit)}; dia mesti mengurangkan perbelanjaan sebanyak ${rm(cut)} untuk mencapai lebihan ${rm(target)}`),
+        w: W(T(`Current deficit = ${rm(exp)} − ${rm(inc)} = ${rm(deficit)}`, `Defisit semasa = ${rm(exp)} − ${rm(inc)} = ${rm(deficit)}`), T(`Cut needed = deficit + target surplus = ${rm(deficit)} + ${rm(target)} = ${rm(cut)}`, `Pengurangan diperlukan = defisit + sasaran lebihan = ${rm(deficit)} + ${rm(target)} = ${rm(cut)}`)),
         sp: 'm',
       };
     },
@@ -1582,6 +1741,7 @@
       return {
         q: T(`The table shows Hafiz's monthly budget, with the savings amount missing. Find it.<br>${SPM.table([['Income', rm(inc)], ['Rent', rm(rent)], ['Food', rm(food)], ['Transport', rm(trans)], ['Savings', '?']], { rowHead: true })}`, `Jadual menunjukkan belanjawan bulanan Hafiz, dengan jumlah simpanan tidak diketahui. Cari jumlah itu.<br>${SPM.table([['Pendapatan', rm(inc)], ['Sewa', rm(rent)], ['Makanan', rm(food)], ['Pengangkutan', rm(trans)], ['Simpanan', '?']], { rowHead: true })}`),
         a: T(`${rm(savings)}`),
+        w: W(T('Savings = income − rent − food − transport', 'Simpanan = pendapatan − sewa − makanan − pengangkutan'), `${rm(inc)} − ${rm(rent)} − ${rm(food)} − ${rm(trans)} = ${rm(savings)}`),
         sp: 's',
       };
     },
@@ -1606,6 +1766,7 @@
       return {
         q: T(`${correct.en}. What is the most appropriate action?<br>${f('en')}`, `${correct.ms}. Apakah tindakan yang paling sesuai?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`The situation "${correct.en}" is handled by: ${correct.ans.en}; the other options fit different situations.`, `Situasi "${correct.ms}" ditangani dengan: ${correct.ans.ms}; pilihan lain sesuai untuk situasi yang berbeza.`),
         sp: 'm',
       };
     },
@@ -1619,6 +1780,7 @@
       return {
         q: T(`Two plans both aim to save ${rm(p1.goal)}: Plan $A$ over ${p1.mo} months, Plan $B$ over ${p2.mo} months. Aisyah's monthly surplus is ${rm(surplus)}. Which plan is feasible for her, and why?`, `Dua pelan sama-sama bertujuan menyimpan ${rm(p1.goal)}: Pelan $A$ dalam ${p1.mo} bulan, Pelan $B$ dalam ${p2.mo} bulan. Lebihan bulanan Aisyah ialah ${rm(surplus)}. Pelan manakah yang boleh dicapai olehnya, dan mengapa?`),
         a: T(`Plan $A$ needs ${rm(round(need1, 2))}/month and Plan $B$ needs ${rm(round(need2, 2))}/month; ${need1 <= surplus && need2 <= surplus ? 'both are feasible, but $A$ reaches the goal sooner' : need2 <= surplus ? 'only Plan $B$ is feasible, since Plan $A$ needs more than her surplus' : 'neither is feasible with her current surplus'}`, `Pelan $A$ memerlukan ${rm(round(need1, 2))}/bulan dan Pelan $B$ memerlukan ${rm(round(need2, 2))}/bulan; ${need1 <= surplus && need2 <= surplus ? 'kedua-duanya boleh dicapai, tetapi $A$ mencapai matlamat lebih awal' : need2 <= surplus ? 'hanya Pelan $B$ yang boleh dicapai, kerana Pelan $A$ memerlukan lebih daripada lebihannya' : 'kedua-dua pelan tidak boleh dicapai dengan lebihan semasanya'}`),
+        w: W(T(`Plan $A$: ${rm(p1.goal)} ÷ ${p1.mo} = ${rm(round(need1, 2))} a month; Plan $B$: ${rm(p2.goal)} ÷ ${p2.mo} = ${rm(round(need2, 2))} a month`, `Pelan $A$: ${rm(p1.goal)} ÷ ${p1.mo} = ${rm(round(need1, 2))} sebulan; Pelan $B$: ${rm(p2.goal)} ÷ ${p2.mo} = ${rm(round(need2, 2))} sebulan`), T(`A plan is feasible if its monthly amount is not more than the surplus of ${rm(surplus)}.`, `Pelan boleh dicapai jika jumlah bulanannya tidak melebihi lebihan ${rm(surplus)}.`)),
         sp: 'm',
       };
     },
@@ -1636,6 +1798,7 @@
       return {
         q: T(`${correct.en}. Which stage of the financial management cycle does this represent?`, `${correct.ms}. Peringkat kitaran pengurusan kewangan manakah ini mewakili?`),
         a: STAGE5[correct.stage],
+        w: T(`This is ${STAGE_WHY[correct.stage].en}: stage ${correct.stage + 1}, ${STAGE5[correct.stage].en}.`, `Ini ialah ${STAGE_WHY[correct.stage].ms}: peringkat ${correct.stage + 1}, ${STAGE5[correct.stage].ms}.`),
         sp: 's',
       };
     },
@@ -1653,9 +1816,11 @@
       const goal = r.pick([2000, 3000, 4000]), mo = r.pick([10, 12, 16]);
       const need_ = goal / mo;
       const surplus = inc - (rent + food + trans + other);
+      const he = ctx.subj.en === 'Kumar'; // Kumar is male: fix the pronouns
       return {
-        q: T(`${ctx.subj.en} earns ${rm(inc)} a month. Her expenses are rent ${rm(rent)}, food ${rm(food)}, transport ${rm(trans)} and others ${rm(other)}. She wants to save ${rm(goal)} for ${ctx.goalItem.en} in ${mo} months. (a) Find her monthly surplus. (b) How much must she save each month? (c) Is her goal achievable? Suggest one action.`, `${ctx.subj.ms} memperoleh ${rm(inc)} sebulan. Perbelanjaannya ialah sewa ${rm(rent)}, makanan ${rm(food)}, pengangkutan ${rm(trans)} dan lain-lain ${rm(other)}. Dia ingin menyimpan ${rm(goal)} untuk ${ctx.goalItem.ms} dalam ${mo} bulan. (a) Cari lebihan bulanannya. (b) Berapakah yang mesti disimpannya setiap bulan? (c) Adakah matlamatnya boleh dicapai? Cadangkan satu tindakan.`),
+        q: T(`${ctx.subj.en} earns ${rm(inc)} a month. ${he ? 'His' : 'Her'} expenses are rent ${rm(rent)}, food ${rm(food)}, transport ${rm(trans)} and others ${rm(other)}. ${he ? 'He' : 'She'} wants to save ${rm(goal)} for ${ctx.goalItem.en} in ${mo} months. (a) Find ${he ? 'his' : 'her'} monthly surplus. (b) How much must ${he ? 'he' : 'she'} save each month? (c) Is ${he ? 'his' : 'her'} goal achievable? Suggest one action.`, `${ctx.subj.ms} memperoleh ${rm(inc)} sebulan. Perbelanjaannya ialah sewa ${rm(rent)}, makanan ${rm(food)}, pengangkutan ${rm(trans)} dan lain-lain ${rm(other)}. Dia ingin menyimpan ${rm(goal)} untuk ${ctx.goalItem.ms} dalam ${mo} bulan. (a) Cari lebihan bulanannya. (b) Berapakah yang mesti disimpannya setiap bulan? (c) Adakah matlamatnya boleh dicapai? Cadangkan satu tindakan.`),
         a: T(`(a) ${rm(surplus)} (b) ${rm(round(need_, 2), need_ % 1 ? 2 : 0)} (c) ${surplus >= need_ ? 'Yes: the surplus is enough.' : 'No: the surplus is too small; reduce variable expenses or extend the time.'}`, `(a) ${rm(surplus)} (b) ${rm(round(need_, 2), need_ % 1 ? 2 : 0)} (c) ${surplus >= need_ ? 'Ya: lebihan mencukupi.' : 'Tidak: lebihan terlalu kecil; kurangkan perbelanjaan boleh ubah atau lanjutkan tempoh.'}`),
+        w: W(T(`(a) Expenses = ${rm(rent)} + ${rm(food)} + ${rm(trans)} + ${rm(other)} = ${rm(rent + food + trans + other)}; surplus = ${rm(inc)} − ${rm(rent + food + trans + other)} = ${rm(surplus)}`, `(a) Perbelanjaan = ${rm(rent)} + ${rm(food)} + ${rm(trans)} + ${rm(other)} = ${rm(rent + food + trans + other)}; lebihan = ${rm(inc)} − ${rm(rent + food + trans + other)} = ${rm(surplus)}`), T(`(b) ${rm(goal)} ÷ ${mo} = ${rm(round(need_, 2), need_ % 1 ? 2 : 0)}`), T(`(c) ${rm(surplus)} ${surplus >= need_ ? '≥' : '<'} ${rm(round(need_, 2), need_ % 1 ? 2 : 0)}, so the goal is ${surplus >= need_ ? '' : 'not '}achievable`, `(c) ${rm(surplus)} ${surplus >= need_ ? '≥' : '<'} ${rm(round(need_, 2), need_ % 1 ? 2 : 0)}, maka matlamat itu ${surplus >= need_ ? '' : 'tidak '}boleh dicapai`)),
         sp: 'l',
       };
     },
@@ -1664,11 +1829,13 @@
       const inc = r.pick([3000, 3500]), exp = r.pick([2400, 2700]), goal = r.pick([3600, 4800]), mo = r.pick([12, 16]);
       const need_ = goal / mo;
       const surplus0 = inc - exp;
+      need(surplus0 >= need_); // part (a) asks to confirm the goal is achievable
       const change = r.pick([{ en: 'her rent increases by RM200 a month', ms: 'sewanya meningkat RM200 sebulan', d: 200 }, { en: 'her transport cost increases by RM150 a month', ms: 'kos pengangkutannya meningkat RM150 sebulan', d: 150 }, { en: 'she takes on a side job earning an extra RM250 a month', ms: 'dia mengambil kerja sampingan yang memperoleh tambahan RM250 sebulan', d: -250 }]);
       const surplus1 = surplus0 - change.d;
       return {
         q: T(`Nurul earns ${rm(inc)} a month with ${rm(exp)} of expenses, saving toward a goal of ${rm(goal)} in ${mo} months. (a) Find her monthly surplus and confirm the goal is achievable. (b) After ${mo / 2} months, ${change.en}. Re-evaluate: is the goal still achievable at the required monthly saving? (c) Suggest one revision to her plan.`, `Nurul memperoleh ${rm(inc)} sebulan dengan perbelanjaan ${rm(exp)}, menyimpan ke arah matlamat ${rm(goal)} dalam ${mo} bulan. (a) Cari lebihan bulanannya dan sahkan matlamat itu boleh dicapai. (b) Selepas ${mo / 2} bulan, ${change.ms}. Nilai semula: adakah matlamat itu masih boleh dicapai pada simpanan bulanan yang diperlukan? (c) Cadangkan satu semakan kepada pelannya.`),
         a: T(`(a) Surplus ${rm(surplus0)}, needs ${rm(need_)} /month: ${surplus0 >= need_ ? 'achievable' : 'not achievable'} (b) New surplus ${rm(surplus1)}: ${surplus1 >= need_ ? 'still achievable' : 'no longer achievable'} (c) ${surplus1 >= need_ ? 'Continue the plan as is.' : 'Cut a variable expense or extend the deadline.'}`, `(a) Lebihan ${rm(surplus0)}, memerlukan ${rm(need_)} /bulan: ${surplus0 >= need_ ? 'boleh dicapai' : 'tidak boleh dicapai'} (b) Lebihan baharu ${rm(surplus1)}: ${surplus1 >= need_ ? 'masih boleh dicapai' : 'tidak lagi boleh dicapai'} (c) ${surplus1 >= need_ ? 'Teruskan pelan seperti sedia ada.' : 'Kurangkan satu perbelanjaan boleh ubah atau lanjutkan tenggat masa.'}`),
+        w: W(T(`(a) Surplus = ${rm(inc)} − ${rm(exp)} = ${rm(surplus0)}; required = ${rm(goal)} ÷ ${mo} = ${rm(need_)} a month; ${rm(surplus0)} ≥ ${rm(need_)}`, `(a) Lebihan = ${rm(inc)} − ${rm(exp)} = ${rm(surplus0)}; diperlukan = ${rm(goal)} ÷ ${mo} = ${rm(need_)} sebulan; ${rm(surplus0)} ≥ ${rm(need_)}`), T(`(b) New surplus = ${rm(surplus0)} ${change.d > 0 ? '−' : '+'} ${rm(Math.abs(change.d))} = ${rm(surplus1)} ${surplus1 >= need_ ? '≥' : '<'} ${rm(need_)}`, `(b) Lebihan baharu = ${rm(surplus0)} ${change.d > 0 ? '−' : '+'} ${rm(Math.abs(change.d))} = ${rm(surplus1)} ${surplus1 >= need_ ? '≥' : '<'} ${rm(need_)}`), surplus1 >= need_ ? T('(c) The plan still works, so it can continue.', '(c) Pelan itu masih boleh dilaksanakan, maka ia boleh diteruskan.') : T(`(c) She is ${rm(need_ - surplus1)} short each month: cut spending by that much or extend the deadline.`, `(c) Dia kurang ${rm(need_ - surplus1)} setiap bulan: kurangkan perbelanjaan sebanyak itu atau lanjutkan tenggat masa.`)),
         sp: 'l',
       };
     },
@@ -1684,6 +1851,7 @@
       return {
         q: T(`Ravi sets aside ${pct}% of his ${rm(inc)} monthly income as a contingency fund. (a) Find the monthly contingency amount. (b) After ${monthsSaved} months, an emergency costs ${rm(emergency)}. Is the fund enough? By how much is it short or in surplus?`, `Ravi menyisihkan ${pct}% daripada pendapatan bulanannya ${rm(inc)} sebagai dana kontingensi. (a) Cari jumlah kontingensi bulanan. (b) Selepas ${monthsSaved} bulan, satu kecemasan menelan belanja ${rm(emergency)}. Adakah dana itu mencukupi? Berapakah kekurangan atau lebihannya?`),
         a: T(`(a) ${rm(fund)} (b) Total saved ${rm(total)}: ${covered ? `enough, with a surplus of ${rm(total - emergency)}` : `not enough, short by ${rm(emergency - total)}`}`, `(a) ${rm(fund)} (b) Jumlah tersimpan ${rm(total)}: ${covered ? `mencukupi, dengan lebihan ${rm(total - emergency)}` : `tidak mencukupi, kurang ${rm(emergency - total)}`}`),
+        w: W(T(`(a) ${pct}% × ${rm(inc)} = ${rm(fund)}`), T(`(b) ${rm(fund)} × ${monthsSaved} = ${rm(total)}; ${covered ? `${rm(total)} − ${rm(emergency)} = ${rm(total - emergency)} left over` : `${rm(emergency)} − ${rm(total)} = ${rm(emergency - total)} short`}`, `(b) ${rm(fund)} × ${monthsSaved} = ${rm(total)}; ${covered ? `${rm(total)} − ${rm(emergency)} = ${rm(total - emergency)} lebihan` : `${rm(emergency)} − ${rm(total)} = ${rm(emergency - total)} kurang`}`)),
         sp: 'l',
       };
     },
@@ -1696,6 +1864,7 @@
       return {
         q: T(`Wei Jie earns ${rm(inc)} a month and his essential needs cost ${rm(needsTotal)}. He also wants to buy ${wants[0].en} and ${wants[1].en} this month, but cannot afford both. What is left after needs, and which want should he prioritise? Justify your answer.`, `Wei Jie memperoleh ${rm(inc)} sebulan dan keperluan asasnya berkos ${rm(needsTotal)}. Dia juga mahu membeli ${wants[0].ms} dan ${wants[1].ms} bulan ini, tetapi tidak mampu membeli kedua-duanya. Berapakah yang tinggal selepas keperluan, dan kehendak manakah patut diutamakan? Wajarkan jawapan anda.`),
         a: T(`${rm(leftover)} is left after needs. Needs must always be met first; among the wants, prioritise the one that is most useful or most urgent within the ${rm(leftover)} available (e.g. the cheaper or more necessary item), and save toward the other.`, `${rm(leftover)} tinggal selepas keperluan. Keperluan mesti sentiasa dipenuhi dahulu; antara kehendak itu, utamakan yang paling berguna atau paling mendesak dalam lingkungan ${rm(leftover)} yang ada (cth. item yang lebih murah atau lebih perlu), dan simpan untuk yang satu lagi.`),
+        w: W(T(`Left after needs = ${rm(inc)} − ${rm(needsTotal)} = ${rm(leftover)}`, `Baki selepas keperluan = ${rm(inc)} − ${rm(needsTotal)} = ${rm(leftover)}`), T('Needs come first; wants are paid only from what is left, choosing the more useful or urgent one.', 'Keperluan didahulukan; kehendak dibayar hanya daripada baki, dengan memilih yang lebih berguna atau mendesak.')),
         sp: 'l',
       };
     },
@@ -1718,6 +1887,7 @@
       return {
         q: T(`${correct.en}. What should be concluded or done?<br>${f('en')}`, `${correct.ms}. Apakah yang perlu disimpulkan atau dilakukan?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`Follow the cycle: SMART goal → evaluate status → plan → carry out → review. For "${correct.en}", the right conclusion is: ${correct.ans.en}.`, `Ikut kitaran: matlamat SMART → nilai status → rancang → laksana → semak. Bagi "${correct.ms}", kesimpulan yang betul ialah: ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -1741,6 +1911,7 @@
       return {
         q: T(`Monthly income is ${rm(inc)}. ${SPM.cap(c1[0].en)} costs ${rm(v1)} and ${c2[0].en} costs ${rm(v2)}. Find the surplus or deficit.`, `Pendapatan bulanan ialah ${rm(inc)}. ${SPM.cap(c1[0].ms)} berkos ${rm(v1)} dan ${c2[0].ms} berkos ${rm(v2)}. Cari lebihan atau defisit.`),
         a: T(`${s >= 0 ? 'Surplus' : 'Deficit'} of ${rm(Math.abs(s))}`, `${s >= 0 ? 'Lebihan' : 'Defisit'} sebanyak ${rm(Math.abs(s))}`),
+        w: T(`Income − expenses = ${rm(inc)} − ${rm(v1)} − ${rm(v2)} = ${rmS(s)}: ${s >= 0 ? 'surplus' : 'deficit'}`, `Pendapatan − perbelanjaan = ${rm(inc)} − ${rm(v1)} − ${rm(v2)} = ${rmS(s)}: ${s >= 0 ? 'lebihan' : 'defisit'}`),
         sp: 's',
       };
     },
@@ -1750,6 +1921,7 @@
       return {
         q: T(`Is this a fixed or a variable expense: ${it.en}?`, `Adakah ini perbelanjaan tetap atau perbelanjaan boleh ubah: ${it.ms}?`),
         a: it.ans === 'fixed' ? T('Fixed expense', 'Perbelanjaan tetap') : T('Variable expense', 'Perbelanjaan boleh ubah'),
+        w: fixVarW(it.ans),
         sp: 'xs',
       };
     },
@@ -1759,7 +1931,7 @@
       return {
         q: T(`Chong's annual salary is ${rm(annual)}. Find his equivalent monthly income.`, `Gaji tahunan Chong ialah ${rm(annual)}. Cari pendapatan bulanan yang setara.`),
         a: T(`${rm(annual / 12)}`),
-        w: T(`$${gt(annual)} \\div 12$`),
+        w: T(`Monthly income = ${rm(annual)} ÷ 12 = ${rm(annual / 12)}`, `Pendapatan bulanan = ${rm(annual)} ÷ 12 = ${rm(annual / 12)}`),
         sp: 's',
       };
     },
@@ -1771,6 +1943,7 @@
       return {
         q: T(`Devi's monthly expenses are: ${items.map((c, i) => `${c[0].en} ${rm(vals[i])}`).join(', ')}. Find her total monthly expenses.`, `Perbelanjaan bulanan Devi ialah: ${items.map((c, i) => `${c[0].ms} ${rm(vals[i])}`).join(', ')}. Cari jumlah perbelanjaan bulanannya.`),
         a: T(`${rm(tot)}`),
+        w: T(`Total = ${vals.map((v) => rm(v)).join(' + ')} = ${rm(tot)}`, `Jumlah = ${vals.map((v) => rm(v)).join(' + ')} = ${rm(tot)}`),
         sp: 's',
       };
     },
@@ -1784,6 +1957,7 @@
       return {
         q: T(`Monthly cash flow is defined as:<br>${f('en')}`, `Aliran tunai bulanan ditakrifkan sebagai:<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.en}`, `(${letter}) ${correct.ms}`),
+        w: T('Cash flow is what is left of the income after paying the expenses: income − expenses (positive: surplus, negative: deficit).', 'Aliran tunai ialah baki pendapatan selepas membayar perbelanjaan: pendapatan − perbelanjaan (positif: lebihan, negatif: defisit).'),
         sp: 's',
       };
     },
@@ -1806,6 +1980,7 @@
       return {
         q: T(`The table shows part of Zara's monthly cash-flow statement, with one entry missing. Find it.<br>${SPM.table(rows, { rowHead: true })}`, `Jadual menunjukkan sebahagian penyata aliran tunai bulanan Zara, dengan satu entri tidak diketahui. Cari entri itu.<br>${SPM.table(rowsMs, { rowHead: true })}`),
         a: T(`${missWhich === 'inc2' ? rm(inc2) : rm(exp)}`),
+        w: W(T('Cash flow = salary + side income − total expenses', 'Aliran tunai = gaji + pendapatan sampingan − jumlah perbelanjaan'), missWhich === 'inc2' ? T(`Side income = cash flow + expenses − salary = ${rm(cf)} + ${rm(exp)} − ${rm(inc1)} = ${rm(inc2)}`, `Pendapatan sampingan = aliran tunai + perbelanjaan − gaji = ${rm(cf)} + ${rm(exp)} − ${rm(inc1)} = ${rm(inc2)}`) : T(`Total expenses = salary + side income − cash flow = ${rm(inc1)} + ${rm(inc2)} − ${rm(cf)} = ${rm(exp)}`, `Jumlah perbelanjaan = gaji + pendapatan sampingan − aliran tunai = ${rm(inc1)} + ${rm(inc2)} − ${rm(cf)} = ${rm(exp)}`)),
         sp: 's',
       };
     },
@@ -1820,7 +1995,7 @@
       return {
         q: T(`Hafiz earns ${rm(monthlyInc)} a month, plus an annual bonus of ${rm(annualBonus)}. His monthly expenses are ${rm(monthlyExp)}. Find his correct monthly cash flow (convert the bonus to a monthly amount first).`, `Hafiz memperoleh ${rm(monthlyInc)} sebulan, ditambah bonus tahunan ${rm(annualBonus)}. Perbelanjaan bulanannya ialah ${rm(monthlyExp)}. Cari aliran tunai bulanannya yang betul (tukar bonus itu kepada jumlah bulanan dahulu).`),
         a: T(`${rm(cf)} (not ${rm(wrongCf)}, which wrongly adds the whole annual bonus into one month)`, `${rm(cf)} (bukan ${rm(wrongCf)}, yang secara salah menambah keseluruhan bonus tahunan ke dalam satu bulan)`),
-        w: T(`$${rm(monthlyInc)} + ${rm(annualBonus)} \\div 12 - ${rm(monthlyExp)}$`),
+        w: W(T(`Monthly share of the bonus = ${rm(annualBonus)} ÷ 12 = ${rm(annualBonus / 12)}`, `Bahagian bulanan bonus = ${rm(annualBonus)} ÷ 12 = ${rm(annualBonus / 12)}`), T(`Monthly income = ${rm(monthlyInc)} + ${rm(annualBonus / 12)} = ${rm(trueMonthlyInc)}`, `Pendapatan bulanan = ${rm(monthlyInc)} + ${rm(annualBonus / 12)} = ${rm(trueMonthlyInc)}`), T(`Cash flow = ${rm(trueMonthlyInc)} − ${rm(monthlyExp)} = ${rmS(cf)}`, `Aliran tunai = ${rm(trueMonthlyInc)} − ${rm(monthlyExp)} = ${rmS(cf)}`)),
         sp: 'm',
       };
     },
@@ -1834,7 +2009,8 @@
       const diff = actual - target;
       return {
         q: T(`Alia's monthly income is ${rm(inc)} and her expenses are ${rm(exp)}. Her target is to save at least ${targetPct}% of her income each month. Does she meet this target? By how much is she over or short?`, `Pendapatan bulanan Alia ialah ${rm(inc)} dan perbelanjaannya ialah ${rm(exp)}. Sasarannya ialah menyimpan sekurang-kurangnya ${targetPct}% daripada pendapatannya setiap bulan. Adakah dia mencapai sasaran ini? Berapakah lebihan atau kekurangannya?`),
-        a: T(`Actual savings ${rm(actual)}, target ${rm(target)}: she is ${diff >= 0 ? `over by ${rm(diff)}` : `short by ${rm(-diff)}`}`, `Simpanan sebenar ${rm(actual)}, sasaran ${rm(target)}: dia ${diff >= 0 ? `melebihi sebanyak ${rm(diff)}` : `kurang sebanyak ${rm(-diff)}`}`),
+        a: T(`Actual savings ${rmS(actual)}, target ${rm(target)}: she is ${diff >= 0 ? `over by ${rm(diff)}` : `short by ${rm(-diff)}`}`, `Simpanan sebenar ${rmS(actual)}, sasaran ${rm(target)}: dia ${diff >= 0 ? `melebihi sebanyak ${rm(diff)}` : `kurang sebanyak ${rm(-diff)}`}`),
+        w: W(T(`Actual savings = ${rm(inc)} − ${rm(exp)} = ${rmS(actual)}`, `Simpanan sebenar = ${rm(inc)} − ${rm(exp)} = ${rmS(actual)}`), T(`Target = ${targetPct}% × ${rm(inc)} = ${rm(target)}`, `Sasaran = ${targetPct}% × ${rm(inc)} = ${rm(target)}`), T(`${rmS(actual)} − ${rm(target)} = ${rmS(diff)}: ${diff >= 0 ? 'target met' : 'short of the target'}`, `${rmS(actual)} − ${rm(target)} = ${rmS(diff)}: ${diff >= 0 ? 'sasaran dicapai' : 'tidak mencapai sasaran'}`)),
         sp: 'm',
       };
     },
@@ -1847,6 +2023,7 @@
       return {
         q: T(`Kumar's monthly expenses are: ${items.map((c, i) => `${c[0].en} ${rm(vals[i])}`).join(', ')}. Find (a) his total fixed expenses, (b) his total variable expenses.`, `Perbelanjaan bulanan Kumar ialah: ${items.map((c, i) => `${c[0].ms} ${rm(vals[i])}`).join(', ')}. Cari (a) jumlah perbelanjaan tetapnya, (b) jumlah perbelanjaan boleh ubahnya.`),
         a: T(`(a) ${rm(fixedTot)} (b) ${rm(varTot)}`),
+        w: W(...[['fixed', '(a)', fixedTot], ['variable', '(b)', varTot]].map(([k, tag, tot]) => { const its = items.map((c, i) => [c, vals[i]]).filter(([c]) => c[3] === k); return T(`${tag} ${k === 'fixed' ? 'Fixed' : 'Variable'}: ${its.length ? its.map(([c, v]) => `${c[0].en} ${rm(v)}`).join(' + ') : 'none'} = ${rm(tot)}`, `${tag} ${k === 'fixed' ? 'Tetap' : 'Boleh ubah'}: ${its.length ? its.map(([c, v]) => `${c[0].ms} ${rm(v)}`).join(' + ') : 'tiada'} = ${rm(tot)}`); })),
         sp: 'm',
       };
     },
@@ -1860,6 +2037,7 @@
       return {
         q: T(`A student lists Daniel's monthly expenses as ${items.map((c, i) => `${c[0].en} ${rm(vals[i])}`).join(' and ')}, giving a total of ${rm(wrongTot)}. This ignores his loan instalment of ${rm(loan)}. Find the correct total monthly expenses.`, `Seorang pelajar menyenaraikan perbelanjaan bulanan Daniel sebagai ${items.map((c, i) => `${c[0].ms} ${rm(vals[i])}`).join(' dan ')}, memberikan jumlah ${rm(wrongTot)}. Ini mengabaikan ansuran pinjamannya sebanyak ${rm(loan)}. Cari jumlah perbelanjaan bulanan yang betul.`),
         a: T(`${rm(correctTot)}`),
+        w: W(T('A loan instalment is a fixed expense and must be included.', 'Ansuran pinjaman ialah perbelanjaan tetap dan mesti dimasukkan.'), `${rm(wrongTot)} + ${rm(loan)} = ${rm(correctTot)}`),
         sp: 'm',
       };
     },
@@ -1876,6 +2054,7 @@
       return {
         q: T(`To save more, a student cuts needs (${rm(needsAmt)}) by ${cutPct}%, keeping wants (${rm(wantsAmt)}) the same, giving new total expenses of ${rm(round(wrongExp, 2))}. Explain why this is poor financial planning, and find the total expenses if wants are cut by ${cutPct}% instead (keeping needs the same).`, `Untuk menyimpan lebih banyak, seorang pelajar mengurangkan keperluan (${rm(needsAmt)}) sebanyak ${cutPct}%, mengekalkan kehendak (${rm(wantsAmt)}) tidak berubah, memberikan jumlah perbelanjaan baharu ${rm(round(wrongExp, 2))}. Terangkan mengapa ini perancangan kewangan yang kurang baik, dan cari jumlah perbelanjaan jika kehendak dikurangkan ${cutPct}% sebaliknya (keperluan dikekalkan).`),
         a: T(`Cutting needs (essential expenses) is risky and often not possible; wants should be cut first. New total with wants cut: ${rm(round(correctExp, 2))}`, `Mengurangkan keperluan (perbelanjaan penting) adalah berisiko dan selalunya tidak boleh dilakukan; kehendak patut dikurangkan dahulu. Jumlah baharu dengan kehendak dikurangkan: ${rm(round(correctExp, 2))}`),
+        w: W(T('Needs (food, rent, bills) are essential; wants are cut first.', 'Keperluan (makanan, sewa, bil) adalah penting; kehendak dikurangkan dahulu.'), T(`Wants after a ${cutPct}% cut = ${rm(wantsAmt)} × ${n((100 - cutPct) / 100)} = ${rm(round(wantsAmt * (1 - cutPct / 100), 2))}`, `Kehendak selepas dikurangkan ${cutPct}% = ${rm(wantsAmt)} × ${n((100 - cutPct) / 100)} = ${rm(round(wantsAmt * (1 - cutPct / 100), 2))}`), T(`New total = ${rm(needsAmt)} + ${rm(round(wantsAmt * (1 - cutPct / 100), 2))} = ${rm(round(correctExp, 2))}`, `Jumlah baharu = ${rm(needsAmt)} + ${rm(round(wantsAmt * (1 - cutPct / 100), 2))} = ${rm(round(correctExp, 2))}`)),
         sp: 'l',
       };
     },
@@ -1890,6 +2069,7 @@
       return {
         q: T(`Amir's monthly income is ${rm(monthlyInc)} and his regular monthly expenses are ${rm(monthlyExp)}. He also pays ${rm(annualOneOff)} once a year for ${item.en}. (a) Find his monthly cash flow if this one-off expense is spread evenly across the year. (b) Explain why ignoring it (as in a naive monthly cash flow of ${rmS(naiveMonthlyCF)}) could cause a problem later.`, `Pendapatan bulanan Amir ialah ${rm(monthlyInc)} dan perbelanjaan tetap bulanannya ialah ${rm(monthlyExp)}. Dia juga membayar ${rm(annualOneOff)} sekali setahun untuk ${item.ms}. (a) Cari aliran tunai bulanannya jika perbelanjaan sekali ini dibahagikan sama rata sepanjang tahun. (b) Terangkan mengapa mengabaikannya (seperti aliran tunai bulanan naif ${rmS(naiveMonthlyCF)}) boleh menyebabkan masalah kemudian.`),
         a: T(`(a) ${rmS(round(properMonthlyCF, 2))} (b) Ignoring the one-off expense overstates the monthly surplus; when the annual bill is due, there may not be enough saved to cover it.`, `(a) ${rmS(round(properMonthlyCF, 2))} (b) Mengabaikan perbelanjaan sekali ini melebih-lebihkan lebihan bulanan; apabila bil tahunan perlu dibayar, simpanan mungkin tidak mencukupi untuk menampungnya.`),
+        w: W(T(`(a) Monthly share = ${rm(annualOneOff)} ÷ 12 = ${rm(annualOneOff / 12)}`, `(a) Bahagian bulanan = ${rm(annualOneOff)} ÷ 12 = ${rm(annualOneOff / 12)}`), T(`Cash flow = ${rm(monthlyInc)} − ${rm(monthlyExp)} − ${rm(annualOneOff / 12)} = ${rmS(round(properMonthlyCF, 2))}`, `Aliran tunai = ${rm(monthlyInc)} − ${rm(monthlyExp)} − ${rm(annualOneOff / 12)} = ${rmS(round(properMonthlyCF, 2))}`), T(`(b) Without it, each month looks ${rm(annualOneOff / 12)} better than it really is, and ${rm(annualOneOff)} may not be ready when the bill is due.`, `(b) Tanpanya, setiap bulan kelihatan ${rm(annualOneOff / 12)} lebih baik daripada sebenarnya, dan ${rm(annualOneOff)} mungkin tidak tersedia apabila bil perlu dibayar.`)),
         sp: 'l',
       };
     },
@@ -1904,6 +2084,7 @@
       return {
         q: T(`Sarah's monthly income is ${rm(inc)}. She budgets ${needsPct}% for needs, ${wantsPct}% for wants, and the rest for savings. (a) Find her monthly savings amount. (b) She wants to save ${rm(goal)} for a deposit. How many months will it take at this rate?`, `Pendapatan bulanan Sarah ialah ${rm(inc)}. Dia membelanjawankan ${needsPct}% untuk keperluan, ${wantsPct}% untuk kehendak, dan selebihnya untuk simpanan. (a) Cari jumlah simpanan bulanannya. (b) Dia mahu menyimpan ${rm(goal)} untuk deposit. Berapa lama masa yang diambil pada kadar ini?`),
         a: T(`(a) ${rm(monthlySaving)} (${savingsPct}%) (b) ${monthsNeeded} months`, `(a) ${rm(monthlySaving)} (${savingsPct}%) (b) ${monthsNeeded} bulan`),
+        w: W(T(`(a) Savings = 100% − ${needsPct}% − ${wantsPct}% = ${savingsPct}%; ${savingsPct}% × ${rm(inc)} = ${rm(monthlySaving)}`, `(a) Simpanan = 100% − ${needsPct}% − ${wantsPct}% = ${savingsPct}%; ${savingsPct}% × ${rm(inc)} = ${rm(monthlySaving)}`), Number.isInteger(goal / monthlySaving) ? T(`(b) ${rm(goal)} ÷ ${rm(monthlySaving)} = ${monthsNeeded} months`, `(b) ${rm(goal)} ÷ ${rm(monthlySaving)} = ${monthsNeeded} bulan`) : T(`(b) ${rm(goal)} ÷ ${rm(monthlySaving)} ≈ ${n(round(goal / monthlySaving, 2))}; round up (after ${monthsNeeded - 1} months the goal is not yet reached): ${monthsNeeded} months`, `(b) ${rm(goal)} ÷ ${rm(monthlySaving)} ≈ ${n(round(goal / monthlySaving, 2))}; bundarkan ke atas (selepas ${monthsNeeded - 1} bulan matlamat belum dicapai): ${monthsNeeded} bulan`)),
         sp: 'l',
       };
     },
@@ -1925,6 +2106,7 @@
       return {
         q: T(`If ${correct.en}, what is the correct fix?<br>${f('en')}`, `Jika ${correct.ms}, apakah pembetulan yang betul?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`Cash flow = total income − total expenses, with every item included and all in the same time unit; so the fix is: ${correct.ans.en}.`, `Aliran tunai = jumlah pendapatan − jumlah perbelanjaan, dengan semua item dimasukkan dan dalam unit masa yang sama; maka pembetulannya: ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -1934,6 +2116,8 @@
   /* =============================================================================== 10.3 (enrichment) */
   const FVFORM = T('Future value $= P(1 + r)^n$, where $P$ is the principal, $r$ is the annual growth rate (as a decimal) and $n$ is the number of years.', 'Nilai masa depan $= P(1 + r)^n$, dengan $P$ ialah prinsipal, $r$ ialah kadar pertumbuhan tahunan (sebagai perpuluhan) dan $n$ ialah bilangan tahun.');
   const fv = (P, rPct, n) => P * Math.pow(1 + rPct / 100, n);
+  /** "Future value = P(1 + r)^n = RM…" – one working line; pre is a prefix string or {en, ms} */
+  const fvLine = (P, rPct, nY, pre) => { const p = pre ? (typeof pre === 'string' ? T(pre) : pre) : T(''); return T(`${p.en}Future value $= ${gt(P)}(1 + ${n(rPct / 100)})^{${nY}}$ = ${rm(round(fv(P, rPct, nY), 2))}`, `${p.ms}Nilai masa depan $= ${gt(P)}(1 + ${n(rPct / 100)})^{${nY}}$ = ${rm(round(fv(P, rPct, nY), 2))}`); };
 
   const g103e = [
     // (1) direct compute: future value from supplied compound-growth formula
@@ -1943,7 +2127,7 @@
       return {
         q: T(`${FVFORM.en} Ravi invests ${rm(P)} at an annual growth rate of ${rPct}% for ${nY} years. Find the future value.`, `${FVFORM.ms} Ravi melabur ${rm(P)} pada kadar pertumbuhan tahunan ${rPct}% selama ${nY} tahun. Cari nilai masa depannya.`),
         a: T(`${rm(val)}`),
-        w: T(`$${P}(1 + ${n(rPct / 100)})^${nY}$`),
+        w: fvLine(P, rPct, nY),
         sp: 's',
       };
     },
@@ -1954,7 +2138,7 @@
       return {
         q: T(`A salesperson earns a base salary of ${rm(base)} plus ${pct}% commission on sales. Find her total pay in a month with sales of ${rm(sales)}.`, `Seorang jurujual memperoleh gaji asas ${rm(base)} ditambah ${pct}% komisen ke atas jualan. Cari jumlah gajinya dalam bulan dengan jualan ${rm(sales)}.`),
         a: T(`${rm(earn)}`),
-        w: T(`${rm(base)} $+ ${n(pct / 100)} \\times ${sales}$`),
+        w: W(T(`Commission = ${pct}% × ${rm(sales)} = ${rm((sales * pct) / 100)}`, `Komisen = ${pct}% × ${rm(sales)} = ${rm((sales * pct) / 100)}`), T(`Total pay = ${rm(base)} + ${rm((sales * pct) / 100)} = ${rm(earn)}`, `Jumlah gaji = ${rm(base)} + ${rm((sales * pct) / 100)} = ${rm(earn)}`)),
         sp: 's',
       };
     },
@@ -1968,6 +2152,7 @@
       return {
         q: T(`Job $A$ pays a fixed ${rm(fixed)} a month. Job $B$ pays ${rm(base)} plus ${pct}% commission on sales. If monthly sales are ${rm(sales)}, which job pays more?`, `Kerja $A$ membayar tetap ${rm(fixed)} sebulan. Kerja $B$ membayar ${rm(base)} ditambah ${pct}% komisen ke atas jualan. Jika jualan bulanan ialah ${rm(sales)}, kerja manakah membayar lebih?`),
         a: T(better === 'tie' ? 'Both pay the same' : `Job ${better}: ${rm(better === 'A' ? fixed : commEarn)} vs ${rm(better === 'A' ? commEarn : fixed)}`, better === 'tie' ? 'Kedua-dua membayar sama' : `Kerja ${better}: ${rm(better === 'A' ? fixed : commEarn)} berbanding ${rm(better === 'A' ? commEarn : fixed)}`),
+        w: W(T(`Job $B$: ${rm(base)} + ${pct}% × ${rm(sales)} = ${rm(base)} + ${rm((sales * pct) / 100)} = ${rm(commEarn)}`, `Kerja $B$: ${rm(base)} + ${pct}% × ${rm(sales)} = ${rm(base)} + ${rm((sales * pct) / 100)} = ${rm(commEarn)}`), T(`Job $A$: ${rm(fixed)}; ${better === 'tie' ? 'the two are equal' : `Job ${better} is higher`}`, `Kerja $A$: ${rm(fixed)}; ${better === 'tie' ? 'kedua-duanya sama' : `Kerja ${better} lebih tinggi`}`)),
         sp: 's',
       };
     },
@@ -1987,6 +2172,7 @@
       return {
         q: T(`${FVFORM.en} In this formula, what does $${correct.key}$ represent?<br>${f('en')}`, `${FVFORM.ms} Dalam formula ini, apakah maksud $${correct.key}$?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`In $P(1 + r)^n$, $P$ is the starting amount, $r$ the yearly rate as a decimal and $n$ the number of years; the result is the future value. So $${correct.key}$ is ${correct.ans.en}.`, `Dalam $P(1 + r)^n$, $P$ ialah jumlah permulaan, $r$ kadar tahunan sebagai perpuluhan dan $n$ bilangan tahun; hasilnya ialah nilai masa depan. Maka $${correct.key}$ ialah ${correct.ans.ms}.`),
         sp: 's',
       };
     },
@@ -1996,6 +2182,7 @@
       return {
         q: T(`A job pays no base salary, only ${pct}% commission on sales. True or false: if there are no sales in a month, the pay for that month is RM0.`, `Satu kerja tidak membayar gaji asas, hanya komisen ${pct}% ke atas jualan. Benar atau palsu: jika tiada jualan dalam sebulan, gaji bagi bulan itu ialah RM0.`),
         a: T('True', 'Benar'),
+        w: W(T(`Pay = RM0 + ${pct}% × RM0 = RM0`, `Gaji = RM0 + ${pct}% × RM0 = RM0`), T('With no base salary, no sales means no pay.', 'Tanpa gaji asas, tiada jualan bermaksud tiada gaji.')),
         sp: 'xs',
       };
     },
@@ -2020,6 +2207,7 @@
       return {
         q: T(`For ${correct.en}, which statement is true?<br>${f('en')}`, `Bagi ${correct.ms}, kenyataan manakah yang benar?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`Fixed pay does not depend on sales, commission = rate × sales, and compound growth earns growth on earlier growth. So for ${correct.en}: ${correct.ans.en}.`, `Gaji tetap tidak bergantung pada jualan, komisen = kadar × jualan, dan pertumbuhan gabungan memperoleh pertumbuhan atas pertumbuhan terdahulu. Maka bagi ${correct.ms}: ${correct.ans.ms}.`),
         sp: 's',
       };
     },
@@ -2035,6 +2223,7 @@
       return {
         q: T(`${FVFORM.en} Farah invests ${rm(P)} at ${rPct}% a year for ${nY} years, aiming to reach ${rm(goal)}. Find the future value and state whether her goal is achieved.`, `${FVFORM.ms} Farah melabur ${rm(P)} pada ${rPct}% setahun selama ${nY} tahun, dengan sasaran mencapai ${rm(goal)}. Cari nilai masa depannya dan nyatakan sama ada matlamatnya tercapai.`),
         a: T(`${rm(val)}: ${ok ? `goal achieved, with a surplus of ${rm(round(val - goal, 2))}` : `goal not achieved, short by ${rm(round(goal - val, 2))}`}`, `${rm(val)}: ${ok ? `matlamat tercapai, dengan lebihan ${rm(round(val - goal, 2))}` : `matlamat tidak tercapai, kurang ${rm(round(goal - val, 2))}`}`),
+        w: W(fvLine(P, rPct, nY), ok ? T(`${rm(val)} − ${rm(goal)} = ${rm(round(val - goal, 2))}: goal achieved`, `${rm(val)} − ${rm(goal)} = ${rm(round(val - goal, 2))}: matlamat tercapai`) : T(`${rm(goal)} − ${rm(val)} = ${rm(round(goal - val, 2))}: goal not achieved`, `${rm(goal)} − ${rm(val)} = ${rm(round(goal - val, 2))}: matlamat tidak tercapai`)),
         sp: 'm',
       };
     },
@@ -2046,6 +2235,7 @@
       return {
         q: T(`${FVFORM.en} A student invests ${rm(P)} at ${rPct}% a year, compounded annually, for ${nY} years, and computes the future value as $${P} + ${P} \\times ${n(rPct / 100)} \\times ${nY} = ${n(round(wrongVal, 2))}$. Explain the mistake and find the correct future value.`, `${FVFORM.ms} Seorang pelajar melabur ${rm(P)} pada ${rPct}% setahun, bergabung setiap tahun, selama ${nY} tahun, dan mengira nilai masa depan sebagai $${P} + ${P} \\times ${n(rPct / 100)} \\times ${nY} = ${n(round(wrongVal, 2))}$. Terangkan kesilapan itu dan cari nilai masa depan yang betul.`),
         a: T(`The mistake: this adds simple growth on the original principal only, but compound growth earns growth on previous growth too. Correct: ${rm(correctVal)}`, `Kesilapan: ini menambah pertumbuhan mudah ke atas prinsipal asal sahaja, tetapi pertumbuhan gabungan turut memperoleh pertumbuhan ke atas pertumbuhan sebelumnya. Betul: ${rm(correctVal)}`),
+        w: W(T('Simple growth adds the same $P \\times r$ every year; compound growth multiplies by $(1 + r)$ every year, so later years also earn growth on earlier growth.', 'Pertumbuhan mudah menambah $P \\times r$ yang sama setiap tahun; pertumbuhan gabungan mendarab dengan $(1 + r)$ setiap tahun, maka tahun-tahun kemudian turut memperoleh pertumbuhan atas pertumbuhan terdahulu.'), fvLine(P, rPct, nY)),
         sp: 'm',
       };
     },
@@ -2058,7 +2248,7 @@
       return {
         q: T(`${FVFORM.en} Kumar wants his investment to grow to ${rm(target)} after ${nY} years at ${rPct}% a year. Find the principal $P$ he must invest now.`, `${FVFORM.ms} Kumar mahu pelaburannya berkembang kepada ${rm(target)} selepas ${nY} tahun pada ${rPct}% setahun. Cari prinsipal $P$ yang perlu dilaburkannya sekarang.`),
         a: T(`${rm(P)}`),
-        w: T(`$P(1 + ${n(rPct / 100)})^${nY} = ${target}$`),
+        w: W(`$P(1 + ${n(rPct / 100)})^{${nY}} = ${gt(target)}$`, `$P = \\dfrac{${gt(target)}}{${n(round(1 + rPct / 100, 2))}^{${nY}}}$`, T(`$P$ = ${rm(P)}`)),
         sp: 'm',
       };
     },
@@ -2070,7 +2260,7 @@
       return {
         q: T(`A job pays a base salary of ${rm(base)}, plus ${pct1}% commission on the first ${rm(threshold)} of sales, and ${pct2}% commission on any sales above that. Find the total pay for monthly sales of ${rm(sales)}.`, `Satu kerja membayar gaji asas ${rm(base)}, ditambah komisen ${pct1}% ke atas ${rm(threshold)} jualan yang pertama, dan komisen ${pct2}% ke atas sebarang jualan melebihi itu. Cari jumlah gaji bagi jualan bulanan ${rm(sales)}.`),
         a: T(`${rm(round(earn, 2))}`),
-        w: T(`${rm(base)} $+ ${n(pct1 / 100)} \\times ${threshold} + ${n(pct2 / 100)} \\times ${sales - threshold}$`),
+        w: W(T(`First ${rm(threshold)}: ${pct1}% × ${rm(threshold)} = ${rm((threshold * pct1) / 100)}`, `${rm(threshold)} pertama: ${pct1}% × ${rm(threshold)} = ${rm((threshold * pct1) / 100)}`), T(`Above ${rm(threshold)}: ${pct2}% × ${rm(sales - threshold)} = ${rm(((sales - threshold) * pct2) / 100)}`, `Melebihi ${rm(threshold)}: ${pct2}% × ${rm(sales - threshold)} = ${rm(((sales - threshold) * pct2) / 100)}`), T(`Total = ${rm(base)} + ${rm((threshold * pct1) / 100)} + ${rm(((sales - threshold) * pct2) / 100)} = ${rm(round(earn, 2))}`, `Jumlah = ${rm(base)} + ${rm((threshold * pct1) / 100)} + ${rm(((sales - threshold) * pct2) / 100)} = ${rm(round(earn, 2))}`)),
         sp: 'm',
       };
     },
@@ -2080,11 +2270,13 @@
       const base = r.pick([1200, 1500]), pct = r.pick([10, 12, 15]);
       const sales = r.pick([5000, 7000, 9000]);
       const commEarn = base + (sales * pct) / 100;
+      need(commEarn !== fixed); // a tie has no "job that pays more"
       const diff = Math.abs(commEarn - fixed);
       const better = commEarn > fixed ? 'B' : 'A';
       return {
         q: T(`Job $A$ pays a fixed ${rm(fixed)} a month. Job $B$ pays ${rm(base)} plus ${pct}% commission. (a) Find Job $B$'s pay if monthly sales are ${rm(sales)}. (b) Which job pays more, and by how much?`, `Kerja $A$ membayar tetap ${rm(fixed)} sebulan. Kerja $B$ membayar ${rm(base)} ditambah komisen ${pct}%. (a) Cari gaji Kerja $B$ jika jualan bulanan ialah ${rm(sales)}. (b) Kerja manakah membayar lebih, dan berapa banyak lebih?`),
         a: T(`(a) ${rm(commEarn)} (b) Job ${better}, by ${rm(round(diff, 2))}`, `(a) ${rm(commEarn)} (b) Kerja ${better}, sebanyak ${rm(round(diff, 2))}`),
+        w: W(T(`(a) ${rm(base)} + ${pct}% × ${rm(sales)} = ${rm(base)} + ${rm((sales * pct) / 100)} = ${rm(commEarn)}`), T(`(b) ${rm(Math.max(commEarn, fixed))} − ${rm(Math.min(commEarn, fixed))} = ${rm(round(diff, 2))}, so Job ${better} pays more`, `(b) ${rm(Math.max(commEarn, fixed))} − ${rm(Math.min(commEarn, fixed))} = ${rm(round(diff, 2))}, maka Kerja ${better} membayar lebih`)),
         sp: 'm',
       };
     },
@@ -2099,6 +2291,7 @@
       return {
         q: T(`As ${job.en}, Job $A$ pays ${rm(baseA)} plus ${pctA}% commission; Job $B$ pays no base salary but ${pctB}% commission on all sales. For monthly sales of ${rm(sales)}, which job pays more, and by how much?`, `Sebagai ${job.ms}, Kerja $A$ membayar ${rm(baseA)} ditambah komisen ${pctA}%; Kerja $B$ tidak membayar gaji asas tetapi komisen ${pctB}% ke atas semua jualan. Bagi jualan bulanan ${rm(sales)}, kerja manakah membayar lebih, dan berapa banyak lebih?`),
         a: T(`Job $A$: ${rm(earnA)}; Job $B$: ${rm(earnB)}; Job ${better} pays more, by ${rm(round(Math.abs(earnA - earnB), 2))}`, `Kerja $A$: ${rm(earnA)}; Kerja $B$: ${rm(earnB)}; Kerja ${better} membayar lebih, sebanyak ${rm(round(Math.abs(earnA - earnB), 2))}`),
+        w: W(T(`Job $A$: ${rm(baseA)} + ${pctA}% × ${rm(sales)} = ${rm(earnA)}`, `Kerja $A$: ${rm(baseA)} + ${pctA}% × ${rm(sales)} = ${rm(earnA)}`), T(`Job $B$: ${pctB}% × ${rm(sales)} = ${rm(earnB)}`, `Kerja $B$: ${pctB}% × ${rm(sales)} = ${rm(earnB)}`), T(`Difference = ${rm(Math.max(earnA, earnB))} − ${rm(Math.min(earnA, earnB))} = ${rm(round(Math.abs(earnA - earnB), 2))}`, `Beza = ${rm(Math.max(earnA, earnB))} − ${rm(Math.min(earnA, earnB))} = ${rm(round(Math.abs(earnA - earnB), 2))}`)),
         sp: 'm',
       };
     },
@@ -2121,6 +2314,7 @@
       return {
         q: T(`If ${correct.en}, what should be done?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang perlu dilakukan?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`Compare like with like: the same units, the same basis and the same time period. So for "${correct.en}": ${correct.ans.en}.`, `Bandingkan perkara yang setara: unit yang sama, asas yang sama dan tempoh masa yang sama. Maka bagi "${correct.ms}": ${correct.ans.ms}.`),
         sp: 'm',
       };
     },
@@ -2138,6 +2332,7 @@
       return {
         q: T(`Job $A$ pays a fixed ${rm(fixed)} a month. Job $B$ pays ${rm(base)} plus ${pct}% commission on sales. (a) Find the break-even sales at which both jobs pay the same. (b) If Amir expects monthly sales of about ${rm(expected)}, find his pay under Job $B$. (c) Which job should he choose, and why?`, `Kerja $A$ membayar tetap ${rm(fixed)} sebulan. Kerja $B$ membayar ${rm(base)} ditambah komisen ${pct}% ke atas jualan. (a) Cari jualan pulang modal di mana kedua-dua kerja membayar sama. (b) Jika Amir menjangkakan jualan bulanan sekitar ${rm(expected)}, cari gajinya di bawah Kerja $B$. (c) Kerja manakah patut dipilihnya, dan mengapa?`),
         a: T(`(a) ${rm(round(breakeven, 2))} (b) ${rm(commAtExpected)} (c) Job ${recommend}: ${recommend === 'B' ? `Job B's commission pay (${rm(commAtExpected)}) is higher than Job A's fixed pay (${rm(fixed)}) at this sales level` : `Job A's fixed pay (${rm(fixed)}) is higher than Job B's commission pay (${rm(commAtExpected)}) at this sales level`}`, `(a) ${rm(round(breakeven, 2))} (b) ${rm(commAtExpected)} (c) Kerja ${recommend}: ${recommend === 'B' ? `gaji komisen Kerja B (${rm(commAtExpected)}) lebih tinggi daripada gaji tetap Kerja A (${rm(fixed)}) pada paras jualan ini` : `gaji tetap Kerja A (${rm(fixed)}) lebih tinggi daripada gaji komisen Kerja B (${rm(commAtExpected)}) pada paras jualan ini`}`),
+        w: W(T(`(a) Break-even sales $s$: $${gt(base)} + ${n(pct / 100)}s = ${gt(fixed)}$, so $s = \\dfrac{${gt(fixed - base)}}{${n(pct / 100)}}$ = ${rm(round(breakeven, 2))}`, `(a) Jualan pulang modal $s$: $${gt(base)} + ${n(pct / 100)}s = ${gt(fixed)}$, maka $s = \\dfrac{${gt(fixed - base)}}{${n(pct / 100)}}$ = ${rm(round(breakeven, 2))}`), T(`(b) ${rm(base)} + ${pct}% × ${rm(expected)} = ${rm(commAtExpected)}`), T(`(c) ${rm(expected)} is ${expected > breakeven ? 'above' : 'below'} the break-even sales, so Job ${recommend} pays more (${rm(Math.max(commAtExpected, fixed))} vs ${rm(Math.min(commAtExpected, fixed))})`, `(c) ${rm(expected)} ${expected > breakeven ? 'melebihi' : 'di bawah'} jualan pulang modal, maka Kerja ${recommend} membayar lebih (${rm(Math.max(commAtExpected, fixed))} berbanding ${rm(Math.min(commAtExpected, fixed))})`)),
         sp: 'l',
       };
     },
@@ -2152,6 +2347,7 @@
       return {
         q: T(`${FVFORM.en} Siti invests ${rm(P)} at ${rPct}% a year, aiming for ${rm(goal)} to fund her studies. (a) Find the future value after ${nY} years. (b) Is her goal achieved? By how much is she over or short? (c) If not achieved, find the future value after ${nY2} years instead, and state whether that is enough.`, `${FVFORM.ms} Siti melabur ${rm(P)} pada ${rPct}% setahun, dengan sasaran ${rm(goal)} untuk membiayai pengajiannya. (a) Cari nilai masa depan selepas ${nY} tahun. (b) Adakah matlamatnya tercapai? Berapakah lebihan atau kekurangannya? (c) Jika tidak tercapai, cari nilai masa depan selepas ${nY2} tahun pula, dan nyatakan sama ada itu mencukupi.`),
         a: T(`(a) ${rm(val)} (b) ${ok ? `achieved, surplus ${rm(round(val - goal, 2))}` : `not achieved, short by ${rm(round(goal - val, 2))}`} (c) ${ok ? 'N/A, already achieved' : `after ${nY2} years: ${rm(val2)}, ${val2 >= goal ? 'now enough' : 'still not enough'}`}`, `(a) ${rm(val)} (b) ${ok ? `tercapai, lebihan ${rm(round(val - goal, 2))}` : `tidak tercapai, kurang ${rm(round(goal - val, 2))}`} (c) ${ok ? 'T/B, sudah tercapai' : `selepas ${nY2} tahun: ${rm(val2)}, ${val2 >= goal ? 'kini mencukupi' : 'masih tidak mencukupi'}`}`),
+        w: W(fvLine(P, rPct, nY, '(a) '), ok ? T(`(b) ${rm(val)} − ${rm(goal)} = ${rm(round(val - goal, 2))} over the goal`, `(b) ${rm(val)} − ${rm(goal)} = ${rm(round(val - goal, 2))} melebihi matlamat`) : T(`(b) ${rm(goal)} − ${rm(val)} = ${rm(round(goal - val, 2))} short`, `(b) ${rm(goal)} − ${rm(val)} = ${rm(round(goal - val, 2))} kurang`), ok ? T('(c) Not needed: the goal is already reached.', '(c) Tidak perlu: matlamat sudah tercapai.') : fvLine(P, rPct, nY2, '(c) '), ...(ok ? [] : [T(`${rm(val2)} ${val2 >= goal ? '≥' : '<'} ${rm(goal)}: ${val2 >= goal ? 'enough' : 'still not enough'}`, `${rm(val2)} ${val2 >= goal ? '≥' : '<'} ${rm(goal)}: ${val2 >= goal ? 'mencukupi' : 'masih tidak mencukupi'}`)])),
         sp: 'l',
       };
     },
@@ -2166,6 +2362,7 @@
       return {
         q: T(`${FVFORM.en} Two savings options over ${optA.nY} years: Option $A$ invests ${rm(optA.P)} at ${optA.rPct}% a year; Option $B$ invests ${rm(optB.P)} at ${optB.rPct}% a year. Both aim for a goal of ${rm(goal)}. Find the future value of each option and state which is better for reaching the goal.`, `${FVFORM.ms} Dua pilihan simpanan selama ${optA.nY} tahun: Pilihan $A$ melabur ${rm(optA.P)} pada ${optA.rPct}% setahun; Pilihan $B$ melabur ${rm(optB.P)} pada ${optB.rPct}% setahun. Kedua-duanya menyasarkan matlamat ${rm(goal)}. Cari nilai masa depan bagi setiap pilihan dan nyatakan pilihan mana yang lebih baik untuk mencapai matlamat itu.`),
         a: T(`Option $A$: ${rm(valA)}; Option $B$: ${rm(valB)}; Option ${better} is better`, `Pilihan $A$: ${rm(valA)}; Pilihan $B$: ${rm(valB)}; Pilihan ${better} adalah lebih baik`),
+        w: W(fvLine(optA.P, optA.rPct, optA.nY, T('Option $A$: ', 'Pilihan $A$: ')), fvLine(optB.P, optB.rPct, optB.nY, T('Option $B$: ', 'Pilihan $B$: ')), T(`Option ${better} gives the larger amount (${rm(Math.max(valA, valB))}${Math.max(valA, valB) >= goal ? `, which reaches ${rm(goal)}` : `, still below ${rm(goal)}`}).`, `Pilihan ${better} memberikan jumlah yang lebih besar (${rm(Math.max(valA, valB))}${Math.max(valA, valB) >= goal ? `, yang mencapai ${rm(goal)}` : `, masih di bawah ${rm(goal)}`}).`)),
         sp: 'l',
       };
     },
@@ -2189,6 +2386,7 @@
       return {
         q: T(`If ${correct.en}, what is true?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang benar?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
+        w: T(`The formula and the pay rules give an answer only when every rate, time period and rule is stated, and the break-even point only marks where two jobs pay the same. So if ${correct.en}: ${correct.ans.en}.`, `Formula dan peraturan gaji hanya memberi jawapan apabila setiap kadar, tempoh masa dan peraturan dinyatakan, dan titik pulang modal hanya menandakan tempat dua kerja membayar sama. Maka jika ${correct.ms}: ${correct.ans.ms}.`),
         sp: 'm',
       };
     },

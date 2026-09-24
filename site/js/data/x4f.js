@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const SPM = window.SPM;
-  const { need, retry, Fr } = SPM;
+  const { need, retry, Fr, n } = SPM;
   const T = SPM.L, S = SPM.svg;
   const frT = Fr.tex;
   const fr = (a, b) => Fr.make(a, b);
@@ -10,6 +10,17 @@
   const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
   const b = (en, ms, extra) => Object.assign({ en, ms }, extra);
   const cap1 = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+  const W = SPM.lines;
+  /** k/N as TeX, followed by its lowest terms when that differs ("0" when k = 0) */
+  const fq = (k, N) => { const f = frT(fr(k, N)); return k === 0 ? '0' : (f === `\\dfrac{${k}}{${N}}` ? f : `\\dfrac{${k}}{${N}} = ${f}`); };
+  /** a set in TeX, or the empty set */
+  const setT = (arr) => (arr.length ? `\\{${arr.join(', ')}\\}` : '\\varnothing');
+  /* the two definitions, used as the key line of many working steps */
+  const DEF_ME = T('Mutually exclusive means $A \\cap B = \\varnothing$, i.e. $P(A \\cap B) = 0$.', 'Saling eksklusif bermaksud $A \\cap B = \\varnothing$, iaitu $P(A \\cap B) = 0$.');
+  const DEF_IND = T('Independent means $P(A \\cap B) = P(A) \\times P(B)$.', 'Tak bersandar bermaksud $P(A \\cap B) = P(A) \\times P(B)$.');
+  const REPL_W = (replace) => (replace
+    ? T('The first item is put back and mixed, so the second draw is from exactly the same collection: the first result does not affect the second.', 'Item pertama dimasukkan semula dan dicampur, jadi cabutan kedua daripada kumpulan yang sama: keputusan pertama tidak menjejaskan yang kedua.')
+    : T('The first item is not put back, so the second draw is from a smaller, changed collection: its probabilities depend on the first result.', 'Item pertama tidak dimasukkan semula, jadi cabutan kedua daripada kumpulan yang lebih kecil dan berubah: kebarangkaliannya bergantung pada keputusan pertama.'));
 
   /* ============================================================= shared banks */
   /* containers + items drawn from them, for replacement / classification contexts */
@@ -108,7 +119,7 @@
       const ans = s.replace
         ? T('With replacement; the two draws are independent.', 'Dengan pengembalian; kedua-dua cabutan itu tak bersandar.')
         : T('Without replacement; the two draws are dependent.', 'Tanpa pengembalian; kedua-dua cabutan itu bersandar.');
-      return { q: T(`${s.en} Is this with or without replacement? Are the two draws independent or dependent?`, `${s.ms} Adakah ini dengan atau tanpa pengembalian? Adakah kedua-dua cabutan itu tak bersandar atau bersandar?`), a: ans, sp: 's' };
+      return { q: T(`${s.en} Is this with or without replacement? Are the two draws independent or dependent?`, `${s.ms} Adakah ini dengan atau tanpa pengembalian? Adakah kedua-dua cabutan itu tak bersandar atau bersandar?`), a: ans, w: W(REPL_W(s.replace)), sp: 's' };
     },
     /* classify mutually exclusive on a single-trial experiment */
     (r) => {
@@ -120,7 +131,8 @@
       const qMs = `Dalam eksperimen di mana ${ex.ms}, biar $A$ ialah peristiwa "keputusan ialah ${p1.ms}" dan $B$ ialah peristiwa "keputusan ialah ${p2.ms}". Adakah $A$ dan $B$ saling eksklusif? Berikan sebab.`;
       const aEn = me ? `Yes: no outcome in the sample space is both ${p1.en} and ${p2.en}, so $A \\cap B = \\varnothing$.` : `No: ${inter[0]} is both ${p1.en} and ${p2.en}, so $A \\cap B \\neq \\varnothing$.`;
       const aMs = me ? `Ya: tiada kesudahan dalam ruang sampel yang ${p1.ms} dan ${p2.ms} serentak, jadi $A \\cap B = \\varnothing$.` : `Tidak: ${inter[0]} ialah ${p1.ms} dan ${p2.ms} serentak, jadi $A \\cap B \\neq \\varnothing$.`;
-      return { q: T(qEn, qMs), a: T(aEn, aMs), sp: 's' };
+      const setA = range(1, ex.N).filter((v) => p1.test(v)), setB = range(1, ex.N).filter((v) => p2.test(v));
+      return { q: T(qEn, qMs), a: T(aEn, aMs), w: W(`$A = ${setT(setA)}$, $B = ${setT(setB)}$`, `$A \\cap B = ${setT(inter)}$`, DEF_ME), sp: 's' };
     },
     /* list the sample space of a small two-stage experiment */
     (r) => {
@@ -131,7 +143,8 @@
         { en: 'A fair die is rolled and a coin is tossed.', ms: 'Sebiji dadu adil digolek dan sekeping syiling dilambung.', outA: [1, 2, 3, 4, 5, 6], outB: ['H', 'T'] },
       ]);
       const pairs = s.outA.flatMap((a) => s.outB.map((bb) => `(${a}, ${bb})`));
-      return { q: T(`${s.en} List the sample space as ordered pairs.`, `${s.ms} Senaraikan ruang sampel sebagai pasangan tertib.`), a: T(`$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} outcomes)`, `$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} kesudahan)`), sp: 'm' };
+      return { q: T(`${s.en} List the sample space as ordered pairs.`, `${s.ms} Senaraikan ruang sampel sebagai pasangan tertib.`), a: T(`$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} outcomes)`, `$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} kesudahan)`),
+        w: W(T(`Pair each of the $${s.outA.length}$ outcomes of the first with each of the $${s.outB.length}$ outcomes of the second.`, `Pasangkan setiap satu daripada $${s.outA.length}$ kesudahan pertama dengan setiap satu daripada $${s.outB.length}$ kesudahan kedua.`), `$${s.outA.length} \\times ${s.outB.length} = ${pairs.length}$`), sp: 'm' };
     },
     /* counting principle: combined choices from two independent selections */
     (r) => {
@@ -142,7 +155,7 @@
         (mm, kk) => ({ en: `There are ${mm} bus routes from town $P$ to town $Q$, and ${kk} train routes from town $Q$ to town $R$. Travelling by bus then train, how many different combined routes from $P$ to $R$ are there?`, ms: `Terdapat ${mm} laluan bas dari bandar $P$ ke bandar $Q$, dan ${kk} laluan tren dari bandar $Q$ ke bandar $R$. Dengan menaiki bas kemudian tren, berapakah bilangan laluan gabungan yang berbeza dari $P$ ke $R$?` }),
       ]);
       const c = ctx(m, k);
-      return { q: T(c.en, c.ms), a: T(`$${m} \\times ${k} = ${m * k}$`), sp: 's' };
+      return { q: T(c.en, c.ms), a: T(`$${m} \\times ${k} = ${m * k}$`), w: W(T(`Each of the $${m}$ first choices can go with each of the $${k}$ second choices, so multiply.`, `Setiap satu daripada $${m}$ pilihan pertama boleh digabung dengan setiap satu daripada $${k}$ pilihan kedua, jadi darab.`), `$${m} \\times ${k} = ${m * k}$`), sp: 's' };
     },
     /* true/false: independent or not, on a fixed clean scenario bank */
     (r) => {
@@ -154,7 +167,8 @@
         [T('Two different spinners are spun at the same time.', 'Dua pemutar yang berlainan diputar pada masa yang sama.'), true],
         [T('A card is drawn from a deck, replaced and the deck reshuffled, then a second card is drawn.', 'Sekeping kad ditarik daripada satu dek, dikembalikan dan dek dikocok semula, kemudian kad kedua ditarik.'), true],
       ]);
-      return { q: T(`True or false: the two events described are independent. "${c[0].en}"`, `Benar atau palsu: kedua-dua peristiwa yang diterangkan itu tak bersandar. "${c[0].ms}"`), a: c[1] ? T('True: the outcome of the first event does not affect the probabilities of the second.', 'Benar: keputusan peristiwa pertama tidak menjejaskan kebarangkalian peristiwa kedua.') : T('False: the composition available for the second event changes because of the first.', 'Palsu: komposisi yang ada untuk peristiwa kedua berubah akibat peristiwa pertama.'), sp: 's' };
+      return { q: T(`True or false: the two events described are independent. "${c[0].en}"`, `Benar atau palsu: kedua-dua peristiwa yang diterangkan itu tak bersandar. "${c[0].ms}"`), a: c[1] ? T('True: the outcome of the first event does not affect the probabilities of the second.', 'Benar: keputusan peristiwa pertama tidak menjejaskan kebarangkalian peristiwa kedua.') : T('False: the composition available for the second event changes because of the first.', 'Palsu: komposisi yang ada untuk peristiwa kedua berubah akibat peristiwa pertama.'),
+        w: W(c[1] ? T('Ask: does the first result change what can happen in the second, or its probabilities? No, so the events are independent.', 'Tanya: adakah keputusan pertama mengubah apa yang boleh berlaku dalam yang kedua, atau kebarangkaliannya? Tidak, jadi peristiwa itu tak bersandar.') : T('Ask: does the first result change what can happen in the second? Yes: one item or person is removed first, so the events are dependent.', 'Tanya: adakah keputusan pertama mengubah apa yang boleh berlaku dalam yang kedua? Ya: satu item atau orang dikeluarkan dahulu, jadi peristiwa itu bersandar.')), sp: 's' };
     },
   ];
 
@@ -167,7 +181,7 @@
       const qMs = `${s.ms} Biar $A$ ialah peristiwa "${s.h.ms} pertama berwarna ${c1.ms}" dan $B$ ialah peristiwa "${s.h.ms} kedua berwarna ${c2.ms}". Nyatakan sama ada $A$ dan $B$ (i) saling eksklusif, (ii) tak bersandar atau bersandar. Wajarkan setiap jawapan.`;
       const aEn = `(i) Not mutually exclusive: both can happen in the same trial (the first ${s.h.en.slice(0, -1)} being ${c1.en} does not stop the second being ${c2.en}), so $A \\cap B \\neq \\varnothing$. (ii) ${s.replace ? 'Independent: the first draw does not change the composition for the second draw.' : 'Dependent: removing the first item changes the composition available for the second draw.'}`;
       const aMs = `(i) Bukan saling eksklusif: kedua-duanya boleh berlaku dalam percubaan yang sama (${s.h.ms} pertama berwarna ${c1.ms} tidak menghalang yang kedua berwarna ${c2.ms}), jadi $A \\cap B \\neq \\varnothing$. (ii) ${s.replace ? 'Tak bersandar: cabutan pertama tidak mengubah komposisi untuk cabutan kedua.' : 'Bersandar: mengeluarkan item pertama mengubah komposisi yang ada untuk cabutan kedua.'}`;
-      return { q: T(qEn, qMs), a: T(aEn, aMs), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(aEn, aMs), w: W(T(`(i) The outcome "first ${c1.en}, second ${c2.en}" is possible, so $A \\cap B \\neq \\varnothing$.`, `(i) Kesudahan "pertama ${c1.ms}, kedua ${c2.ms}" adalah mungkin, jadi $A \\cap B \\neq \\varnothing$.`), T(`(ii) ${REPL_W(s.replace).en}`, `(ii) ${REPL_W(s.replace).ms}`)), sp: 'l' };
     },
     /* two-stage tree diagram: read off structure (independent, so constant branch probabilities) */
     (r) => {
@@ -181,7 +195,8 @@
       const qEn = `A bag has ${R} ${c1.en} balls and ${Bl} ${c2.en} balls. A ball is drawn, its colour noted, and it is put back before a second ball is drawn. The tree diagram shows the two draws. (a) How many outcomes (branches at the end) does the tree show? (b) List the outcomes for which the two balls have different colours.`;
       const qMs = `Sebuah beg mengandungi ${R} biji bola ${c1.ms} dan ${Bl} biji bola ${c2.ms}. Sebiji bola ditarik, warnanya dicatat, dan dikembalikan sebelum bola kedua ditarik. Gambar rajah pokok menunjukkan kedua-dua cabutan itu. (a) Berapakah bilangan kesudahan (cabang pada hujung) yang ditunjukkan oleh pokok itu? (b) Senaraikan kesudahan yang kedua-dua bola berlainan warna.`;
       const L1 = c1.en[0].toUpperCase(), L2 = c2.en[0].toUpperCase();
-      return { q: T(qEn, qMs), fig, a: T(`(a) 4 (b) $(${L1}, ${L2})$ and $(${L2}, ${L1})$`, `(a) 4 (b) $(${L1}, ${L2})$ dan $(${L2}, ${L1})$`), sp: 'm' };
+      return { q: T(qEn, qMs), fig, a: T(`(a) 4 (b) $(${L1}, ${L2})$ and $(${L2}, ${L1})$`, `(a) 4 (b) $(${L1}, ${L2})$ dan $(${L2}, ${L1})$`),
+        w: W(T('Each draw has 2 branches, so the tree ends in $2 \\times 2 = 4$ outcomes.', 'Setiap cabutan mempunyai 2 cabang, jadi pokok itu berakhir dengan $2 \\times 2 = 4$ kesudahan.'), T(`Different colours: first ${c1.en} then ${c2.en}, or first ${c2.en} then ${c1.en}.`, `Warna berlainan: pertama ${c1.ms} kemudian ${c2.ms}, atau pertama ${c2.ms} kemudian ${c1.ms}.`)), sp: 'm' };
     },
     /* read outcomes satisfying a compound condition from a two-dice table (representation, not probability) */
     (r) => {
@@ -192,7 +207,8 @@
       const pairs = rows.flatMap((d1) => cols.map((d2) => `(${d1}, ${d2})`));
       const qEn = `A red die and a blue die, both fair, are rolled together and the outcomes are recorded as ordered pairs (red, blue) in a $6 \\times 6$ table of 36 outcomes. List all the outcomes for which the red die shows ${p1.en} and the blue die shows ${p2.en}.`;
       const qMs = `Sebiji dadu merah dan sebiji dadu biru, kedua-duanya adil, digolek bersama dan kesudahannya dicatat sebagai pasangan tertib (merah, biru) dalam jadual $6 \\times 6$ bagi 36 kesudahan. Senaraikan semua kesudahan yang dadu merah menunjukkan ${p1.ms} dan dadu biru menunjukkan ${p2.ms}.`;
-      return { q: T(qEn, qMs), a: T(`$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} outcomes)`, `$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} kesudahan)`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} outcomes)`, `$\\{${pairs.join(',\\ ')}\\}$ (${pairs.length} kesudahan)`),
+        w: W(T(`Red die, ${p1.en}: $${setT(rows)}$; blue die, ${p2.en}: $${setT(cols)}$`, `Dadu merah, ${p1.ms}: $${setT(rows)}$; dadu biru, ${p2.ms}: $${setT(cols)}$`), T(`Pair every red value with every blue value: $${rows.length} \\times ${cols.length} = ${pairs.length}$ outcomes.`, `Pasangkan setiap nilai merah dengan setiap nilai biru: $${rows.length} \\times ${cols.length} = ${pairs.length}$ kesudahan.`)), sp: 'm' };
     },
     /* Venn-diagram classification: mutually exclusive or not, from region counts */
     (r) => {
@@ -210,7 +226,7 @@
       const qMs = `Gambar rajah Venn menunjukkan bilangan murid dalam sebuah kelas seramai ${tot} orang, dengan $A$ ialah peristiwa "bermain ${sp1.ms}" dan $B$ ialah peristiwa "bermain ${sp2.ms}". Nyatakan $n(A \\cap B)$ dan seterusnya katakan sama ada $A$ dan $B$ saling eksklusif.`;
       const aEn = both === 0 ? `$n(A \\cap B) = 0$; $A$ and $B$ are mutually exclusive.` : `$n(A \\cap B) = ${both}$; $A$ and $B$ are not mutually exclusive.`;
       const aMs = both === 0 ? `$n(A \\cap B) = 0$; $A$ dan $B$ saling eksklusif.` : `$n(A \\cap B) = ${both}$; $A$ dan $B$ bukan saling eksklusif.`;
-      return { q: T(qEn, qMs), fig, a: T(aEn, aMs), sp: 's' };
+      return { q: T(qEn, qMs), fig, a: T(aEn, aMs), w: W(T(`$n(A \\cap B)$ is the number in the overlap of the two circles: $${both}$.`, `$n(A \\cap B)$ ialah bilangan dalam kawasan pertindihan dua bulatan: $${both}$.`), both === 0 ? T('No student plays both, so $A \\cap B = \\varnothing$.', 'Tiada murid bermain kedua-duanya, jadi $A \\cap B = \\varnothing$.') : T(`$${both}$ students play both, so $A \\cap B \\neq \\varnothing$.`, `$${both}$ orang murid bermain kedua-duanya, jadi $A \\cap B \\neq \\varnothing$.`)), sp: 's' };
     },
     /* analyse dependence in a described (non-mechanical) scenario */
     (r) => {
@@ -219,19 +235,23 @@
         [T('A student is chosen at random from a school. $A$: the student studies in Form 4. $B$: the student is a prefect.', 'Seorang murid dipilih secara rawak daripada sebuah sekolah. $A$: murid itu belajar di Tingkatan 4. $B$: murid itu ialah pengawas.'), 'general'],
         [T('A card numbered $1$ to $9$ is drawn at random. $A$: the number is odd. $B$: the same number is even.', 'Sekeping kad bernombor $1$ hingga $9$ dipilih secara rawak. $A$: nombor itu ganjil. $B$: nombor yang sama itu genap.'), 'oddeven9'],
       ]);
-      let aEn, aMs;
+      let aEn, aMs, wl;
       if (c[1] === 'die20') {
+        wl = [`$A = \\{4, 8, 12, 16, 20\\}$, $B = \\{5, 10, 15, 20\\}$, $A \\cap B = \\{20\\}$`,
+          T('Checking: $P(A) \\times P(B) = \\dfrac{5}{20} \\times \\dfrac{4}{20} = \\dfrac{1}{20} = P(A \\cap B)$, so here they turn out to be independent, which the description alone does not tell us.', 'Semakan: $P(A) \\times P(B) = \\dfrac{5}{20} \\times \\dfrac{4}{20} = \\dfrac{1}{20} = P(A \\cap B)$, jadi di sini ia ternyata tak bersandar, sesuatu yang tidak diberitahu oleh penerangan sahaja.')];
         const both = range(1, 20).filter((v) => v % 4 === 0 && v % 5 === 0);
         aEn = `Not mutually exclusive: $A \\cap B = \\{${both.join(', ')}\\} \\neq \\varnothing$ (a multiple of 20 is a multiple of both). This is about the same trial, so independence would need to be checked by comparing $P(A \\cap B)$ with $P(A)P(B)$, not assumed.`;
         aMs = `Bukan saling eksklusif: $A \\cap B = \\{${both.join(', ')}\\} \\neq \\varnothing$ (gandaan 20 ialah gandaan kedua-duanya). Ini melibatkan percubaan yang sama, jadi ketidaksandaran perlu disemak dengan membandingkan $P(A \\cap B)$ dengan $P(A)P(B)$, bukan diandaikan.`;
       } else if (c[1] === 'oddeven9') {
+        wl = [`$A = \\{1, 3, 5, 7, 9\\}$, $B = \\{2, 4, 6, 8\\}$, $A \\cap B = \\varnothing$`, `$P(A) \\times P(B) = \\dfrac{5}{9} \\times \\dfrac{4}{9} = \\dfrac{20}{81} \\neq 0 = P(A \\cap B)$`];
         aEn = `Mutually exclusive: no number is both odd and even, so $A \\cap B = \\varnothing$. They are not independent: knowing $A$ occurred tells us for certain that $B$ did not, so $P(B \\mid A) = 0 \\neq P(B)$.`;
         aMs = `Saling eksklusif: tiada nombor yang ganjil dan genap serentak, jadi $A \\cap B = \\varnothing$. Ia bukan tak bersandar: mengetahui $A$ berlaku memberitahu kita dengan pasti $B$ tidak berlaku, jadi $P(B \\mid A) = 0 \\neq P(B)$.`;
       } else {
+        wl = [DEF_ME, DEF_IND, T('No numbers are given, so $P(A \\cap B)$ and $P(A)P(B)$ cannot be compared.', 'Tiada nombor diberi, jadi $P(A \\cap B)$ dan $P(A)P(B)$ tidak dapat dibandingkan.')];
         aEn = `These events can overlap (a Form 4 student can be a prefect), so they are not mutually exclusive. Whether they are independent cannot be decided from the description alone; it must be checked against real data by comparing $P(A \\cap B)$ with $P(A)P(B)$.`;
         aMs = `Peristiwa ini boleh bertindih (seorang murid Tingkatan 4 boleh menjadi pengawas), jadi ia bukan saling eksklusif. Sama ada ia tak bersandar tidak dapat ditentukan hanya daripada penerangan; ia perlu disemak dengan data sebenar dengan membandingkan $P(A \\cap B)$ dengan $P(A)P(B)$.`;
       }
-      return { q: T(`${c[0].en} Are $A$ and $B$ mutually exclusive? Can you tell, from the description alone, whether $A$ and $B$ are independent? Explain.`, `${c[0].ms} Adakah $A$ dan $B$ saling eksklusif? Bolehkah anda tentukan, daripada penerangan sahaja, sama ada $A$ dan $B$ tak bersandar? Terangkan.`), a: T(aEn, aMs), sp: 'm' };
+      return { q: T(`${c[0].en} Are $A$ and $B$ mutually exclusive? Can you tell, from the description alone, whether $A$ and $B$ are independent? Explain.`, `${c[0].ms} Adakah $A$ dan $B$ saling eksklusif? Bolehkah anda tentukan, daripada penerangan sahaja, sama ada $A$ dan $B$ tak bersandar? Terangkan.`), a: T(aEn, aMs), w: W(...wl), sp: 'm' };
     },
   ];
 
@@ -264,7 +284,7 @@
           T('A bag has 3 red and 2 blue balls. Two balls are drawn without replacement. $A$: the first ball is red. $B$: the second ball is red. $A \\cap B \\neq \\varnothing$ (both can be red), so not mutually exclusive. $P(A) = P(B) = \\dfrac{3}{5}$, so $P(A)P(B) = \\dfrac{9}{25}$, but $P(A \\cap B) = \\dfrac{3}{5} \\times \\dfrac{2}{4} = \\dfrac{3}{10} \\neq \\dfrac{9}{25}$, so not independent either.', 'Sebuah beg mengandungi 3 biji bola merah dan 2 biji bola biru. Dua biji bola ditarik tanpa pengembalian. $A$: bola pertama merah. $B$: bola kedua merah. $A \\cap B \\neq \\varnothing$ (kedua-duanya boleh merah), jadi bukan saling eksklusif. $P(A) = P(B) = \\dfrac{3}{5}$, jadi $P(A)P(B) = \\dfrac{9}{25}$, tetapi $P(A \\cap B) = \\dfrac{3}{5} \\times \\dfrac{2}{4} = \\dfrac{3}{10} \\neq \\dfrac{9}{25}$, jadi ia bukan tak bersandar juga.'),
         ],
       ]);
-      return { q: c[0], a: c[1], sp: 'l' };
+      return { q: c[0], a: c[1], w: W(DEF_ME, DEF_IND, T('Check each definition separately with the example: one can hold without the other.', 'Semak setiap takrif secara berasingan dengan contoh itu: satu boleh dipenuhi tanpa yang lain.')), sp: 'l' };
     },
     /* full numeric classification, mutually exclusive AND independent, verified by computation */
     (r) => {
@@ -280,7 +300,9 @@
       const qMs = `Dalam eksperimen di mana ${ex.ms}, biar $A$ ialah peristiwa "keputusan ialah ${p1.ms}" dan $B$ ialah peristiwa "keputusan ialah ${p2.ms}". Tentukan, dengan kerja penuh, sama ada $A$ dan $B$ (i) saling eksklusif dan (ii) tak bersandar.`;
       const aEn = `$P(A) = ${frT(PA)}$, $P(B) = ${frT(PB)}$, $P(A \\cap B) = ${frT(PAB)}$. (i) ${me ? 'Mutually exclusive, since $A \\cap B = \\varnothing$.' : 'Not mutually exclusive, since $A \\cap B \\neq \\varnothing$.'} (ii) $P(A) \\times P(B) = ${frT(Fr.mul(PA, PB))}$, ${indep ? 'which equals $P(A \\cap B)$, so $A$ and $B$ are independent.' : 'which does not equal $P(A \\cap B)$, so $A$ and $B$ are not independent.'}`;
       const aMs = `$P(A) = ${frT(PA)}$, $P(B) = ${frT(PB)}$, $P(A \\cap B) = ${frT(PAB)}$. (i) ${me ? 'Saling eksklusif, kerana $A \\cap B = \\varnothing$.' : 'Bukan saling eksklusif, kerana $A \\cap B \\neq \\varnothing$.'} (ii) $P(A) \\times P(B) = ${frT(Fr.mul(PA, PB))}$, ${indep ? 'yang sama dengan $P(A \\cap B)$, jadi $A$ dan $B$ tak bersandar.' : 'yang tidak sama dengan $P(A \\cap B)$, jadi $A$ dan $B$ bukan tak bersandar.'}`;
-      return { q: T(qEn, qMs), a: T(aEn, aMs), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(aEn, aMs),
+        w: W(`$A = ${setT(A)}$, $B = ${setT(B)}$, $A \\cap B = ${setT(inter)}$`, `$P(A) = \\dfrac{${A.length}}{${ex.N}} = ${frT(PA)}$, $P(B) = \\dfrac{${B.length}}{${ex.N}} = ${frT(PB)}$, $P(A \\cap B) = ${inter.length ? `\\dfrac{${inter.length}}{${ex.N}} = ` : ''}${frT(PAB)}$`,
+          `$P(A) \\times P(B) = ${frT(PA)} \\times ${frT(PB)} = ${frT(Fr.mul(PA, PB))} ${indep ? '=' : '\\neq'} ${frT(PAB)} = P(A \\cap B)$`), sp: 'l' };
     },
     /* MCQ: match a labelled pair of events to a stated target relationship */
     (r) => {
@@ -302,7 +324,13 @@
       const tabMs = SPM.table(PAIRS.map((p) => [p[0], p[1].ms]), { head: ['Pasangan', 'Penerangan'] });
       const qEn = `Four pairs of events are described below.${tab}Which pair, P, Q, R or S, illustrates events that are ${tgt[1].en}? Justify your choice with a brief calculation.`;
       const qMs = `Empat pasangan peristiwa diterangkan di bawah.${tabMs}Pasangan yang manakah, P, Q, R atau S, menggambarkan peristiwa yang ${tgt[1].ms}? Wajarkan pilihan anda dengan pengiraan ringkas.`;
-      return { q: T(qEn, qMs), a: T(`${correct[0]}: ${correct[1].en}`, `${correct[0]}: ${correct[1].ms}`), sp: 'm' };
+      const why = {
+        me_not_indep: `$A \\cap B = \\varnothing$; $P(A)P(B) = \\dfrac{1}{6} \\times \\dfrac{1}{6} = \\dfrac{1}{36} \\neq 0 = P(A \\cap B)$`,
+        indep_not_me: `$A \\cap B = \\{HH\\} \\neq \\varnothing$; $P(A)P(B) = \\dfrac{1}{2} \\times \\dfrac{1}{2} = \\dfrac{1}{4} = P(HH)$`,
+        neither: `$A \\cap B = \\{3, 4\\} \\neq \\varnothing$; $P(A)P(B) = \\dfrac{4}{6} \\times \\dfrac{2}{6} = \\dfrac{2}{9} \\neq \\dfrac{1}{3} = P(A \\cap B)$`,
+        both: `$B = \\varnothing$, so $A \\cap B = \\varnothing$; $P(A)P(B) = \\dfrac{1}{2} \\times 0 = 0 = P(A \\cap B)$`,
+      }[tgt[0]];
+      return { q: T(qEn, qMs), a: T(`${correct[0]}: ${correct[1].en}`, `${correct[0]}: ${correct[1].ms}`), w: W(DEF_ME, DEF_IND, T(`${correct[0]}: ${why}`, `${correct[0]}: ${why.replace(', so ', ', jadi ')}`)), sp: 'm' };
     },
     /* true/false: general claims relating the two properties */
     (r) => {
@@ -312,7 +340,7 @@
         [T('Two events that are not mutually exclusive must be independent.', 'Dua peristiwa yang bukan saling eksklusif mesti tak bersandar.'), false, T('False: on one die roll, $A = \\{1,2,3,4\\}$ and $B = \\{3,4\\}$ overlap ($A \\cap B \\neq \\varnothing$) but $P(A)P(B) = \\dfrac{2}{9} \\neq \\dfrac{1}{3} = P(A \\cap B)$, so they are not independent.', 'Palsu: pada satu golekan dadu, $A = \\{1,2,3,4\\}$ dan $B = \\{3,4\\}$ bertindih ($A \\cap B \\neq \\varnothing$) tetapi $P(A)P(B) = \\dfrac{2}{9} \\neq \\dfrac{1}{3} = P(A \\cap B)$, jadi ia bukan tak bersandar.')],
         [T('Two dependent events must be mutually exclusive.', 'Dua peristiwa bersandar mesti saling eksklusif.'), false, T('False: drawing two balls without replacement, $A$: first ball red, $B$: second ball red, are dependent but not mutually exclusive — both can be red in the same trial.', 'Palsu: menarik dua biji bola tanpa pengembalian, $A$: bola pertama merah, $B$: bola kedua merah, adalah bersandar tetapi bukan saling eksklusif — kedua-duanya boleh merah dalam percubaan yang sama.')],
       ]);
-      return { q: T(`True or false? "${st[0].en}" Justify your answer.`, `Benar atau palsu? "${st[0].ms}" Wajarkan jawapan anda.`), a: T(st[2].en, st[2].ms), sp: 'm' };
+      return { q: T(`True or false? "${st[0].en}" Justify your answer.`, `Benar atau palsu? "${st[0].ms}" Wajarkan jawapan anda.`), a: T(st[2].en, st[2].ms), w: W(DEF_ME, DEF_IND, st[1] ? T('Compare the two conditions: the claim follows from them, so it is true.', 'Bandingkan kedua-dua syarat: dakwaan itu terhasil daripadanya, jadi ia benar.') : T('One counter-example is enough to show the claim is false.', 'Satu contoh penyangkal sudah cukup untuk menunjukkan dakwaan itu palsu.')), sp: 'm' };
     },
     /* construct a degenerate probability-zero example showing both properties can coincide */
     (r) => {
@@ -322,7 +350,7 @@
         [T('a card is drawn at random from a normal deck of 52 playing cards', 'sekeping kad dipilih secara rawak daripada satu dek 52 keping daun terup biasa'), T('the card drawn is a joker', 'kad yang ditarik ialah joker')],
       ]);
       const ex = c[0], impossible = c[1];
-      return { q: T(`Suppose ${ex.en}. Let $B$ be an impossible event for this experiment (for example, "${impossible.en}"), so $P(B) = 0$. Explain why, for any event $A$, the pair $A$ and $B$ is both mutually exclusive and independent.`, `Andaikan ${ex.ms}. Biar $B$ ialah satu peristiwa mustahil bagi eksperimen ini (contohnya, "${impossible.ms}"), jadi $P(B) = 0$. Terangkan mengapa, bagi sebarang peristiwa $A$, pasangan $A$ dan $B$ adalah saling eksklusif dan tak bersandar pada masa yang sama.`), a: T('$B = \\varnothing$, so $A \\cap B = \\varnothing$ for any $A$: mutually exclusive. Also $P(A \\cap B) = 0 = P(A) \\times 0 = P(A)P(B)$: independent. Both definitions are satisfied only because $P(B) = 0$.', '$B = \\varnothing$, jadi $A \\cap B = \\varnothing$ bagi sebarang $A$: saling eksklusif. Juga $P(A \\cap B) = 0 = P(A) \\times 0 = P(A)P(B)$: tak bersandar. Kedua-dua takrif dipenuhi hanya kerana $P(B) = 0$.'), sp: 'm' };
+      return { q: T(`Suppose ${ex.en}. Let $B$ be an impossible event for this experiment (for example, "${impossible.en}"), so $P(B) = 0$. Explain why, for any event $A$, the pair $A$ and $B$ is both mutually exclusive and independent.`, `Andaikan ${ex.ms}. Biar $B$ ialah satu peristiwa mustahil bagi eksperimen ini (contohnya, "${impossible.ms}"), jadi $P(B) = 0$. Terangkan mengapa, bagi sebarang peristiwa $A$, pasangan $A$ dan $B$ adalah saling eksklusif dan tak bersandar pada masa yang sama.`), a: T('$B = \\varnothing$, so $A \\cap B = \\varnothing$ for any $A$: mutually exclusive. Also $P(A \\cap B) = 0 = P(A) \\times 0 = P(A)P(B)$: independent. Both definitions are satisfied only because $P(B) = 0$.', '$B = \\varnothing$, jadi $A \\cap B = \\varnothing$ bagi sebarang $A$: saling eksklusif. Juga $P(A \\cap B) = 0 = P(A) \\times 0 = P(A)P(B)$: tak bersandar. Kedua-dua takrif dipenuhi hanya kerana $P(B) = 0$.'), w: W(`$A \\cap B \\subseteq B = \\varnothing \\Rightarrow P(A \\cap B) = 0$`, `$P(A) \\times P(B) = P(A) \\times 0 = 0 = P(A \\cap B)$`), sp: 'm' };
     },
     /* critique a flawed argument */
     (r) => {
@@ -340,12 +368,13 @@
           T('The flaw is assuming $A \\cap B = \\varnothing$ forces $P(A) \\times P(B) = P(A \\cap B)$. Here $P(A) = \\dfrac{1}{2}$, $P(B) = \\dfrac{1}{3}$, so $P(A)P(B) = \\dfrac{1}{6} \\neq 0 = P(A \\cap B)$; mutually exclusive events (other than degenerate ones) are generally not independent.', 'Kesilapannya ialah menganggap $A \\cap B = \\varnothing$ memaksa $P(A) \\times P(B) = P(A \\cap B)$. Di sini $P(A) = \\dfrac{1}{2}$, $P(B) = \\dfrac{1}{3}$, jadi $P(A)P(B) = \\dfrac{1}{6} \\neq 0 = P(A \\cap B)$; peristiwa saling eksklusif (selain kes tersasar) secara amnya bukan tak bersandar.'),
         ],
       ]);
-      return { q: c[0], a: c[1], sp: 'm' };
+      return { q: c[0], a: c[1], w: W(DEF_ME, DEF_IND, T('Test the argument against the definitions with the actual probabilities.', 'Uji hujah itu dengan takrif menggunakan kebarangkalian sebenar.')), sp: 'm' };
     },
     /* the probability-zero degenerate edge case */
     (r) => ({
       q: T('A student claims: "Two events of positive probability can never be both mutually exclusive and independent." Is this true? What happens at the edge case where one event has probability 0?', 'Seorang murid mendakwa: "Dua peristiwa yang berkebarangkalian positif tidak boleh saling eksklusif dan tak bersandar pada masa yang sama." Adakah ini benar? Apakah yang berlaku pada kes sempadan apabila satu peristiwa mempunyai kebarangkalian 0?'),
       a: T('True for positive-probability events: independence needs $P(A \\cap B) = P(A)P(B) > 0$, but mutually exclusive needs $P(A \\cap B) = 0$ — these contradict unless $P(A) = 0$ or $P(B) = 0$. Edge case: if $P(B) = 0$ (an impossible event), then $A \\cap B = \\varnothing$ (mutually exclusive) and $P(A \\cap B) = 0 = P(A) \\times 0$ (independent) both hold, so the two properties coincide only in this degenerate case.', 'Benar untuk peristiwa berkebarangkalian positif: ketidaksandaran memerlukan $P(A \\cap B) = P(A)P(B) > 0$, tetapi saling eksklusif memerlukan $P(A \\cap B) = 0$ — ini bercanggah melainkan $P(A) = 0$ atau $P(B) = 0$. Kes sempadan: jika $P(B) = 0$ (peristiwa mustahil), maka $A \\cap B = \\varnothing$ (saling eksklusif) dan $P(A \\cap B) = 0 = P(A) \\times 0$ (tak bersandar) kedua-duanya berlaku, jadi kedua-dua sifat itu bertepatan hanya dalam kes tersasar ini.'),
+      w: W(T('Mutually exclusive: $P(A \\cap B) = 0$. Independent: $P(A \\cap B) = P(A)P(B)$.', 'Saling eksklusif: $P(A \\cap B) = 0$. Tak bersandar: $P(A \\cap B) = P(A)P(B)$.'), T('$P(A)P(B) = 0 \\iff P(A) = 0 \\text{ or } P(B) = 0$', '$P(A)P(B) = 0 \\iff P(A) = 0 \\text{ atau } P(B) = 0$')),
       sp: 'l',
     }),
     /* construct-your-own example against a stated target classification */
@@ -355,7 +384,12 @@
         ['independent but not mutually exclusive', 'tak bersandar tetapi bukan saling eksklusif'],
         ['neither mutually exclusive nor independent', 'bukan saling eksklusif dan bukan tak bersandar'],
       ]);
-      return { q: T(`Using a single fair die roll, construct two events $A$ and $B$ that are ${target[0]}. State $A$, $B$, and show your working.`, `Dengan menggunakan satu golekan dadu adil, bina dua peristiwa $A$ dan $B$ yang ${target[1]}. Nyatakan $A$, $B$, dan tunjukkan kerja anda.`), a: T('Any correct construction is accepted, e.g. (for mutually exclusive but dependent) $A = \\{1\\}$, $B = \\{2\\}$: $A \\cap B = \\varnothing$ but $P(A)P(B) = \\frac{1}{36} \\neq 0$; (for independent but not mutually exclusive) use two separate dice, $A$: first die is $1$, $B$: second die is $1$; (for neither) $A = \\{1,2,3,4\\}$, $B = \\{3,4\\}$ as shown above.', 'Sebarang pembinaan yang betul diterima, contohnya (bagi saling eksklusif tetapi bersandar) $A = \\{1\\}$, $B = \\{2\\}$: $A \\cap B = \\varnothing$ tetapi $P(A)P(B) = \\frac{1}{36} \\neq 0$; (bagi tak bersandar tetapi bukan saling eksklusif) guna dua biji dadu berasingan, $A$: dadu pertama $1$, $B$: dadu kedua $1$; (bagi bukan kedua-duanya) $A = \\{1,2,3,4\\}$, $B = \\{3,4\\}$ seperti di atas.'), sp: 'l' };
+      const ex8 = {
+        'mutually exclusive but dependent': T('E.g. $A = \\{1\\}$, $B = \\{2\\}$: $A \\cap B = \\varnothing$, but $P(A)P(B) = \\dfrac{1}{6} \\times \\dfrac{1}{6} = \\dfrac{1}{36} \\neq 0$.', 'Cth. $A = \\{1\\}$, $B = \\{2\\}$: $A \\cap B = \\varnothing$, tetapi $P(A)P(B) = \\dfrac{1}{6} \\times \\dfrac{1}{6} = \\dfrac{1}{36} \\neq 0$.'),
+        'independent but not mutually exclusive': T('E.g. $A = \\{1, 2\\}$, $B = \\{2, 4, 6\\}$: $A \\cap B = \\{2\\}$, and $P(A)P(B) = \\dfrac{2}{6} \\times \\dfrac{3}{6} = \\dfrac{1}{6} = P(A \\cap B)$.', 'Cth. $A = \\{1, 2\\}$, $B = \\{2, 4, 6\\}$: $A \\cap B = \\{2\\}$, dan $P(A)P(B) = \\dfrac{2}{6} \\times \\dfrac{3}{6} = \\dfrac{1}{6} = P(A \\cap B)$.'),
+        'neither mutually exclusive nor independent': T('E.g. $A = \\{1, 2, 3, 4\\}$, $B = \\{3, 4\\}$: $A \\cap B = \\{3, 4\\}$, and $P(A)P(B) = \\dfrac{4}{6} \\times \\dfrac{2}{6} = \\dfrac{2}{9} \\neq \\dfrac{1}{3}$.', 'Cth. $A = \\{1, 2, 3, 4\\}$, $B = \\{3, 4\\}$: $A \\cap B = \\{3, 4\\}$, dan $P(A)P(B) = \\dfrac{4}{6} \\times \\dfrac{2}{6} = \\dfrac{2}{9} \\neq \\dfrac{1}{3}$.'),
+      }[target[0]];
+      return { q: T(`Using a single fair die roll, construct two events $A$ and $B$ that are ${target[0]}. State $A$, $B$, and show your working.`, `Dengan menggunakan satu golekan dadu adil, bina dua peristiwa $A$ dan $B$ yang ${target[1]}. Nyatakan $A$, $B$, dan tunjukkan kerja anda.`), a: T('Any correct construction is accepted, e.g. (for mutually exclusive but dependent) $A = \\{1\\}$, $B = \\{2\\}$: $A \\cap B = \\varnothing$ but $P(A)P(B) = \\frac{1}{36} \\neq 0$; (for independent but not mutually exclusive) use two separate dice, $A$: first die is $1$, $B$: second die is $1$; (for neither) $A = \\{1,2,3,4\\}$, $B = \\{3,4\\}$ as shown above.', 'Sebarang pembinaan yang betul diterima, contohnya (bagi saling eksklusif tetapi bersandar) $A = \\{1\\}$, $B = \\{2\\}$: $A \\cap B = \\varnothing$ tetapi $P(A)P(B) = \\frac{1}{36} \\neq 0$; (bagi tak bersandar tetapi bukan saling eksklusif) guna dua biji dadu berasingan, $A$: dadu pertama $1$, $B$: dadu kedua $1$; (bagi bukan kedua-duanya) $A = \\{1,2,3,4\\}$, $B = \\{3,4\\}$ seperti di atas.'), w: W(DEF_ME, DEF_IND, ex8), sp: 'l' };
     },
     /* multi-part: classify several pairs from one shared combined experiment */
     (r) => {
@@ -370,7 +404,8 @@
           ? T('Independent: because the item is replaced and mixed back in, the composition for the second draw is exactly the same as for the first.', 'Tak bersandar: kerana item dikembalikan dan dicampur semula, komposisi untuk cabutan kedua adalah sama seperti cabutan pertama.')
           : T('Dependent: because the first item is not returned, the composition available for the second draw has changed.', 'Bersandar: kerana item pertama tidak dikembalikan, komposisi yang ada untuk cabutan kedua telah berubah.'),
       ]);
-      return { q: T(`${s.en} Answer the following.`, `${s.ms} Jawab soalan berikut.`) , a: ans, sp: 'l' };
+      return { q: T(`${s.en} Answer the following.`, `${s.ms} Jawab soalan berikut.`) , a: ans,
+        w: W(T('(a) One draw of each colour, in that order, is a possible outcome, so $A \\cap B \\neq \\varnothing$.', '(a) Satu cabutan bagi setiap warna, mengikut tertib itu, ialah kesudahan yang mungkin, jadi $A \\cap B \\neq \\varnothing$.'), T(`(b) ${REPL_W(s.replace).en}`, `(b) ${REPL_W(s.replace).ms}`)), sp: 'l' };
     },
   ];
 
@@ -388,6 +423,11 @@
     return { ex, p1, p2, A, B, uni, inter, PA: fr(A.length, ex.N), PB: fr(B.length, ex.N), PAB: fr(inter.length, ex.N), PU: fr(uni.length, ex.N) };
   }
 
+  /** set listing + the four probabilities of an addRuleCase */
+  const addW = (c) => [
+    `$A = ${setT(c.A)}$, $B = ${setT(c.B)}$`, `$A \\cap B = ${setT(c.inter)}$, $A \\cup B = ${setT(sortU(c.uni))}$`,
+    `$P(A) = ${fq(c.A.length, c.ex.N)}$, $P(B) = ${fq(c.B.length, c.ex.N)}$`, `$P(A \\cap B) = ${fq(c.inter.length, c.ex.N)}$, $P(A \\cup B) = ${fq(c.uni.length, c.ex.N)}$`];
+  const sortU = (v) => v.slice().sort((x, y) => x - y);
   const g92e = [
     /* verify the addition rule directly from an outcome table (dice sum, given at baseline) is already covered;
        here: verify from a single-trial predicate table */
@@ -395,7 +435,7 @@
       const c = addRuleCase(r);
       const qEn = `In the experiment where ${c.ex.en}, $A$ is the event "the result is ${c.p1.en}" and $B$ is the event "the result is ${c.p2.en}". Complete: $P(A) = \\underline{\\quad}$, $P(B) = \\underline{\\quad}$, $P(A \\cap B) = \\underline{\\quad}$, $P(A \\cup B) = \\underline{\\quad}$.`;
       const qMs = `Dalam eksperimen di mana ${c.ex.ms}, $A$ ialah peristiwa "keputusan ialah ${c.p1.ms}" dan $B$ ialah peristiwa "keputusan ialah ${c.p2.ms}". Lengkapkan: $P(A) = \\underline{\\quad}$, $P(B) = \\underline{\\quad}$, $P(A \\cap B) = \\underline{\\quad}$, $P(A \\cup B) = \\underline{\\quad}$.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) = ${frT(c.PA)}$, $P(B) = ${frT(c.PB)}$, $P(A \\cap B) = ${frT(c.PAB)}$, $P(A \\cup B) = ${frT(c.PU)}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$P(A) = ${frT(c.PA)}$, $P(B) = ${frT(c.PB)}$, $P(A \\cap B) = ${frT(c.PAB)}$, $P(A \\cup B) = ${frT(c.PU)}$`), w: W(...addW(c)), sp: 's' };
     },
     /* verify the addition rule numerically for one case (identity check) */
     (r) => {
@@ -403,7 +443,8 @@
       const rhs = Fr.sub(Fr.add(c.PA, c.PB), c.PAB);
       const qEn = `In the experiment where ${c.ex.en}, $A$: the result is ${c.p1.en}; $B$: the result is ${c.p2.en}. Verify that $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$ for this case.`;
       const qMs = `Dalam eksperimen di mana ${c.ex.ms}, $A$: keputusan ialah ${c.p1.ms}; $B$: keputusan ialah ${c.p2.ms}. Sahkan bahawa $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$ bagi kes ini.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) + P(B) - P(A \\cap B) = ${frT(c.PA)} + ${frT(c.PB)} - ${frT(c.PAB)} = ${frT(rhs)}$, which equals $P(A \\cup B) = ${frT(c.PU)}$. Verified.`, `$P(A) + P(B) - P(A \\cap B) = ${frT(c.PA)} + ${frT(c.PB)} - ${frT(c.PAB)} = ${frT(rhs)}$, iaitu sama dengan $P(A \\cup B) = ${frT(c.PU)}$. Disahkan.`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$P(A) + P(B) - P(A \\cap B) = ${frT(c.PA)} + ${frT(c.PB)} - ${frT(c.PAB)} = ${frT(rhs)}$, which equals $P(A \\cup B) = ${frT(c.PU)}$. Verified.`, `$P(A) + P(B) - P(A \\cap B) = ${frT(c.PA)} + ${frT(c.PB)} - ${frT(c.PAB)} = ${frT(rhs)}$, iaitu sama dengan $P(A \\cup B) = ${frT(c.PU)}$. Disahkan.`),
+        w: W(...addW(c), `$${frT(c.PA)} + ${frT(c.PB)} - ${frT(c.PAB)} = ${frT(rhs)} = P(A \\cup B)$`), sp: 'm' };
     },
     /* verify the special mutually-exclusive rule (no subtraction term) */
     (r) => {
@@ -415,7 +456,8 @@
       const PA = fr(A.length, ex.N), PB = fr(B.length, ex.N), PU = fr(uni.length, ex.N);
       const qEn = `In the experiment where ${ex.en}, $A$: the result is ${parity ? 'even' : 'odd'}; $B$: the result is ${parity ? 'odd' : 'even'}. $A$ and $B$ are mutually exclusive. Verify that $P(A \\cup B) = P(A) + P(B)$ for this case.`;
       const qMs = `Dalam eksperimen di mana ${ex.ms}, $A$: keputusan ialah ${parity ? 'genap' : 'ganjil'}; $B$: keputusan ialah ${parity ? 'ganjil' : 'genap'}. $A$ dan $B$ saling eksklusif. Sahkan bahawa $P(A \\cup B) = P(A) + P(B)$ bagi kes ini.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) + P(B) = ${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))}$, which equals $P(A \\cup B) = ${frT(PU)}$ (no outcome is counted twice, since $A \\cap B = \\varnothing$). Verified.`, `$P(A) + P(B) = ${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))}$, iaitu sama dengan $P(A \\cup B) = ${frT(PU)}$ (tiada kesudahan dikira dua kali, kerana $A \\cap B = \\varnothing$). Disahkan.`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$P(A) + P(B) = ${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))}$, which equals $P(A \\cup B) = ${frT(PU)}$ (no outcome is counted twice, since $A \\cap B = \\varnothing$). Verified.`, `$P(A) + P(B) = ${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))}$, iaitu sama dengan $P(A \\cup B) = ${frT(PU)}$ (tiada kesudahan dikira dua kali, kerana $A \\cap B = \\varnothing$). Disahkan.`),
+        w: W(`$A = ${setT(A)}$, $B = ${setT(B)}$, $A \\cup B = ${setT(range(1, ex.N))}$`, `$P(A) = ${fq(A.length, ex.N)}$, $P(B) = ${fq(B.length, ex.N)}$, $P(A \\cup B) = ${fq(uni.length, ex.N)}$`, `$${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))} = P(A \\cup B)$`), sp: 'm' };
     },
     /* verify the product rule from a completed two-stage table (independent, with-replacement) */
     (r) => {
@@ -424,7 +466,10 @@
       const PA = fr(R, N), PB = fr(Bl, N), PAB = fr(R * Bl, N * N);
       const qEn = `A ball is drawn from a bag of ${R} ${c1.en} and ${Bl} ${c2.en} balls, its colour noted, then put back before a second ball is drawn. $A$: the first ball is ${c1.en}. $B$: the second ball is ${c2.en}. Complete the table of the 4 combined outcomes and their probabilities, then verify that $P(A \\cap B) = P(A) \\times P(B)$.`;
       const qMs = `Sebiji bola ditarik daripada sebuah beg berisi ${R} biji bola ${c1.ms} dan ${Bl} biji bola ${c2.ms}, warnanya dicatat, kemudian dikembalikan sebelum bola kedua ditarik. $A$: bola pertama ${c1.ms}. $B$: bola kedua ${c2.ms}. Lengkapkan jadual 4 kesudahan gabungan dan kebarangkaliannya, kemudian sahkan bahawa $P(A \\cap B) = P(A) \\times P(B)$.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) \\times P(B) = ${frT(PA)} \\times ${frT(PB)} = ${frT(PAB)}$, which equals $P(A \\cap B)$ counted directly from the table. Verified.`, `$P(A) \\times P(B) = ${frT(PA)} \\times ${frT(PB)} = ${frT(PAB)}$, iaitu sama dengan $P(A \\cap B)$ yang dikira terus daripada jadual. Disahkan.`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$P(A) \\times P(B) = ${frT(PA)} \\times ${frT(PB)} = ${frT(PAB)}$, which equals $P(A \\cap B)$ counted directly from the table. Verified.`, `$P(A) \\times P(B) = ${frT(PA)} \\times ${frT(PB)} = ${frT(PAB)}$, iaitu sama dengan $P(A \\cap B)$ yang dikira terus daripada jadual. Disahkan.`),
+        w: W(T(`Each draw: $P(\\text{${c1.en}}) = ${frT(PA)}$, $P(\\text{${c2.en}}) = ${frT(PB)}$ (the ball is put back).`, `Setiap cabutan: $P(\\text{${c1.ms}}) = ${frT(PA)}$, $P(\\text{${c2.ms}}) = ${frT(PB)}$ (bola dikembalikan).`),
+          T(`Table: (${c1.en}, ${c1.en}) $${fq(R * R, N * N)}$; (${c1.en}, ${c2.en}) $${fq(R * Bl, N * N)}$; (${c2.en}, ${c1.en}) $${fq(Bl * R, N * N)}$; (${c2.en}, ${c2.en}) $${fq(Bl * Bl, N * N)}$`, `Jadual: (${c1.ms}, ${c1.ms}) $${fq(R * R, N * N)}$; (${c1.ms}, ${c2.ms}) $${fq(R * Bl, N * N)}$; (${c2.ms}, ${c1.ms}) $${fq(Bl * R, N * N)}$; (${c2.ms}, ${c2.ms}) $${fq(Bl * Bl, N * N)}$`),
+          T(`$A \\cap B$ is the outcome (${c1.en}, ${c2.en}): $P(A \\cap B) = ${frT(PAB)} = ${frT(PA)} \\times ${frT(PB)}$`, `$A \\cap B$ ialah kesudahan (${c1.ms}, ${c2.ms}): $P(A \\cap B) = ${frT(PAB)} = ${frT(PA)} \\times ${frT(PB)}$`)), sp: 'm' };
     },
     /* estimate P(A), P(B), P(A and B) from a given frequency table, then check the addition rule */
     (r) => {
@@ -435,7 +480,8 @@
       const nA = onlyA + both, nB = onlyB + both, nAB = both, nU = onlyA + onlyB + both;
       const qEn = `Out of ${tot} students surveyed, ${nA} like ${ctx.en} ($A$), ${nB} like ${ctx2.en} ($B$), and ${nAB} like both. Find $P(A)$, $P(B)$, $P(A \\cap B)$ and $P(A \\cup B)$ as fractions of ${tot}, and check that $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$.`;
       const qMs = `Daripada ${tot} orang murid yang ditinjau, ${nA} orang gemar ${ctx.ms} ($A$), ${nB} orang gemar ${ctx2.ms} ($B$), dan ${nAB} orang gemar kedua-duanya. Cari $P(A)$, $P(B)$, $P(A \\cap B)$ dan $P(A \\cup B)$ sebagai pecahan daripada ${tot}, dan semak bahawa $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(nAB, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$; $${nA} + ${nB} - ${nAB} = ${nU}$ students, so the rule checks out.`, `$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(nAB, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$; $${nA} + ${nB} - ${nAB} = ${nU}$ orang murid, jadi petua itu disahkan.`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(nAB, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$; $${nA} + ${nB} - ${nAB} = ${nU}$ students, so the rule checks out.`, `$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(nAB, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$; $${nA} + ${nB} - ${nAB} = ${nU}$ orang murid, jadi petua itu disahkan.`),
+        w: W(T(`$n(A \\cup B) = n(A) + n(B) - n(A \\cap B) = ${nA} + ${nB} - ${nAB} = ${nU}$ (those who like both are counted once)`, `$n(A \\cup B) = n(A) + n(B) - n(A \\cap B) = ${nA} + ${nB} - ${nAB} = ${nU}$ (yang gemar kedua-duanya dikira sekali)`), `$P(A) + P(B) - P(A \\cap B) = \\dfrac{${nA} + ${nB} - ${nAB}}{${tot}} = ${fq(nU, tot)} = P(A \\cup B)$`), sp: 'm' };
     },
   ];
 
@@ -449,7 +495,8 @@
       need(nU <= tot);
       const qEn = `In a school of ${tot} students, ${nA} join ${c1.en} ($A$) and ${nB} join ${c2.en} ($B$), and ${both} join both. Find $P(A)$, $P(B)$, $P(A \\cap B)$ and $P(A \\cup B)$. Form a conjecture relating these four values, and verify it using the numbers above.`;
       const qMs = `Di sebuah sekolah seramai ${tot} orang murid, ${nA} orang menyertai ${c1.ms} ($A$) dan ${nB} orang menyertai ${c2.ms} ($B$), dan ${both} orang menyertai kedua-duanya. Cari $P(A)$, $P(B)$, $P(A \\cap B)$ dan $P(A \\cup B)$. Buat satu konjektur yang menghubungkan keempat-empat nilai ini, dan sahkan konjektur itu menggunakan angka di atas.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(both, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$. Conjecture: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$. Check: $${n(nA)} + ${n(nB)} - ${n(both)} = ${n(nU)}$ students out of ${tot} ✓.`, `$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(both, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$. Konjektur: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$. Semakan: $${n(nA)} + ${n(nB)} - ${n(both)} = ${n(nU)}$ orang murid daripada ${tot} orang ✓.`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(both, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$. Conjecture: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$. Check: $${n(nA)} + ${n(nB)} - ${n(both)} = ${n(nU)}$ students out of ${tot} ✓.`, `$P(A) = ${P(nA, tot)}$, $P(B) = ${P(nB, tot)}$, $P(A \\cap B) = ${P(both, tot)}$, $P(A \\cup B) = ${P(nU, tot)}$. Konjektur: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$. Semakan: $${n(nA)} + ${n(nB)} - ${n(both)} = ${n(nU)}$ orang murid daripada ${tot} orang ✓.`),
+        w: W(`$P(A) = ${fq(nA, tot)}$, $P(B) = ${fq(nB, tot)}$, $P(A \\cap B) = ${fq(both, tot)}$`, T(`$n(A \\cup B) = ${onlyA} + ${onlyB} + ${both} = ${nU}$ (only $A$, only $B$, both), so $P(A \\cup B) = ${fq(nU, tot)}$`, `$n(A \\cup B) = ${onlyA} + ${onlyB} + ${both} = ${nU}$ ($A$ sahaja, $B$ sahaja, kedua-duanya), jadi $P(A \\cup B) = ${fq(nU, tot)}$`), `$\\dfrac{${nA} + ${nB} - ${both}}{${tot}} = \\dfrac{${nU}}{${tot}}$`), sp: 'l' };
     },
     /* containment investigation B subset A */
     (r) => {
@@ -460,7 +507,8 @@
       need(B.every((v) => A.includes(v)) && B.length > 0 && B.length < A.length);
       const qEn = `A number is chosen at random from $1$ to $${N}$. $A$: the number is a multiple of ${kA}. $B$: the number is a multiple of ${kB}. Show that $B \\subseteq A$, then find $A \\cap B$ and $A \\cup B$ (as sets), and verify that $A \\cap B = B$ and $A \\cup B = A$.`;
       const qMs = `Satu nombor dipilih secara rawak dari $1$ hingga $${N}$. $A$: nombor itu gandaan ${kA}. $B$: nombor itu gandaan ${kB}. Tunjukkan bahawa $B \\subseteq A$, kemudian cari $A \\cap B$ dan $A \\cup B$ (sebagai set), dan sahkan bahawa $A \\cap B = B$ dan $A \\cup B = A$.`;
-      return { q: T(qEn, qMs), a: T(`$A = \\{${A.join(', ')}\\}$, $B = \\{${B.join(', ')}\\}$; every element of $B$ is in $A$, so $B \\subseteq A$. $A \\cap B = \\{${B.join(', ')}\\} = B$ ✓. $A \\cup B = \\{${A.join(', ')}\\} = A$ ✓.`, `$A = \\{${A.join(', ')}\\}$, $B = \\{${B.join(', ')}\\}$; setiap unsur $B$ ada dalam $A$, jadi $B \\subseteq A$. $A \\cap B = \\{${B.join(', ')}\\} = B$ ✓. $A \\cup B = \\{${A.join(', ')}\\} = A$ ✓.`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`$A = \\{${A.join(', ')}\\}$, $B = \\{${B.join(', ')}\\}$; every element of $B$ is in $A$, so $B \\subseteq A$. $A \\cap B = \\{${B.join(', ')}\\} = B$ ✓. $A \\cup B = \\{${A.join(', ')}\\} = A$ ✓.`, `$A = \\{${A.join(', ')}\\}$, $B = \\{${B.join(', ')}\\}$; setiap unsur $B$ ada dalam $A$, jadi $B \\subseteq A$. $A \\cap B = \\{${B.join(', ')}\\} = B$ ✓. $A \\cup B = \\{${A.join(', ')}\\} = A$ ✓.`),
+        w: W(T(`$${kB} = ${kA} \\times ${kB / kA}$, so every multiple of ${kB} is also a multiple of ${kA}: $B \\subseteq A$.`, `$${kB} = ${kA} \\times ${kB / kA}$, jadi setiap gandaan ${kB} juga gandaan ${kA}: $B \\subseteq A$.`), `$A = ${setT(A)}$`, `$B = ${setT(B)}$`, T('Common elements are exactly those of $B$; together they give no element outside $A$.', 'Unsur sepunya tepat ialah unsur $B$; gabungannya tidak memberi unsur di luar $A$.')), sp: 'l' };
     },
     /* Venn diagram explanation of the overlap subtraction */
     (r) => {
@@ -478,7 +526,7 @@
       const qMs = `Gambar rajah Venn menunjukkan sekumpulan ${tot} orang murid, dengan $A$: bermain ${c1.ms}, $B$: bermain ${c2.ms}. Terangkan, menggunakan gambar rajah itu, mengapa $n(A) + n(B)$ mengira lebih $n(A \\cup B)$, dan gunakan ini untuk menulis formula bagi $P(A \\cup B)$ dalam sebutan $P(A)$, $P(B)$ dan $P(A \\cap B)$.`;
       const aEn = `$n(A) + n(B) = ${nA} + ${nB} = ${nA + nB}$ counts the ${both} students in the overlap twice (once in each circle), but $n(A \\cup B) = ${nA + nB - both}$ only. Subtracting the overlap once corrects this: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$.`;
       const aMs = `$n(A) + n(B) = ${nA} + ${nB} = ${nA + nB}$ mengira ${both} orang murid dalam kawasan bertindih itu dua kali (sekali dalam setiap bulatan), tetapi $n(A \\cup B) = ${nA + nB - both}$ sahaja. Menolak kawasan bertindih itu sekali membetulkan ini: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$.`;
-      return { q: T(qEn, qMs), fig, a: T(aEn, aMs), sp: 'l' };
+      return { q: T(qEn, qMs), fig, a: T(aEn, aMs), w: W(`$n(A) = ${onlyA} + ${both} = ${nA}$, $n(B) = ${onlyB} + ${both} = ${nB}$`, `$n(A \\cup B) = ${onlyA} + ${onlyB} + ${both} = ${nA + nB - both}$`, `$n(A) + n(B) - n(A \\cap B) = ${nA + nB} - ${both} = ${nA + nB - both}$`, T(`Divide by ${tot}: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$`, `Bahagi dengan ${tot}: $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$`)), sp: 'l' };
     },
     /* decide if the simplified (ME) addition rule may be used for a stated pair, and correct it if not */
     (r) => {
@@ -489,7 +537,7 @@
       const qMs = `Dalam eksperimen di mana ${c.ex.ms}, $A$: keputusan ialah ${c.p1.ms}; $B$: keputusan ialah ${c.p2.ms}. Seorang murid menulis $P(A \\cup B) = P(A) + P(B) = ${frT(claimed)}$. Adakah ini betul? Jika tidak, berikan nilai yang betul dan terangkan kesilapannya.`;
       const aEn = me ? `Correct: $A$ and $B$ are mutually exclusive ($A \\cap B = \\varnothing$), so no overlap needs subtracting.` : `Incorrect: $A$ and $B$ overlap ($A \\cap B \\neq \\varnothing$, $P(A \\cap B) = ${frT(c.PAB)}$), so this double-counts the overlap. The correct value is $P(A \\cup B) = P(A) + P(B) - P(A \\cap B) = ${frT(c.PU)}$.`;
       const aMs = me ? `Betul: $A$ dan $B$ saling eksklusif ($A \\cap B = \\varnothing$), jadi tiada kawasan bertindih perlu ditolak.` : `Salah: $A$ dan $B$ bertindih ($A \\cap B \\neq \\varnothing$, $P(A \\cap B) = ${frT(c.PAB)}$), jadi ini mengira kawasan bertindih dua kali. Nilai yang betul ialah $P(A \\cup B) = P(A) + P(B) - P(A \\cap B) = ${frT(c.PU)}$.`;
-      return { q: T(qEn, qMs), a: T(aEn, aMs), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(aEn, aMs), w: W(...addW(c), me ? T('$A \\cap B = \\varnothing$, so $P(A \\cup B) = P(A) + P(B)$ is valid.', '$A \\cap B = \\varnothing$, jadi $P(A \\cup B) = P(A) + P(B)$ adalah sah.') : `$${frT(c.PA)} + ${frT(c.PB)} - ${frT(c.PAB)} = ${frT(c.PU)} \\neq ${frT(claimed)}$`), sp: 'm' };
     },
     /* verify the product rule for independent events from a two-stage table, with a genuinely dependent contrast */
     (r) => {
@@ -502,9 +550,13 @@
       const holds = Fr.eq(PAB, rule);
       const qEn = `A bag has ${R} red and ${Bl} blue balls. Two balls are drawn one after another, ${withRep ? 'with the first ball put back before the second is drawn' : 'without putting the first ball back'}. Let $A$: the first ball is red; $B$: the second ball is red. Test whether $P(A \\cap B) = P(A) \\times P(B)$ for this case.`;
       const qMs = `Sebuah beg mengandungi ${R} biji bola merah dan ${Bl} biji bola biru. Dua biji bola ditarik satu demi satu, ${withRep ? 'dengan bola pertama dikembalikan sebelum bola kedua ditarik' : 'tanpa mengembalikan bola pertama'}. Biar $A$: bola pertama merah; $B$: bola kedua merah. Uji sama ada $P(A \\cap B) = P(A) \\times P(B)$ bagi kes ini.`;
-      const aEn = `$P(A) = ${frT(PA)}$, $P(B) = ${frT(PB2)}$, $P(A \\cap B) = ${frT(PAB)}$, and $P(A) \\times P(B) = ${frT(rule)}$. ${holds ? 'These are equal, so the product rule holds: the draws are independent.' : 'These are not equal, so the product rule fails: the draws are dependent (removing the first ball changes the composition for the second draw).'}`;
-      const aMs = `$P(A) = ${frT(PA)}$, $P(B) = ${frT(PB2)}$, $P(A \\cap B) = ${frT(PAB)}$, dan $P(A) \\times P(B) = ${frT(rule)}$. ${holds ? 'Nilai ini sama, jadi petua hasil darab dipenuhi: cabutan itu tak bersandar.' : 'Nilai ini tidak sama, jadi petua hasil darab gagal: cabutan itu bersandar (mengeluarkan bola pertama mengubah komposisi untuk cabutan kedua).'}`;
-      return { q: T(qEn, qMs), a: T(aEn, aMs), sp: 'l' };
+      const aEn = `$P(A) = ${frT(PA)}$, $P(B) = ${frT(fr(R, N))}$, $P(A \\cap B) = ${frT(PAB)}$, and $P(A) \\times P(B) = ${frT(rule)}$. ${holds ? 'These are equal, so the product rule holds: the draws are independent.' : 'These are not equal, so the product rule fails: the draws are dependent (removing the first ball changes the composition for the second draw).'}`;
+      const aMs = `$P(A) = ${frT(PA)}$, $P(B) = ${frT(fr(R, N))}$, $P(A \\cap B) = ${frT(PAB)}$, dan $P(A) \\times P(B) = ${frT(rule)}$. ${holds ? 'Nilai ini sama, jadi petua hasil darab dipenuhi: cabutan itu tak bersandar.' : 'Nilai ini tidak sama, jadi petua hasil darab gagal: cabutan itu bersandar (mengeluarkan bola pertama mengubah komposisi untuk cabutan kedua).'}`;
+      const pb = withRep
+        ? T(`$P(A) = ${frT(PA)}$; the ball is put back, so $P(B) = ${frT(PB2)}$`, `$P(A) = ${frT(PA)}$; bola dikembalikan, jadi $P(B) = ${frT(PB2)}$`)
+        : T(`$P(A) = ${frT(PA)}$; second red after red or after blue: $P(B) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} + \\dfrac{${Bl}}{${N}} \\times \\dfrac{${R}}{${N - 1}} = ${frT(fr(R, N))}$`, `$P(A) = ${frT(PA)}$; merah kedua selepas merah atau selepas biru: $P(B) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} + \\dfrac{${Bl}}{${N}} \\times \\dfrac{${R}}{${N - 1}} = ${frT(fr(R, N))}$`);
+      return { q: T(qEn, qMs), a: T(aEn, aMs),
+        w: W(pb, `$P(A \\cap B) = \\dfrac{${R}}{${N}} \\times \\dfrac{${withRep ? R : R - 1}}{${withRep ? N : N - 1}} = ${frT(PAB)}$`, `$P(A) \\times P(B) = ${frT(PA)} \\times ${frT(fr(R, N))} = ${frT(rule)} ${holds ? '=' : '\\neq'} P(A \\cap B)$`), sp: 'l' };
     },
   ];
 
@@ -521,7 +573,7 @@
           T('Counterexample: roll one die, $A$: even $= \\{2,4,6\\}$, $B$: greater than 3 $= \\{4,5,6\\}$. $P(A) + P(B) = \\dfrac{1}{2} + \\dfrac{1}{2} = 1$, but $P(A \\cup B) = P(\\{2,4,5,6\\}) = \\dfrac{2}{3} \\neq 1$. The conjecture $P(A \\cup B) = P(A) + P(B)$ is true only when $A$ and $B$ are mutually exclusive.', 'Kaunter-contoh: golekkan sebiji dadu, $A$: genap $= \\{2,4,6\\}$, $B$: lebih besar daripada 3 $= \\{4,5,6\\}$. $P(A) + P(B) = \\dfrac{1}{2} + \\dfrac{1}{2} = 1$, tetapi $P(A \\cup B) = P(\\{2,4,5,6\\}) = \\dfrac{2}{3} \\neq 1$. Konjektur $P(A \\cup B) = P(A) + P(B)$ benar hanya apabila $A$ dan $B$ saling eksklusif.'),
         ],
       ]);
-      return { q: c[0], a: c[1], sp: 'l' };
+      return { q: c[0], a: c[1], w: W(T('$P(A \\cap B) = P(A) \\times P(B)$ is the condition for independence, and $P(A \\cup B) = P(A) + P(B)$ holds only when $P(A \\cap B) = 0$.', '$P(A \\cap B) = P(A) \\times P(B)$ ialah syarat ketidaksandaran, dan $P(A \\cup B) = P(A) + P(B)$ hanya benar apabila $P(A \\cap B) = 0$.'), T('So one pair of events that breaks the condition disproves "always".', 'Jadi satu pasangan peristiwa yang melanggar syarat itu menyangkal "sentiasa".')), sp: 'l' };
     },
     /* compare two sample spaces / assumptions to decide which allows the simplified rule */
     (r) => {
@@ -535,12 +587,13 @@
           T('In $X$, all 4 outcomes are equally likely, so $P(A) = \\dfrac{3}{4}$ (all except $TT$). In $Y$, the 3 outcomes are NOT equally likely ($P(0) = \\dfrac{1}{4}$, $P(1) = \\dfrac{1}{2}$, $P(2) = \\dfrac{1}{4}$), so counting outcomes in $Y$ as if equally likely wrongly gives $\\dfrac{2}{3}$. Probability rules based on counting outcomes require an equally likely sample space.', 'Dalam $X$, keempat-empat kesudahan sama boleh jadi, jadi $P(A) = \\dfrac{3}{4}$ (semua kecuali $TT$). Dalam $Y$, ketiga-tiga kesudahan itu TIDAK sama boleh jadi ($P(0) = \\dfrac{1}{4}$, $P(1) = \\dfrac{1}{2}$, $P(2) = \\dfrac{1}{4}$), jadi mengira kesudahan dalam $Y$ seolah-olah sama boleh jadi secara salah memberikan $\\dfrac{2}{3}$. Petua kebarangkalian berdasarkan mengira kesudahan memerlukan ruang sampel yang sama boleh jadi.'),
         ],
       ]);
-      return { q: c[0], a: c[1], sp: 'l' };
+      return { q: c[0], a: c[1], w: W(T('Counting outcomes (or reusing one probability) is valid only when the outcomes are equally likely and the conditions do not change between stages.', 'Mengira kesudahan (atau menggunakan semula satu kebarangkalian) hanya sah apabila kesudahan sama boleh jadi dan keadaan tidak berubah antara peringkat.')), sp: 'l' };
     },
     /* general argument for the containment case (not just one numeric instance) */
     (r) => ({
       q: T('If $B \\subseteq A$, prove in general (not just with one numeric example) that $A \\cap B = B$ and $A \\cup B = A$, and hence that $P(A \\cup B) = P(A)$.', 'Jika $B \\subseteq A$, buktikan secara am (bukan hanya dengan satu contoh berangka) bahawa $A \\cap B = B$ dan $A \\cup B = A$, dan seterusnya bahawa $P(A \\cup B) = P(A)$.'),
       a: T('Since $B \\subseteq A$, every element of $B$ is already in $A$. So $A \\cap B$ (elements in both) is exactly $B$, and $A \\cup B$ (elements in either) adds nothing beyond $A$, so $A \\cup B = A$. Applying $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$ with $A \\cap B = B$ gives $P(A \\cup B) = P(A) + P(B) - P(B) = P(A)$.', 'Oleh kerana $B \\subseteq A$, setiap unsur $B$ sudah ada dalam $A$. Jadi $A \\cap B$ (unsur dalam kedua-duanya) tepat sama dengan $B$, dan $A \\cup B$ (unsur dalam salah satu) tidak menambah apa-apa selain $A$, jadi $A \\cup B = A$. Menggunakan $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$ dengan $A \\cap B = B$ memberikan $P(A \\cup B) = P(A) + P(B) - P(B) = P(A)$.'),
+      w: W(`$B \\subseteq A \\Rightarrow A \\cap B = B, \\; A \\cup B = A$`, `$P(A \\cup B) = P(A) + P(B) - P(A \\cap B) = P(A) + P(B) - P(B) = P(A)$`),
       sp: 'l',
     }),
     /* full 5-step conjecture-and-verification investigation, multi-part */
@@ -558,7 +611,8 @@
         T('Conjecture: $P(A \\cup B) = P(A) + P(B)$ (since $A \\cap B = \\varnothing$, nothing is double-counted).', 'Konjektur: $P(A \\cup B) = P(A) + P(B)$ (kerana $A \\cap B = \\varnothing$, tiada apa-apa dikira dua kali).'),
         T(`$P(A) + P(B) = ${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))}$, which equals $P(A \\cup B) = ${frT(fr(N, N))}$ (certain, since every ball is one colour or the other). This holds because $A$ and $B$ are mutually exclusive.`, `$P(A) + P(B) = ${frT(PA)} + ${frT(PB)} = ${frT(Fr.add(PA, PB))}$, iaitu sama dengan $P(A \\cup B) = ${frT(fr(N, N))}$ (pasti, kerana setiap bola adalah satu warna atau yang satu lagi). Ini dipenuhi kerana $A$ dan $B$ saling eksklusif.`),
       ]);
-      return { q: parts, a: ans, sp: 'xl' };
+      return { q: parts, a: ans,
+        w: W(T(`(a) $P(A) = ${fq(R, N)}$, $P(B) = ${fq(Bl, N)}$; one ball cannot be both colours, so $P(A \\cap B) = 0$.`, `(a) $P(A) = ${fq(R, N)}$, $P(B) = ${fq(Bl, N)}$; sebiji bola tidak boleh kedua-dua warna, jadi $P(A \\cap B) = 0$.`), T('(b) No overlap to subtract: $P(A \\cup B) = P(A) + P(B)$.', '(b) Tiada pertindihan untuk ditolak: $P(A \\cup B) = P(A) + P(B)$.'), T(`(c) $${frT(PA)} + ${frT(PB)} = 1 = P(A \\cup B)$, since every ball is ${c1.en} or ${c2.en}.`, `(c) $${frT(PA)} + ${frT(PB)} = 1 = P(A \\cup B)$, kerana setiap bola ${c1.ms} atau ${c2.ms}.`)), sp: 'xl' };
     },
   ];
 
@@ -572,7 +626,8 @@
       const k1 = r.int(1, ex1.N), k2 = r.int(1, ex2.N);
       const qEn = `Independently, ${ex1.en} and ${ex2.en}. Find the probability that the first result is ${k1} and the second result is ${k2}.`;
       const qMs = `Secara tak bersandar, ${ex1.ms} dan ${ex2.ms}. Cari kebarangkalian keputusan pertama ialah ${k1} dan keputusan kedua ialah ${k2}.`;
-      return { q: T(qEn, qMs), a: T(`$\\dfrac{1}{${ex1.N}} \\times \\dfrac{1}{${ex2.N}} = ${P(1, ex1.N * ex2.N)}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$\\dfrac{1}{${ex1.N}} \\times \\dfrac{1}{${ex2.N}} = ${P(1, ex1.N * ex2.N)}$`),
+        w: W(T(`$P(\\text{first} = ${k1}) = \\dfrac{1}{${ex1.N}}$, $P(\\text{second} = ${k2}) = \\dfrac{1}{${ex2.N}}$`, `$P(\\text{pertama} = ${k1}) = \\dfrac{1}{${ex1.N}}$, $P(\\text{kedua} = ${k2}) = \\dfrac{1}{${ex2.N}}$`), T(`Independent, so multiply: $\\dfrac{1}{${ex1.N}} \\times \\dfrac{1}{${ex2.N}} = ${P(1, ex1.N * ex2.N)}$`, `Tak bersandar, jadi darab: $\\dfrac{1}{${ex1.N}} \\times \\dfrac{1}{${ex2.N}} = ${P(1, ex1.N * ex2.N)}$`)), sp: 's' };
     },
     /* direct "and" computation on one trial */
     (r) => {
@@ -581,7 +636,9 @@
       const inter = range(1, ex.N).filter((v) => p1.test(v) && p2.test(v));
       const qEn = `In the experiment where ${ex.en}, find $P(\\text{the result is ${p1.en} and ${p2.en}})$.`;
       const qMs = `Dalam eksperimen di mana ${ex.ms}, cari $P(\\text{keputusan ialah ${p1.ms} dan ${p2.ms}})$.`;
-      return { q: T(qEn, qMs), a: T(`$${P(inter.length, ex.N)}$`), sp: 's' };
+      const sA = range(1, ex.N).filter((v) => p1.test(v)), sB = range(1, ex.N).filter((v) => p2.test(v));
+      return { q: T(qEn, qMs), a: T(`$${P(inter.length, ex.N)}$`),
+        w: W(T(`${cap1(p1.en)}: $${setT(sA)}$; ${p2.en}: $${setT(sB)}$`, `${cap1(p1.ms)}: $${setT(sA)}$; ${p2.ms}: $${setT(sB)}$`), T(`Both: $${setT(inter)}$, so $P = ${fq(inter.length, ex.N)}$`, `Kedua-duanya: $${setT(inter)}$, jadi $P = ${fq(inter.length, ex.N)}$`)), sp: 's' };
     },
     /* direct "or" computation on one trial */
     (r) => {
@@ -590,7 +647,9 @@
       const uni = range(1, ex.N).filter((v) => p1.test(v) || p2.test(v));
       const qEn = `In the experiment where ${ex.en}, find $P(\\text{the result is ${p1.en} or ${p2.en}})$.`;
       const qMs = `Dalam eksperimen di mana ${ex.ms}, cari $P(\\text{keputusan ialah ${p1.ms} atau ${p2.ms}})$.`;
-      return { q: T(qEn, qMs), a: T(`$${P(uni.length, ex.N)}$`), sp: 's' };
+      const sA = range(1, ex.N).filter((v) => p1.test(v)), sB = range(1, ex.N).filter((v) => p2.test(v));
+      return { q: T(qEn, qMs), a: T(`$${P(uni.length, ex.N)}$`),
+        w: W(T(`${cap1(p1.en)}: $${setT(sA)}$; ${p2.en}: $${setT(sB)}$`, `${cap1(p1.ms)}: $${setT(sA)}$; ${p2.ms}: $${setT(sB)}$`), T(`Either (count common outcomes once): $${setT(uni)}$, so $P = ${fq(uni.length, ex.N)}$`, `Salah satu (kesudahan sepunya dikira sekali): $${setT(uni)}$, jadi $P = ${fq(uni.length, ex.N)}$`)), sp: 's' };
     },
     /* complement */
     (r) => {
@@ -599,7 +658,8 @@
       const A = range(1, ex.N).filter((v) => p1.test(v));
       const qEn = `In the experiment where ${ex.en}, $A$ is the event "the result is ${p1.en}". Find $P(A')$, the probability that $A$ does not happen.`;
       const qMs = `Dalam eksperimen di mana ${ex.ms}, $A$ ialah peristiwa "keputusan ialah ${p1.ms}". Cari $P(A')$, kebarangkalian $A$ tidak berlaku.`;
-      return { q: T(qEn, qMs), a: T(`$1 - ${P(A.length, ex.N)} = ${P(ex.N - A.length, ex.N)}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$1 - ${P(A.length, ex.N)} = ${P(ex.N - A.length, ex.N)}$`),
+        w: W(`$A = ${setT(A)}$, $P(A) = ${fq(A.length, ex.N)}$`, `$P(A') = 1 - P(A) = 1 - ${P(A.length, ex.N)} = ${P(ex.N - A.length, ex.N)}$`), sp: 's' };
     },
     /* two coins / two dice: exactly one head, or the two dice match */
     (r) => {
@@ -608,17 +668,17 @@
         const same = range(1, 6).length;
         const qEn = `Two fair dice are rolled together. Find the probability that the two dice show the same number.`;
         const qMs = `Dua biji dadu adil digolek bersama. Cari kebarangkalian kedua-dua dadu menunjukkan nombor yang sama.`;
-        return { q: T(qEn, qMs), a: T(`$${P(6, 36)}$`), sp: 's' };
+        return { q: T(qEn, qMs), a: T(`$${P(6, 36)}$`), w: W(T('Same number: $(1, 1), (2, 2), \\ldots, (6, 6)$, i.e. $6$ of the $6 \\times 6 = 36$ outcomes', 'Nombor sama: $(1, 1), (2, 2), \\ldots, (6, 6)$, iaitu $6$ daripada $6 \\times 6 = 36$ kesudahan'), `$P = \\dfrac{6}{36} = ${P(6, 36)}$`), sp: 's' };
       }
       const qEn = `Two fair coins are tossed together. Find the probability of getting exactly one head.`;
       const qMs = `Dua keping syiling adil dilambung bersama. Cari kebarangkalian mendapat tepat satu kepala.`;
-      return { q: T(qEn, qMs), a: T(`$${P(2, 4)}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$${P(2, 4)}$`), w: W(T('Sample space $\\{HH, HT, TH, TT\\}$; exactly one head: $HT$, $TH$', 'Ruang sampel $\\{HH, HT, TH, TT\\}$; tepat satu kepala: $HT$, $TH$'), `$P = \\dfrac{2}{4} = ${P(2, 4)}$`), sp: 's' };
     },
     /* at least one head in two coin tosses, via complement */
     (r) => ({
       q: T('A fair coin is tossed twice. Find the probability of getting at least one head.', 'Sekeping syiling adil dilambung dua kali. Cari kebarangkalian mendapat sekurang-kurangnya satu kepala.'),
       a: T(`$1 - \\dfrac{1}{4} = ${P(3, 4)}$`),
-      w: T('$P(\\text{no heads}) = P(TT) = \\dfrac{1}{4}$', '$P(\\text{tiada kepala}) = P(TT) = \\dfrac{1}{4}$'),
+      w: W(T('$P(\\text{no heads}) = P(TT) = \\dfrac{1}{2} \\times \\dfrac{1}{2} = \\dfrac{1}{4}$', '$P(\\text{tiada kepala}) = P(TT) = \\dfrac{1}{2} \\times \\dfrac{1}{2} = \\dfrac{1}{4}$'), T(`$P(\\text{at least one head}) = 1 - \\dfrac{1}{4} = ${P(3, 4)}$`, `$P(\\text{sekurang-kurangnya satu kepala}) = 1 - \\dfrac{1}{4} = ${P(3, 4)}$`)),
       sp: 's',
     }),
   ];
@@ -633,7 +693,9 @@
       const diff = fr(2 * R * Bl, N * (N - 1));
       const qEn = `A ${h.holder.en} has ${R} ${c1.en} and ${Bl} ${c2.en} ${h.en}. Two ${h.en} are drawn one after another without replacement. Find the probability that (a) both are ${c1.en}, (b) one is ${c1.en} and the other is ${c2.en}.`;
       const qMs = `Sebuah ${h.holder.ms} mengandungi ${R} ${h.ms} ${c1.ms} dan ${Bl} ${h.ms} ${c2.ms}. Dua ${h.ms} ditarik satu demi satu tanpa pengembalian. Cari kebarangkalian bahawa (a) kedua-duanya ${c1.ms}, (b) satu ${c1.ms} dan satu lagi ${c2.ms}.`;
-      return { q: T(qEn, qMs), a: T(`(a) $\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${frT(both1)}$ (b) $${frT(diff)}$`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`(a) $\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${frT(both1)}$ (b) $${frT(diff)}$`),
+        w: W(T(`(a) After one ${c1.en} is taken, ${R - 1} of the ${N - 1} left are ${c1.en}: $\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${frT(both1)}$`, `(a) Selepas satu ${c1.ms} diambil, ${R - 1} daripada ${N - 1} yang tinggal ialah ${c1.ms}: $\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${frT(both1)}$`),
+          T(`(b) ${c1.en} then ${c2.en}, or ${c2.en} then ${c1.en}: $\\dfrac{${R}}{${N}} \\times \\dfrac{${Bl}}{${N - 1}} + \\dfrac{${Bl}}{${N}} \\times \\dfrac{${R}}{${N - 1}} = ${frT(diff)}$`, `(b) ${c1.ms} kemudian ${c2.ms}, atau ${c2.ms} kemudian ${c1.ms}: $\\dfrac{${R}}{${N}} \\times \\dfrac{${Bl}}{${N - 1}} + \\dfrac{${Bl}}{${N}} \\times \\dfrac{${R}}{${N - 1}} = ${frT(diff)}$`)), sp: 'l' };
     },
     /* dependent tree diagram: complete then read off a path / sum of paths */
     (r) => {
@@ -653,7 +715,8 @@
       const pSame = Fr.add(fr(R * (R - 1), N * (N - 1)), fr(Bl * (Bl - 1), N * (N - 1)));
       const qEn = `A bag has ${R} ${c1.en} and ${Bl} ${c2.en} balls. Two balls are drawn one after another without replacement. The tree diagram shows the two draws with their branch probabilities. Use it to find $P(\\text{the two balls have the same colour})$.`;
       const qMs = `Sebuah beg mengandungi ${R} biji bola ${c1.ms} dan ${Bl} biji bola ${c2.ms}. Dua biji bola ditarik satu demi satu tanpa pengembalian. Gambar rajah pokok menunjukkan kedua-dua cabutan itu berserta kebarangkalian cabang. Gunakannya untuk mencari $P(\\text{kedua-dua bola berwarna sama})$.`;
-      return { q: T(qEn, qMs), fig, a: T(`$P(${L1}${L1}) + P(${L2}${L2}) = ${frT(pSame)}$`), sp: 'm' };
+      return { q: T(qEn, qMs), fig, a: T(`$P(${L1}${L1}) + P(${L2}${L2}) = ${frT(pSame)}$`),
+        w: W(`$P(${L1}${L1}) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${fq(R * (R - 1), N * (N - 1))}$`, `$P(${L2}${L2}) = \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} = ${fq(Bl * (Bl - 1), N * (N - 1))}$`, T(`The two paths are mutually exclusive, so add: $${frT(pSame)}$`, `Dua laluan itu saling eksklusif, jadi tambah: $${frT(pSame)}$`)), sp: 'm' };
     },
     /* inclusion-exclusion "or" across two independent stages */
     (r) => {
@@ -664,7 +727,8 @@
       const PU = Fr.sub(Fr.add(PA, PB), Fr.mul(PA, PB));
       const qEn = `${cap1(ex.en)}, and separately a fair coin is tossed. Find the probability that the result is ${p1.en}, or the coin shows $H$, or both.`;
       const qMs = `${cap1(ex.ms)}, dan secara berasingan sekeping syiling adil dilambung. Cari kebarangkalian keputusan itu ialah ${p1.ms}, atau syiling menunjukkan $H$, atau kedua-duanya.`;
-      return { q: T(qEn, qMs), a: T(`$P(A) + P(H) - P(A)P(H) = ${frT(PA)} + \\dfrac{1}{2} - ${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PU)}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$P(A) + P(H) - P(A)P(H) = ${frT(PA)} + \\dfrac{1}{2} - ${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PU)}$`),
+        w: W(T(`$A$ = the result is ${p1.en} $= ${setT(A)}$: $P(A) = ${fq(A.length, ex.N)}$; $P(H) = \\dfrac{1}{2}$`, `$A$ = keputusan ialah ${p1.ms} $= ${setT(A)}$: $P(A) = ${fq(A.length, ex.N)}$; $P(H) = \\dfrac{1}{2}$`), T(`Independent: $P(A \\cap H) = ${frT(PA)} \\times \\dfrac{1}{2} = ${frT(Fr.mul(PA, PB))}$`, `Tak bersandar: $P(A \\cap H) = ${frT(PA)} \\times \\dfrac{1}{2} = ${frT(Fr.mul(PA, PB))}$`), `$P(A \\cup H) = ${frT(PA)} + \\dfrac{1}{2} - ${frT(Fr.mul(PA, PB))} = ${frT(PU)}$`), sp: 'm' };
     },
     /* at least one target in two independent repeats of the same experiment */
     (r) => {
@@ -675,7 +739,7 @@
       const pAtLeast = Fr.sub(fr(1, 1), Fr.mul(pNot, pNot));
       const qEn = `${cap1(ex.en)} twice, independently. Find the probability that the result is ${p1.en} at least once.`;
       const qMs = `${cap1(ex.ms)} dua kali, secara tak bersandar. Cari kebarangkalian keputusan ialah ${p1.ms} sekurang-kurangnya sekali.`;
-      return { q: T(qEn, qMs), a: T(`$1 - ${frT(pNot)} \\times ${frT(pNot)} = ${frT(pAtLeast)}$`), w: T(`$P(\\text{never}) = ${frT(pNot)} \\times ${frT(pNot)}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$1 - ${frT(pNot)} \\times ${frT(pNot)} = ${frT(pAtLeast)}$`), w: W(T(`$P(\\text{not ${p1.en}}) = 1 - ${P(A.length, ex.N)} = ${frT(pNot)}$`, `$P(\\text{bukan ${p1.ms}}) = 1 - ${P(A.length, ex.N)} = ${frT(pNot)}$`), T(`$P(\\text{never}) = ${frT(pNot)} \\times ${frT(pNot)} = ${frT(Fr.mul(pNot, pNot))}$`, `$P(\\text{tidak pernah}) = ${frT(pNot)} \\times ${frT(pNot)} = ${frT(Fr.mul(pNot, pNot))}$`), T(`$P(\\text{at least once}) = 1 - ${frT(Fr.mul(pNot, pNot))} = ${frT(pAtLeast)}$`, `$P(\\text{sekurang-kurangnya sekali}) = 1 - ${frT(Fr.mul(pNot, pNot))} = ${frT(pAtLeast)}$`)), sp: 'm' };
     },
     /* at least one red among two draws without replacement */
     (r) => {
@@ -685,7 +749,8 @@
       const pAtLeast = Fr.sub(fr(1, 1), pNone);
       const qEn = `A bag has ${R} ${c1.en} balls and ${Bl} balls of other colours. Two balls are drawn one after another without replacement. Find the probability that at least one ${c1.en} ball is drawn.`;
       const qMs = `Sebuah beg mengandungi ${R} biji bola ${c1.ms} dan ${Bl} biji bola warna lain. Dua biji bola ditarik satu demi satu tanpa pengembalian. Cari kebarangkalian sekurang-kurangnya sebiji bola ${c1.ms} ditarik.`;
-      return { q: T(qEn, qMs), a: T(`$1 - \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} = ${frT(pAtLeast)}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$1 - \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} = ${frT(pAtLeast)}$`),
+        w: W(T(`Complement: no ${c1.en} ball at all. $P(\\text{none}) = \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} = ${frT(pNone)}$`, `Pelengkap: tiada bola ${c1.ms} langsung. $P(\\text{tiada}) = \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} = ${frT(pNone)}$`), `$1 - ${frT(pNone)} = ${frT(pAtLeast)}$`), sp: 'm' };
     },
     /* mixed different-experiment sequential compound condition */
     (r) => {
@@ -696,7 +761,8 @@
       const PAB = Fr.mul(PA, fr(1, 2));
       const qEn = `${cap1(ex.en)}, then a fair coin is tossed. Find the probability that the first result is ${p1.en} and the coin shows $T$.`;
       const qMs = `${cap1(ex.ms)}, kemudian sekeping syiling adil dilambung. Cari kebarangkalian keputusan pertama ialah ${p1.ms} dan syiling menunjukkan $T$.`;
-      return { q: T(qEn, qMs), a: T(`$${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`),
+        w: W(T(`${cap1(p1.en)}: $${setT(A)}$, so $P = ${fq(A.length, ex.N)}$; $P(T) = \\dfrac{1}{2}$`, `${cap1(p1.ms)}: $${setT(A)}$, jadi $P = ${fq(A.length, ex.N)}$; $P(T) = \\dfrac{1}{2}$`), T(`Independent, so multiply: $${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`, `Tak bersandar, jadi darab: $${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`)), sp: 'm' };
     },
     /* independent daily-probability word problem, at least one of two days */
     (r) => {
@@ -707,7 +773,8 @@
       const nm = r.name();
       const qEn = `The probability that ${nm} is late for school on any day is $${frT(p)}$, independently each day. Find the probability that ${nm} is late at least once in two school days.`;
       const qMs = `Kebarangkalian ${nm} lewat ke sekolah pada mana-mana hari ialah $${frT(p)}$, secara tak bersandar setiap hari. Cari kebarangkalian ${nm} lewat sekurang-kurangnya sekali dalam dua hari persekolahan.`;
-      return { q: T(qEn, qMs), a: T(`$1 - ${frT(pNot)} \\times ${frT(pNot)} = ${frT(pAtLeast)}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$1 - ${frT(pNot)} \\times ${frT(pNot)} = ${frT(pAtLeast)}$`),
+        w: W(T(`$P(\\text{not late}) = 1 - ${frT(p)} = ${frT(pNot)}$`, `$P(\\text{tidak lewat}) = 1 - ${frT(p)} = ${frT(pNot)}$`), T(`$P(\\text{not late on both days}) = ${frT(pNot)} \\times ${frT(pNot)} = ${frT(Fr.mul(pNot, pNot))}$`, `$P(\\text{tidak lewat kedua-dua hari}) = ${frT(pNot)} \\times ${frT(pNot)} = ${frT(Fr.mul(pNot, pNot))}$`), `$1 - ${frT(Fr.mul(pNot, pNot))} = ${frT(pAtLeast)}$`), sp: 'm' };
     },
   ];
 
@@ -719,7 +786,8 @@
       const p = fr(R * (R - 1) * (R - 2), N * (N - 1) * (N - 2));
       const qEn = `A ${h.holder.en} has ${R} ${c1.en} and ${Bl} other-coloured ${h.en}. Three ${h.en} are drawn one after another without replacement. Find the probability that all three are ${c1.en}.`;
       const qMs = `Sebuah ${h.holder.ms} mengandungi ${R} ${h.ms} ${c1.ms} dan ${Bl} ${h.ms} warna lain. Tiga ${h.ms} ditarik satu demi satu tanpa pengembalian. Cari kebarangkalian ketiga-tiganya ${c1.ms}.`;
-      return { q: T(qEn, qMs), a: T(`$\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} \\times \\dfrac{${R - 2}}{${N - 2}} = ${frT(p)}$`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`$\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} \\times \\dfrac{${R - 2}}{${N - 2}} = ${frT(p)}$`),
+        w: W(T(`Each draw removes one ${c1.en} ${h.en.slice(0, -1)}, so both the ${c1.en} count and the total drop by 1 each time.`, `Setiap cabutan mengeluarkan satu ${h.ms} ${c1.ms}, jadi bilangan ${c1.ms} dan jumlah masing-masing berkurang 1 setiap kali.`), `$\\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} \\times \\dfrac{${R - 2}}{${N - 2}} = \\dfrac{${R * (R - 1) * (R - 2)}}{${N * (N - 1) * (N - 2)}} = ${frT(p)}$`), sp: 'l' };
     },
     /* exactly r successes over 3 independent trials, sum of disjoint paths */
     (r) => {
@@ -731,7 +799,8 @@
       const ans = Fr.mul(term, fr(3, 1));
       const qEn = `${cap1(ex.en)} three times, independently. Find the probability that the result is ${p1.en} on exactly two of the three trials.`;
       const qMs = `${cap1(ex.ms)} tiga kali, secara tak bersandar. Cari kebarangkalian keputusan ialah ${p1.ms} pada tepat dua daripada tiga percubaan itu.`;
-      return { q: T(qEn, qMs), a: T(`There are 3 orderings (success-success-fail, success-fail-success, fail-success-success), each with probability $${frT(p)} \\times ${frT(p)} \\times ${frT(q)} = ${frT(term)}$. Total $= 3 \\times ${frT(term)} = ${frT(ans)}$.`, `Terdapat 3 susunan (berjaya-berjaya-gagal, berjaya-gagal-berjaya, gagal-berjaya-berjaya), setiap satu berkebarangkalian $${frT(p)} \\times ${frT(p)} \\times ${frT(q)} = ${frT(term)}$. Jumlah $= 3 \\times ${frT(term)} = ${frT(ans)}$.`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`There are 3 orderings (success-success-fail, success-fail-success, fail-success-success), each with probability $${frT(p)} \\times ${frT(p)} \\times ${frT(q)} = ${frT(term)}$. Total $= 3 \\times ${frT(term)} = ${frT(ans)}$.`, `Terdapat 3 susunan (berjaya-berjaya-gagal, berjaya-gagal-berjaya, gagal-berjaya-berjaya), setiap satu berkebarangkalian $${frT(p)} \\times ${frT(p)} \\times ${frT(q)} = ${frT(term)}$. Jumlah $= 3 \\times ${frT(term)} = ${frT(ans)}$.`),
+        w: W(T(`Success (${p1.en}) $= ${setT(A)}$: $p = ${fq(A.length, ex.N)}$, fail $= 1 - ${frT(p)} = ${frT(q)}$`, `Berjaya (${p1.ms}) $= ${setT(A)}$: $p = ${fq(A.length, ex.N)}$, gagal $= 1 - ${frT(p)} = ${frT(q)}$`), `$${frT(p)} \\times ${frT(p)} \\times ${frT(q)} = ${frT(term)}$`, `$3 \\times ${frT(term)} = ${frT(ans)}$`), sp: 'l' };
     },
     /* at least one in three draws without replacement */
     (r) => {
@@ -741,7 +810,7 @@
       const pAtLeast = Fr.sub(fr(1, 1), pNone);
       const qEn = `A ${h.holder.en} has ${R} ${c1.en} and ${Bl} other-coloured ${h.en}. Three ${h.en} are drawn one after another without replacement. Find the probability that at least one ${c1.en} ${h.en.slice(0, -1)} is drawn.`;
       const qMs = `Sebuah ${h.holder.ms} mengandungi ${R} ${h.ms} ${c1.ms} dan ${Bl} ${h.ms} warna lain. Tiga ${h.ms} ditarik satu demi satu tanpa pengembalian. Cari kebarangkalian sekurang-kurangnya satu ${h.ms} ${c1.ms} ditarik.`;
-      return { q: T(qEn, qMs), a: T(`$1 - \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} \\times \\dfrac{${Bl - 2}}{${N - 2}} = ${frT(pAtLeast)}$`), w: T(`$P(\\text{none}) = ${frT(pNone)}$`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`$1 - \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} \\times \\dfrac{${Bl - 2}}{${N - 2}} = ${frT(pAtLeast)}$`), w: W(T(`Complement: none of the three is ${c1.en}. $P(\\text{none}) = \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} \\times \\dfrac{${Bl - 2}}{${N - 2}} = ${frT(pNone)}$`, `Pelengkap: tiada satu pun daripada tiga itu ${c1.ms}. $P(\\text{tiada}) = \\dfrac{${Bl}}{${N}} \\times \\dfrac{${Bl - 1}}{${N - 1}} \\times \\dfrac{${Bl - 2}}{${N - 2}} = ${frT(pNone)}$`), `$1 - ${frT(pNone)} = ${frT(pAtLeast)}$`), sp: 'l' };
     },
     /* three different experiments in sequence, no pre-drawn representation */
     (r) => {
@@ -754,7 +823,8 @@
       const ans = Fr.mul(Fr.mul(PA1, PA2), PH);
       const qEn = `Three independent trials are carried out in order: ${ex1.en}; ${ex2.en}; a fair coin is tossed. Find the probability that the first result is ${p1.en}, the second result is ${p2.en}, and the coin shows $H$.`;
       const qMs = `Tiga percubaan tak bersandar dijalankan mengikut turutan: ${ex1.ms}; ${ex2.ms}; sekeping syiling adil dilambung. Cari kebarangkalian keputusan pertama ialah ${p1.ms}, keputusan kedua ialah ${p2.ms}, dan syiling menunjukkan $H$.`;
-      return { q: T(qEn, qMs), a: T(`$${frT(PA1)} \\times ${frT(PA2)} \\times \\dfrac{1}{2} = ${frT(ans)}$`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`$${frT(PA1)} \\times ${frT(PA2)} \\times \\dfrac{1}{2} = ${frT(ans)}$`),
+        w: W(T(`First, ${p1.en}: $${setT(A1)}$, $P = ${fq(A1.length, ex1.N)}$`, `Pertama, ${p1.ms}: $${setT(A1)}$, $P = ${fq(A1.length, ex1.N)}$`), T(`Second, ${p2.en}: $${setT(A2)}$, $P = ${fq(A2.length, ex2.N)}$`, `Kedua, ${p2.ms}: $${setT(A2)}$, $P = ${fq(A2.length, ex2.N)}$`), T(`Independent trials, so multiply: $${frT(PA1)} \\times ${frT(PA2)} \\times \\dfrac{1}{2} = ${frT(ans)}$`, `Percubaan tak bersandar, jadi darab: $${frT(PA1)} \\times ${frT(PA2)} \\times \\dfrac{1}{2} = ${frT(ans)}$`)), sp: 'l' };
     },
     /* non-exclusive "or" across two stages, both from the same experiment type without replacement */
     (r) => {
@@ -766,7 +836,9 @@
       const pOr = Fr.sub(Fr.add(pFirst, pSecond), pBoth);
       const qEn = `A bag has ${R} ${c1.en} balls and ${Bl} balls of other colours. Two balls are drawn one after another without replacement. Find the probability that the first ball is ${c1.en}, or the second ball is ${c1.en}, or both.`;
       const qMs = `Sebuah beg mengandungi ${R} biji bola ${c1.ms} dan ${Bl} biji bola warna lain. Dua biji bola ditarik satu demi satu tanpa pengembalian. Cari kebarangkalian bola pertama ${c1.ms}, atau bola kedua ${c1.ms}, atau kedua-duanya.`;
-      return { q: T(qEn, qMs), a: T(`$P(\\text{1st}) + P(\\text{2nd}) - P(\\text{both}) = ${frT(pFirst)} + ${frT(pSecond)} - ${frT(pBoth)} = ${frT(pOr)}$`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`$P(\\text{1st}) + P(\\text{2nd}) - P(\\text{both}) = ${frT(pFirst)} + ${frT(pSecond)} - ${frT(pBoth)} = ${frT(pOr)}$`),
+        w: W(T(`$P(\\text{1st}) = ${frT(pFirst)}$; $P(\\text{2nd}) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} + \\dfrac{${Bl}}{${N}} \\times \\dfrac{${R}}{${N - 1}} = ${frT(pSecond)}$`, `$P(\\text{pertama}) = ${frT(pFirst)}$; $P(\\text{kedua}) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} + \\dfrac{${Bl}}{${N}} \\times \\dfrac{${R}}{${N - 1}} = ${frT(pSecond)}$`),
+          T(`$P(\\text{both}) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${frT(pBoth)}$`, `$P(\\text{kedua-duanya}) = \\dfrac{${R}}{${N}} \\times \\dfrac{${R - 1}}{${N - 1}} = ${frT(pBoth)}$`), `$${frT(pFirst)} + ${frT(pSecond)} - ${frT(pBoth)} = ${frT(pOr)}$`), sp: 'l' };
     },
     /* cross-check: direct path sum vs complement, for "at least one" */
     (r) => {
@@ -778,7 +850,8 @@
       const comp = Fr.sub(fr(1, 1), Fr.mul(q, q));
       const qEn = `${cap1(ex.en)} twice, independently. Find $P(\\text{result is ${p1.en} at least once})$ (i) by adding the probabilities of the disjoint paths (exactly once, then exactly twice), and (ii) by using the complement. Show both give the same answer.`;
       const qMs = `${cap1(ex.ms)} dua kali, secara tak bersandar. Cari $P(\\text{keputusan ialah ${p1.ms} sekurang-kurangnya sekali})$ (i) dengan menambah kebarangkalian laluan yang saling eksklusif (tepat sekali, kemudian tepat dua kali), dan (ii) dengan menggunakan pelengkap. Tunjukkan kedua-dua kaedah memberikan jawapan yang sama.`;
-      return { q: T(qEn, qMs), a: T(`(i) $${frT(p)}\\times${frT(q)} + ${frT(q)}\\times${frT(p)} + ${frT(p)}\\times${frT(p)} = ${frT(direct)}$ (ii) $1 - ${frT(q)}\\times${frT(q)} = ${frT(comp)}$. Both give $${frT(direct)}$.`, `(i) $${frT(p)}\\times${frT(q)} + ${frT(q)}\\times${frT(p)} + ${frT(p)}\\times${frT(p)} = ${frT(direct)}$ (ii) $1 - ${frT(q)}\\times${frT(q)} = ${frT(comp)}$. Kedua-dua kaedah memberikan $${frT(direct)}$.`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`(i) $${frT(p)}\\times${frT(q)} + ${frT(q)}\\times${frT(p)} + ${frT(p)}\\times${frT(p)} = ${frT(direct)}$ (ii) $1 - ${frT(q)}\\times${frT(q)} = ${frT(comp)}$. Both give $${frT(direct)}$.`, `(i) $${frT(p)}\\times${frT(q)} + ${frT(q)}\\times${frT(p)} + ${frT(p)}\\times${frT(p)} = ${frT(direct)}$ (ii) $1 - ${frT(q)}\\times${frT(q)} = ${frT(comp)}$. Kedua-dua kaedah memberikan $${frT(direct)}$.`),
+        w: W(T(`$p = P(\\text{${p1.en}}) = ${fq(A.length, ex.N)}$, $q = 1 - p = ${frT(q)}$`, `$p = P(\\text{${p1.ms}}) = ${fq(A.length, ex.N)}$, $q = 1 - p = ${frT(q)}$`), T('(i) Paths with at least one success: $pq$, $qp$, $pp$ (mutually exclusive, so add).', '(i) Laluan dengan sekurang-kurangnya satu kejayaan: $pq$, $qp$, $pp$ (saling eksklusif, jadi tambah).'), T('(ii) The only other path is $qq$, so the answer is $1 - q^2$.', '(ii) Satu-satunya laluan lain ialah $qq$, jadi jawapannya $1 - q^2$.')), sp: 'l' };
     },
   ];
 
@@ -803,7 +876,7 @@
       need((N * pr[0]) % pr[1] === 0);
       const qEn = `The probability that ${c.en} is $${P(pr[0], pr[1])}$. Out of ${N} checked, how many are expected to satisfy this?`;
       const qMs = `Kebarangkalian ${c.ms} ialah $${P(pr[0], pr[1])}$. Daripada ${N} yang diperiksa, berapakah bilangan yang dijangka memenuhi keadaan ini?`;
-      return { q: T(qEn, qMs), a: T(`$${N} \\times ${P(pr[0], pr[1])} = ${(N * pr[0]) / pr[1]}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$${N} \\times ${P(pr[0], pr[1])} = ${(N * pr[0]) / pr[1]}$`), w: W(T(`Expected number $= N \\times P = ${N} \\times ${P(pr[0], pr[1])} = ${(N * pr[0]) / pr[1]}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${P(pr[0], pr[1])} = ${(N * pr[0]) / pr[1]}$`)), sp: 's' };
     },
     /* expected frequency of a specific single value, N repeats of a NEXP experiment */
     (r) => {
@@ -813,7 +886,7 @@
       need((N % ex.N) === 0);
       const qEn = `${cap1(ex.en)} ${N} times. How many times is the result expected to be ${k}?`;
       const qMs = `${cap1(ex.ms)} sebanyak ${N} kali. Berapakah bilangan kali keputusan ${k} dijangka muncul?`;
-      return { q: T(qEn, qMs), a: T(`$${N} \\times \\dfrac{1}{${ex.N}} = ${N / ex.N}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$${N} \\times \\dfrac{1}{${ex.N}} = ${N / ex.N}$`), w: W(T(`Each of the ${ex.N} results is equally likely: $P(${k}) = \\dfrac{1}{${ex.N}}$`, `Setiap satu daripada ${ex.N} keputusan sama boleh jadi: $P(${k}) = \\dfrac{1}{${ex.N}}$`), T(`Expected number $= N \\times P = ${N} \\times ${'\\dfrac{1}{' + ex.N + '}'} = ${N / ex.N}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${'\\dfrac{1}{' + ex.N + '}'} = ${N / ex.N}$`)), sp: 's' };
     },
     /* expected frequency via complement (failures) */
     (r) => {
@@ -824,7 +897,7 @@
       need((N * (pr[1] - pr[0])) % pr[1] === 0);
       const qEn = `The probability that ${c.en} is $${P(pr[0], pr[1])}$. Out of ${N} checked, how many are expected to NOT satisfy this?`;
       const qMs = `Kebarangkalian ${c.ms} ialah $${P(pr[0], pr[1])}$. Daripada ${N} yang diperiksa, berapakah bilangan yang dijangka TIDAK memenuhi keadaan ini?`;
-      return { q: T(qEn, qMs), a: T(`$${N} \\times ${frT(failFr)} = ${(N * (pr[1] - pr[0])) / pr[1]}$`), w: T(`$1 - ${P(pr[0], pr[1])} = ${frT(failFr)}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$${N} \\times ${frT(failFr)} = ${(N * (pr[1] - pr[0])) / pr[1]}$`), w: W(T(`$P(\\text{not}) = 1 - ${P(pr[0], pr[1])} = ${frT(failFr)}$`, `$P(\\text{tidak}) = 1 - ${P(pr[0], pr[1])} = ${frT(failFr)}$`), T(`Expected number $= N \\times P = ${N} \\times ${frT(failFr)} = ${(N * (pr[1] - pr[0])) / pr[1]}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${frT(failFr)} = ${(N * (pr[1] - pr[0])) / pr[1]}$`)), sp: 's' };
     },
     /* expected frequency of a predicate-defined event, NEXP + PRED bank */
     (r) => {
@@ -835,7 +908,7 @@
       need((N * A.length) % ex.N === 0);
       const qEn = `${cap1(ex.en)} ${N} times. How many times is the result expected to be ${p1.en}?`;
       const qMs = `${cap1(ex.ms)} sebanyak ${N} kali. Berapakah bilangan kali keputusan ${p1.ms} dijangka muncul?`;
-      return { q: T(qEn, qMs), a: T(`$${N} \\times ${P(A.length, ex.N)} = ${(N * A.length) / ex.N}$`), sp: 's' };
+      return { q: T(qEn, qMs), a: T(`$${N} \\times ${P(A.length, ex.N)} = ${(N * A.length) / ex.N}$`), w: W(T(`${cap1(p1.en)}: $${setT(A)}$, so $P = ${fq(A.length, ex.N)}$`, `${cap1(p1.ms)}: $${setT(A)}$, jadi $P = ${fq(A.length, ex.N)}$`), T(`Expected number $= N \\times P = ${N} \\times ${P(A.length, ex.N)} = ${(N * A.length) / ex.N}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${P(A.length, ex.N)} = ${(N * A.length) / ex.N}$`)), sp: 's' };
     },
     /* expected frequency of an independent combined event, N repeats */
     (r) => {
@@ -843,7 +916,7 @@
       need(N % 12 === 0);
       const qEn = `A fair coin is tossed and a fair die is rolled together, ${N} times. How many times is "the coin shows $H$ and the die shows 6" expected to occur?`;
       const qMs = `Sekeping syiling adil dilambung dan sebiji dadu adil digolek bersama, sebanyak ${N} kali. Berapakah bilangan kali "syiling menunjukkan $H$ dan dadu menunjukkan 6" dijangka berlaku?`;
-      return { q: T(qEn, qMs), a: T(`$${N} \\times \\dfrac{1}{2} \\times \\dfrac{1}{6} = ${N / 12}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$${N} \\times \\dfrac{1}{2} \\times \\dfrac{1}{6} = ${N / 12}$`), w: W(T('Independent: $P(H \\text{ and } 6) = \\dfrac{1}{2} \\times \\dfrac{1}{6} = \\dfrac{1}{12}$', 'Tak bersandar: $P(H \\text{ dan } 6) = \\dfrac{1}{2} \\times \\dfrac{1}{6} = \\dfrac{1}{12}$'), T(`Expected number $= N \\times P = ${N} \\times ${'\\dfrac{1}{12}'} = ${N / 12}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${'\\dfrac{1}{12}'} = ${N / 12}$`)), sp: 'm' };
     },
   ];
 
@@ -865,7 +938,7 @@
       const observed = exp + r.pick([-2, -1, 1, 2].filter((d) => exp + d >= 0 && exp + d <= N));
       const qEn = `The probability that ${c.en} is $${P(pr[0], pr[1])}$. Out of ${N} checked, the expected number is ${exp}, but the actual count observed was ${observed}. Is this a contradiction? Explain.`;
       const qMs = `Kebarangkalian ${c.ms} ialah $${P(pr[0], pr[1])}$. Daripada ${N} yang diperiksa, bilangan yang dijangka ialah ${exp}, tetapi bilangan sebenar yang diperhatikan ialah ${observed}. Adakah ini satu percanggahan? Terangkan.`;
-      return { q: T(qEn, qMs), a: T(`No: the expected value is an average over many repeated batches of ${N}, not a guarantee for one particular batch. A single actual count can reasonably differ from the expected value.`, `Tidak: nilai jangkaan ialah purata ke atas banyak kumpulan berulang seramai ${N}, bukan satu jaminan bagi satu kumpulan tertentu. Satu bilangan sebenar secara munasabah boleh berbeza daripada nilai jangkaan.`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`No: the expected value is an average over many repeated batches of ${N}, not a guarantee for one particular batch. A single actual count can reasonably differ from the expected value.`, `Tidak: nilai jangkaan ialah purata ke atas banyak kumpulan berulang seramai ${N}, bukan satu jaminan bagi satu kumpulan tertentu. Satu bilangan sebenar secara munasabah boleh berbeza daripada nilai jangkaan.`), w: W(T(`Expected number $= N \\times P = ${N} \\times ${P(pr[0], pr[1])} = ${exp}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${P(pr[0], pr[1])} = ${exp}$`), T(`Random variation means one batch can give ${observed} instead of ${exp}; only the long-run average is expected to be close to ${exp}.`, `Variasi rawak bermaksud satu kumpulan boleh memberi ${observed} dan bukan ${exp}; hanya purata jangka panjang dijangka hampir dengan ${exp}.`)), sp: 'm' };
     },
     /* expected frequency of a mutually exclusive "or" event, N repeats */
     (r) => {
@@ -879,7 +952,8 @@
       need((N * uni) % ex.N === 0);
       const qEn = `${cap1(ex.en)} ${N} times. $A$: the result is ${p1.en}; $B$: the result is ${p2.en} ($A$ and $B$ are mutually exclusive). How many times is $A$ or $B$ expected to occur?`;
       const qMs = `${cap1(ex.ms)} sebanyak ${N} kali. $A$: keputusan ialah ${p1.ms}; $B$: keputusan ialah ${p2.ms} ($A$ dan $B$ saling eksklusif). Berapakah bilangan kali $A$ atau $B$ dijangka berlaku?`;
-      return { q: T(qEn, qMs), a: T(`$${N} \\times \\left(${P(A.length, ex.N)} + ${P(B.length, ex.N)}\\right) = ${(N * uni) / ex.N}$`), sp: 'm' };
+      return { q: T(qEn, qMs), a: T(`$${N} \\times \\left(${P(A.length, ex.N)} + ${P(B.length, ex.N)}\\right) = ${(N * uni) / ex.N}$`),
+        w: W(`$A = ${setT(A)}$, $B = ${setT(B)}$`, T(`Mutually exclusive, so $P(A \\cup B) = P(A) + P(B) = ${P(A.length, ex.N)} + ${P(B.length, ex.N)} = ${P(uni, ex.N)}$`, `Saling eksklusif, jadi $P(A \\cup B) = P(A) + P(B) = ${P(A.length, ex.N)} + ${P(B.length, ex.N)} = ${P(uni, ex.N)}$`), T(`Expected number $= N \\times P = ${N} \\times ${P(uni, ex.N)} = ${(N * uni) / ex.N}$`, `Bilangan jangkaan $= N \\times P = ${N} \\times ${P(uni, ex.N)} = ${(N * uni) / ex.N}$`)), sp: 'm' };
     },
     /* reverse from "at least one in two trials" (nonlinear in x, per-trial probability 1/x) */
     (r) => {
@@ -907,7 +981,8 @@
         T(`$${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`),
         T(`$${N} \\times ${frT(PAB)} = ${(N * A.length) / (ex.N * 2)}$`),
       ]);
-      return { q: parts, a: ans, sp: 'l' };
+      return { q: parts, a: ans,
+        w: W(T(`(a) ${cap1(p1.en)}: $${setT(A)}$, $P = ${fq(A.length, ex.N)}$; independent of the coin: $${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`, `(a) ${cap1(p1.ms)}: $${setT(A)}$, $P = ${fq(A.length, ex.N)}$; tak bersandar dengan syiling: $${frT(PA)} \\times \\dfrac{1}{2} = ${frT(PAB)}$`), T(`(b) Expected number $= ${N} \\times ${frT(PAB)} = ${(N * A.length) / (ex.N * 2)}$`, `(b) Bilangan jangkaan $= ${N} \\times ${frT(PAB)} = ${(N * A.length) / (ex.N * 2)}$`)), sp: 'l' };
     },
   ];
 
@@ -935,7 +1010,9 @@
       const qEn = `A ${c.h.holder.en} has some ${c.col.en} ${c.h.en} and ${c.n_} other-coloured ${c.h.en}. Two ${c.h.en} are drawn without replacement, and $P(\\text{both ${c.col.en}}) = ${frT(c.target)}$. A student claims the number of ${c.col.en} ${c.h.en} is ${wrong}. Check this claim by substitution, find the correct number, and explain why systematic trial (rather than direct algebraic rearrangement) is a reasonable approach here.`;
       const qMs = `Sebuah ${c.h.holder.ms} mengandungi beberapa ${c.h.ms} ${c.col.ms} dan ${c.n_} ${c.h.ms} warna lain. Dua ${c.h.ms} ditarik tanpa pengembalian, dan $P(\\text{kedua-dua ${c.col.ms}}) = ${frT(c.target)}$. Seorang murid mendakwa bilangan ${c.h.ms} ${c.col.ms} ialah ${wrong}. Semak dakwaan ini dengan penggantian, cari bilangan yang betul, dan terangkan mengapa cuba jaya sistematik (bukan penyusunan semula algebra terus) adalah pendekatan yang munasabah di sini.`;
       const wrongP = fr(wrong * (wrong - 1), (wrong + c.n_) * (wrong + c.n_ - 1));
-      return { q: T(qEn, qMs), a: T(`Substituting $x = ${wrong}$ gives $${frT(wrongP)} \\neq ${frT(c.target)}$, so the claim is wrong. The correct number is $x = ${c.x}$ (verified above). The equation is quadratic in $x$, so systematic trial over small whole numbers is simpler than solving the quadratic algebraically, and the context (a count of items) restricts $x$ to positive integers anyway.`, `Menggantikan $x = ${wrong}$ memberikan $${frT(wrongP)} \\neq ${frT(c.target)}$, jadi dakwaan itu salah. Bilangan yang betul ialah $x = ${c.x}$ (disahkan di atas). Persamaan itu kuadratik dalam $x$, jadi cuba jaya sistematik ke atas nombor bulat kecil adalah lebih mudah daripada menyelesaikan persamaan kuadratik secara algebra, dan konteksnya (bilangan item) mengehadkan $x$ kepada integer positif.`), sp: 'l' };
+      return { q: T(qEn, qMs), a: T(`Substituting $x = ${wrong}$ gives $${frT(wrongP)} \\neq ${frT(c.target)}$, so the claim is wrong. The correct number is $x = ${c.x}$ (verified by substitution). The equation is quadratic in $x$, so systematic trial over small whole numbers is simpler than solving the quadratic algebraically, and the context (a count of items) restricts $x$ to positive integers anyway.`, `Menggantikan $x = ${wrong}$ memberikan $${frT(wrongP)} \\neq ${frT(c.target)}$, jadi dakwaan itu salah. Bilangan yang betul ialah $x = ${c.x}$ (disahkan dengan penggantian). Persamaan itu kuadratik dalam $x$, jadi cuba jaya sistematik ke atas nombor bulat kecil adalah lebih mudah daripada menyelesaikan persamaan kuadratik secara algebra, dan konteksnya (bilangan item) mengehadkan $x$ kepada integer positif.`),
+        w: W(`$\\dfrac{x(x-1)}{(x+${c.n_})(x+${c.n_}-1)} = ${frT(c.target)}$`, T(`$x = ${wrong}$: $\\dfrac{${wrong} \\times ${wrong - 1}}{${wrong + c.n_} \\times ${wrong + c.n_ - 1}} = ${frT(wrongP)} \\neq ${frT(c.target)}$`, `$x = ${wrong}$: $\\dfrac{${wrong} \\times ${wrong - 1}}{${wrong + c.n_} \\times ${wrong + c.n_ - 1}} = ${frT(wrongP)} \\neq ${frT(c.target)}$`),
+          `$x = ${c.x}$: $\\dfrac{${c.x} \\times ${c.x - 1}}{${c.x + c.n_} \\times ${c.x + c.n_ - 1}} = ${frT(c.target)}$`, T('A larger $x$ always gives a larger probability, so only one whole number can fit.', 'Nilai $x$ yang lebih besar sentiasa memberi kebarangkalian yang lebih besar, jadi hanya satu nombor bulat yang sepadan.')), sp: 'l' };
     },
   ];
 

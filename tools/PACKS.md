@@ -21,10 +21,11 @@ Add generators with
 SPM.extend('F3-1.2', { e: [g1, g2, …], m: […], a: […] });   // topic key = 'F' + form + '-' + id
 ```
 
-A generator is `(r) => ({ q, a, w?, fig?, sp })`:
+A generator is `(r) => ({ q, a, w, fig?, sp })`:
 
 * `q`, `a`, `w` are bilingual: `SPM.L('English…', 'Bahasa Melayu…')` (imported below as `T`). `q` = question, `a` = final
-  answer (what the answer key prints), `w` = optional short worked solution / key step (shown under the answer).
+  answer (what the answer key prints), `w` = the worked solution, **required**: `SPM.lines(line, line, …)`, one step per line (formula → substitution →
+  result), ending at the answer. Don't restate the question. Every code path must return one (`npm run working` checks).
 * Maths is KaTeX between `$…$` – never `$$`. Text outside `$` is plain text/HTML (`<br>`, `<b>` ok).
   Multi-part questions: `SPM.parts([T(..), T(..)])` gives (a), (b), (c) lists (also for answers: `SPM.parts` in `a`).
   Tables: `SPM.table(rows, {head:[…], rowHead:true})`.

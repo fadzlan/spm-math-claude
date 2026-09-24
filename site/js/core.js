@@ -296,6 +296,21 @@
   const lin = (a, b, v) => poly([[a, v || 'x'], [b, '']]);
   /** (x + k) style bracket */
   const bin = (a, b, v) => '(' + lin(a, b, v) + ')';
+  /** worked steps for k(u x + p)(v x + q) = 0 by the zero-product property (k optional): an array of L lines
+   *  [factorised, each factor = 0, roots], for SPM.lines(...earlier, ...zeroSteps(...)) */
+  function zeroSteps(u, p, v, q, k) {
+    const f = (a, b) => (b === 0 ? lin(a, 0) : bin(a, b));
+    const pre = k && k !== 1 ? n(k) : '';
+    const r1 = Fr.tex(Fr.make(-p, u)), r2 = Fr.tex(Fr.make(-q, v));
+    if (u * q === v * p) {
+      return [L(`$${pre}${u === v ? f(u, p) + '^2' : f(u, p) + f(v, q)} = 0$`), L(`$${lin(u, p)} = 0$`), L(`$x = ${r1}$ (repeated root)`, `$x = ${r1}$ (punca berulang)`)];
+    }
+    return [
+      L(`$${pre}${f(u, p)}${f(v, q)} = 0$`),
+      L(`$${lin(u, p)} = 0$ or $${lin(v, q)} = 0$`, `$${lin(u, p)} = 0$ atau $${lin(v, q)} = 0$`),
+      L(`$x = ${r1}$ or $x = ${r2}$`, `$x = ${r1}$ atau $x = ${r2}$`),
+    ];
+  }
 
   /* ---------------------------------------------------------- registry */
   /**
@@ -438,6 +453,6 @@
   /* ------------------------------------------------------------- export */
   Object.assign(SPM, {
     L, gcd, lcm, isPrime, primeFactors, factors, round, n, fx, gm, rm, gt, sgn, par, sum, mean, sortNum, median, range, Fr, frac,
-    poly, lin, bin, termStr, letters, ordinal, BOYS, GIRLS,
+    poly, lin, bin, zeroSteps, termStr, letters, ordinal, BOYS, GIRLS,
   });
 })(typeof window !== 'undefined' ? window : globalThis);

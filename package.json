@@ -7,6 +7,7 @@
     "serve": "node tools/serve.js",
     "check": "node tools/check.js",
     "manifest": "node tools/pack-manifest.js",
+    "working": "node tools/working.js",
     "variety": "node tools/variety.js",
     "test:browser": "node tools/browser-test.js"
   },
