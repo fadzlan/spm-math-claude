@@ -234,17 +234,17 @@
     (r) => {
       const v = r.pick(LT), k = r.int(2, 9);
       const forms = [
-        [T(`True or false: $${k}${v}$ means $${k} + ${v}$.`, `Benar atau palsu: $${k}${v}$ bermaksud $${k} + ${v}$.`), T(`False. $${k}${v}$ means $${k} \\times ${v}$.`, `Palsu. $${k}${v}$ bermaksud $${k} \\times ${v}$.`),
-          W(T(`Writing a number next to a letter means multiplication: $${k}${v} = ${k} \\times ${v}$.`, `Menulis nombor bersebelahan huruf bermaksud pendaraban: $${k}${v} = ${k} \\times ${v}$.`), T(`Check with $${v} = 2$: $${k}${v} = ${2 * k}$ but $${k} + ${v} = ${k + 2}$, so the statement is false.`, `Semak dengan $${v} = 2$: $${k}${v} = ${2 * k}$ tetapi $${k} + ${v} = ${k + 2}$, jadi pernyataan itu palsu.`))],
-        [T(`True or false: $${v} + ${v} + ${v}$ can be written as $${v}^3$.`, `Benar atau palsu: $${v} + ${v} + ${v}$ boleh ditulis sebagai $${v}^3$.`), T(`False. $${v} + ${v} + ${v} = 3${v}$, whereas $${v}^3 = ${v} \\times ${v} \\times ${v}$.`, `Palsu. $${v} + ${v} + ${v} = 3${v}$, manakala $${v}^3 = ${v} \\times ${v} \\times ${v}$.`),
-          W(T('Repeated addition gives a coefficient; only repeated multiplication gives an index.', 'Penambahan berulang memberi pekali; hanya pendaraban berulang memberi indeks.'), T(`Check with $${v} = 2$: $${v} + ${v} + ${v} = 6$ but $${v}^3 = 8$, so the statement is false.`, `Semak dengan $${v} = 2$: $${v} + ${v} + ${v} = 6$ tetapi $${v}^3 = 8$, jadi pernyataan itu palsu.`))],
-        [T(`True or false: $${v}^2$ means $${v} \\times ${v}$.`, `Benar atau palsu: $${v}^2$ bermaksud $${v} \\times ${v}$.`), T('True.', 'Benar.'),
+        [T(`True or false: $${k}${v}$ means $${k} + ${v}$.`, `Betul atau salah: $${k}${v}$ bermaksud $${k} + ${v}$.`), T(`False. $${k}${v}$ means $${k} \\times ${v}$.`, `Salah. $${k}${v}$ bermaksud $${k} \\times ${v}$.`),
+          W(T(`Writing a number next to a letter means multiplication: $${k}${v} = ${k} \\times ${v}$.`, `Menulis nombor bersebelahan huruf bermaksud pendaraban: $${k}${v} = ${k} \\times ${v}$.`), T(`Check with $${v} = 2$: $${k}${v} = ${2 * k}$ but $${k} + ${v} = ${k + 2}$, so the statement is false.`, `Semak dengan $${v} = 2$: $${k}${v} = ${2 * k}$ tetapi $${k} + ${v} = ${k + 2}$, jadi pernyataan itu salah.`))],
+        [T(`True or false: $${v} + ${v} + ${v}$ can be written as $${v}^3$.`, `Betul atau salah: $${v} + ${v} + ${v}$ boleh ditulis sebagai $${v}^3$.`), T(`False. $${v} + ${v} + ${v} = 3${v}$, whereas $${v}^3 = ${v} \\times ${v} \\times ${v}$.`, `Salah. $${v} + ${v} + ${v} = 3${v}$, manakala $${v}^3 = ${v} \\times ${v} \\times ${v}$.`),
+          W(T('Repeated addition gives a coefficient; only repeated multiplication gives an index.', 'Penambahan berulang memberi pekali; hanya pendaraban berulang memberi indeks.'), T(`Check with $${v} = 2$: $${v} + ${v} + ${v} = 6$ but $${v}^3 = 8$, so the statement is false.`, `Semak dengan $${v} = 2$: $${v} + ${v} + ${v} = 6$ tetapi $${v}^3 = 8$, jadi pernyataan itu salah.`))],
+        [T(`True or false: $${v}^2$ means $${v} \\times ${v}$.`, `Betul atau salah: $${v}^2$ bermaksud $${v} \\times ${v}$.`), T('True.', 'Betul.'),
           W(T(`The index $2$ shows that the base $${v}$ is used as a factor twice, so $${v}^2 = ${v} \\times ${v}$.`, `Indeks $2$ menunjukkan asas $${v}$ digunakan sebagai faktor dua kali, jadi $${v}^2 = ${v} \\times ${v}$.`))],
-        [T(`True or false: in $${k}${v}^2$, the coefficient of $${v}^2$ is ${k}.`, `Benar atau palsu: dalam $${k}${v}^2$, pekali bagi $${v}^2$ ialah ${k}.`), T('True.', 'Benar.'),
+        [T(`True or false: in $${k}${v}^2$, the coefficient of $${v}^2$ is ${k}.`, `Betul atau salah: dalam $${k}${v}^2$, pekali bagi $${v}^2$ ialah ${k}.`), T('True.', 'Betul.'),
           W(T(`$${k}${v}^2 = ${k} \\times ${v}^2$, and the number multiplying $${v}^2$ is its coefficient, $${k}$.`, `$${k}${v}^2 = ${k} \\times ${v}^2$, dan nombor yang mendarab $${v}^2$ ialah pekalinya, $${k}$.`))],
-        [T(`True or false: $${v}$ and ${k} are both variables.`, `Benar atau palsu: $${v}$ dan ${k} kedua-duanya pemboleh ubah.`), T(`False. $${v}$ is a variable but ${k} is a constant.`, `Palsu. $${v}$ ialah pemboleh ubah tetapi ${k} ialah pemalar.`),
-          W(T(`$${v}$ can stand for many different values, but $${k}$ is always $${k}$.`, `$${v}$ boleh mewakili banyak nilai berbeza, tetapi $${k}$ sentiasa $${k}$.`), T('A fixed number is a constant, not a variable, so the statement is false.', 'Nombor tetap ialah pemalar, bukan pemboleh ubah, jadi pernyataan itu palsu.'))],
-        [T(`True or false: $\\dfrac{${v}}{${k}}$ is an algebraic expression.`, `Benar atau palsu: $\\dfrac{${v}}{${k}}$ ialah ungkapan algebra.`), T('True.', 'Benar.'),
+        [T(`True or false: $${v}$ and ${k} are both variables.`, `Betul atau salah: $${v}$ dan ${k} kedua-duanya pemboleh ubah.`), T(`False. $${v}$ is a variable but ${k} is a constant.`, `Salah. $${v}$ ialah pemboleh ubah tetapi ${k} ialah pemalar.`),
+          W(T(`$${v}$ can stand for many different values, but $${k}$ is always $${k}$.`, `$${v}$ boleh mewakili banyak nilai berbeza, tetapi $${k}$ sentiasa $${k}$.`), T('A fixed number is a constant, not a variable, so the statement is false.', 'Nombor tetap ialah pemalar, bukan pemboleh ubah, jadi pernyataan itu salah.'))],
+        [T(`True or false: $\\dfrac{${v}}{${k}}$ is an algebraic expression.`, `Betul atau salah: $\\dfrac{${v}}{${k}}$ ialah ungkapan algebra.`), T('True.', 'Betul.'),
           W(T(`$\\dfrac{${v}}{${k}}$ combines the variable $${v}$ with the number $${k}$ using division, so it is an algebraic expression.`, `$\\dfrac{${v}}{${k}}$ menggabungkan pemboleh ubah $${v}$ dengan nombor $${k}$ menggunakan pembahagian, jadi ia ialah ungkapan algebra.`))],
       ];
       const [q, a, wl] = r.pick(forms);
@@ -853,8 +853,8 @@
           T(`$${v}$ used twice as a factor gives $${v}^2$; $2${v}$ means $${v} + ${v}$.`, `$${v}$ yang digunakan dua kali sebagai faktor memberi $${v}^2$; $2${v}$ bermaksud $${v} + ${v}$.`)],
       ];
       const [E, ok, why, chk] = r.pick(F);
-      return { q: T(`True or false: $${E}$.`, `Benar atau palsu: $${E}$.`), a: T(`${ok ? 'True' : 'False'}: ${why.en}.`, `${ok ? 'Benar' : 'Palsu'}: ${why.ms}.`),
-        w: W(chk, T(`So the statement is ${ok ? 'true' : 'false'}.`, `Jadi pernyataan itu ${ok ? 'benar' : 'palsu'}.`)), sp: 's' };
+      return { q: T(`True or false: $${E}$.`, `Betul atau salah: $${E}$.`), a: T(`${ok ? 'True' : 'False'}: ${why.en}.`, `${ok ? 'Betul' : 'Salah'}: ${why.ms}.`),
+        w: W(chk, T(`So the statement is ${ok ? 'true' : 'false'}.`, `Jadi pernyataan itu ${ok ? 'betul' : 'salah'}.`)), sp: 's' };
     },
     /* MCQ equal to */
     (r) => {
@@ -1329,16 +1329,16 @@
         () => { const a = r.int(-9, -1), b = r.int(1, 9); return [PT(a), PT(b), cmpSym(a, b), T('A negative number is always less than a positive number.', 'Nombor negatif sentiasa kurang daripada nombor positif.')]; },
       ];
       const [A, B, c, why] = r.pick(F)();
-      const q = r.pick([T(`Fill in the blank with $>$ or $<$: $${A}\\ \\square\\ ${B}$.`, `Isi tempat kosong dengan $>$ atau $<$: $${A}\\ \\square\\ ${B}$.`), T(`Which symbol makes the statement true, $>$ or $<$? $${A}\\ \\square\\ ${B}$`, `Simbol yang manakah menjadikan pernyataan itu benar, $>$ atau $<$? $${A}\\ \\square\\ ${B}$`), T(`Compare $${A}$ and $${B}$ using $>$ or $<$.`, `Bandingkan $${A}$ dan $${B}$ menggunakan $>$ atau $<$.`)]);
+      const q = r.pick([T(`Fill in the blank with $>$ or $<$: $${A}\\ \\square\\ ${B}$.`, `Isi tempat kosong dengan $>$ atau $<$: $${A}\\ \\square\\ ${B}$.`), T(`Which symbol makes the statement true, $>$ or $<$? $${A}\\ \\square\\ ${B}$`, `Simbol yang manakah menjadikan pernyataan itu betul, $>$ atau $<$? $${A}\\ \\square\\ ${B}$`), T(`Compare $${A}$ and $${B}$ using $>$ or $<$.`, `Bandingkan $${A}$ dan $${B}$ menggunakan $>$ atau $<$.`)]);
       return { q, a: T(`$${A} ${c} ${B}$`), w: W(why, `$${A} ${c} ${B}$`), sp: 'xs' };
     },
     /* true or false */
     (r) => {
       const a = r.int(-9, 9), b = r.int(-9, 9), s = r.pick(SYS);
       const ok = holds(a, s, b);
-      return { q: T(`True or false: $${PT(a)} ${SY[s]} ${PT(b)}$.`, `Benar atau palsu: $${PT(a)} ${SY[s]} ${PT(b)}$.`), a: T(`${ok ? 'True' : 'False'}: ${a} ${a > b ? 'is greater than' : a < b ? 'is less than' : 'is equal to'} ${b}.`, `${ok ? 'Benar' : 'Palsu'}: ${a} ${a > b ? 'lebih besar daripada' : a < b ? 'kurang daripada' : 'sama dengan'} ${b}.`),
+      return { q: T(`True or false: $${PT(a)} ${SY[s]} ${PT(b)}$.`, `Betul atau salah: $${PT(a)} ${SY[s]} ${PT(b)}$.`), a: T(`${ok ? 'True' : 'False'}: ${a} ${a > b ? 'is greater than' : a < b ? 'is less than' : 'is equal to'} ${b}.`, `${ok ? 'Betul' : 'Salah'}: ${a} ${a > b ? 'lebih besar daripada' : a < b ? 'kurang daripada' : 'sama dengan'} ${b}.`),
         w: W(T(`Comparing the two numbers gives $${PT(a)} ${cmpSym(a, b)} ${PT(b)}$.`, `Perbandingan kedua-dua nombor memberi $${PT(a)} ${cmpSym(a, b)} ${PT(b)}$.`),
-          T(`So the statement $${PT(a)} ${SY[s]} ${PT(b)}$ is ${ok ? 'true' : 'false'}.`, `Jadi pernyataan $${PT(a)} ${SY[s]} ${PT(b)}$ adalah ${ok ? 'benar' : 'palsu'}.`)), sp: 'xs' };
+          T(`So the statement $${PT(a)} ${SY[s]} ${PT(b)}$ is ${ok ? 'true' : 'false'}.`, `Jadi pernyataan $${PT(a)} ${SY[s]} ${PT(b)}$ adalah ${ok ? 'betul' : 'salah'}.`)), sp: 'xs' };
     },
     /* converse */
     (r) => {
@@ -1355,7 +1355,7 @@
       const rel = `${x} ${ok ? SY[s] : cmpSym(x, k)} ${k}`;
       return { q: T(`Is $${v} = ${x}$ one of the values that satisfy $${v} ${SY[s]} ${k}$? Answer yes or no.`, `Adakah $${v} = ${x}$ salah satu nilai yang memuaskan $${v} ${SY[s]} ${k}$? Jawab ya atau tidak.`), a: T(`${ok ? 'Yes' : 'No'}: $${rel}$`, `${ok ? 'Ya' : 'Tidak'}: $${rel}$`),
         w: W(T(`Substitute $${v} = ${x}$ into $${v} ${SY[s]} ${k}$.`, `Gantikan $${v} = ${x}$ ke dalam $${v} ${SY[s]} ${k}$.`),
-          T(ok ? `$${rel}$ is true, so $${v} = ${x}$ is one of the values.` : `$${rel}$, so $${x} ${SY[s]} ${k}$ is false and $${v} = ${x}$ is not one of the values.`, ok ? `$${rel}$ adalah benar, jadi $${v} = ${x}$ ialah salah satu nilainya.` : `$${rel}$, jadi $${x} ${SY[s]} ${k}$ adalah palsu dan $${v} = ${x}$ bukan salah satu nilainya.`)), sp: 'xs' };
+          T(ok ? `$${rel}$ is true, so $${v} = ${x}$ is one of the values.` : `$${rel}$, so $${x} ${SY[s]} ${k}$ is false and $${v} = ${x}$ is not one of the values.`, ok ? `$${rel}$ adalah betul, jadi $${v} = ${x}$ ialah salah satu nilainya.` : `$${rel}$, jadi $${x} ${SY[s]} ${k}$ adalah salah dan $${v} = ${x}$ bukan salah satu nilainya.`)), sp: 'xs' };
     },
     /* situations */
     (r) => {
@@ -1410,9 +1410,9 @@
       need(a !== b);
       const right = `$${PT(a)} ${cmpSym(a, b)} ${PT(b)}$`, wrong = `$${PT(a)} ${cmpSym(b, a)} ${PT(b)}$`;
       const o = mcq(r, right, [wrong, `$${PT(a)} = ${PT(b)}$`, `$${PT(b)} ${cmpSym(b, a)} ${PT(b)}$`.replace(`${PT(b)} ${cmpSym(b, a)} ${PT(b)}`, `${PT(a)} ${cmpSym(b, a) === '>' ? '\\ge' : '\\le'} ${PT(b)}`)]);
-      return { q: T(`Which of the following statements is true?<br>${o.s}`, `Pernyataan yang manakah benar?<br>${o.s}`), a: T(`${o.L}: ${right}`),
+      return { q: T(`Which of the following statements is true?<br>${o.s}`, `Pernyataan yang manakah betul?<br>${o.s}`), a: T(`${o.L}: ${right}`),
         w: W(T(`On a number line $${PT(a)}$ lies to the ${a > b ? 'right' : 'left'} of $${PT(b)}$, so $${PT(a)} ${cmpSym(a, b)} ${PT(b)}$.`, `Pada garis nombor, $${PT(a)}$ terletak di sebelah ${a > b ? 'kanan' : 'kiri'} $${PT(b)}$, jadi $${PT(a)} ${cmpSym(a, b)} ${PT(b)}$.`),
-          T(`So the true statement is (${o.L}).`, `Jadi pernyataan yang benar ialah (${o.L}).`)), sp: 'xs' };
+          T(`So the true statement is (${o.L}).`, `Jadi pernyataan yang betul ialah (${o.L}).`)), sp: 'xs' };
     },
   ];
 
@@ -1458,7 +1458,7 @@
         w: W(T('Do the operation on both sides:', 'Lakukan operasi itu pada kedua-dua belah:'),
           `$${PT(a)} ${OPN[i]} ${PT(c)} = ${PT(na)}$, &emsp;$${PT(b)} ${OPN[i]} ${PT(c)} = ${PT(nb)}$`,
           c < 0 && i > 1
-            ? T('Multiplying or dividing by a negative number reverses the inequality sign.', 'Mendarab atau membahagi dengan nombor negatif menyongsangkan tanda ketaksamaan.')
+            ? T('Multiplying or dividing by a negative number reverses the inequality sign.', 'Mendarab atau membahagi dengan nombor negatif menyongsangkan arah simbol ketaksamaan.')
             : T('Adding or subtracting the same number, or multiplying or dividing by a positive number, keeps the sign the same.', 'Menambah atau menolak nombor yang sama, atau mendarab atau membahagi dengan nombor positif, mengekalkan tanda yang sama.'),
           `$${PT(na)} ${s} ${PT(nb)}$`), sp: 's' };
     },
@@ -1467,7 +1467,7 @@
       const [a, b] = pairGT(r, -8, 12), v = r.chance();
       return { q: T(`Given $${PT(a)} > ${PT(b)}$, write the inequality relating $${PT(-a)}$ and $${PT(-b)}$. What happens to the sign?`, `Diberi $${PT(a)} > ${PT(b)}$, tulis ketaksamaan yang menghubungkan $${PT(-a)}$ dan $${PT(-b)}$. Apakah yang berlaku kepada tanda itu?`), a: T(`$${PT(-a)} < ${PT(-b)}$; the sign is reversed.`, `$${PT(-a)} < ${PT(-b)}$; tanda disongsangkan.`),
         w: W(T(`Taking $${PT(-a)}$ and $${PT(-b)}$ means multiplying both sides by $-1$.`, `Mengambil $${PT(-a)}$ dan $${PT(-b)}$ bermaksud mendarab kedua-dua belah dengan $-1$.`),
-          T('Multiplying by a negative number reverses the inequality sign.', 'Mendarab dengan nombor negatif menyongsangkan tanda ketaksamaan.'),
+          T('Multiplying by a negative number reverses the inequality sign.', 'Mendarab dengan nombor negatif menyongsangkan arah simbol ketaksamaan.'),
           T(`On a number line $${PT(-a)}$ now lies to the left of $${PT(-b)}$.`, `Pada garis nombor, $${PT(-a)}$ kini terletak di sebelah kiri $${PT(-b)}$.`),
           `$${PT(-a)} < ${PT(-b)}$`), sp: 's' };
     },
@@ -1533,7 +1533,7 @@
       const F = [
         [T(`multiplying both sides by ${c} keeps the sign the same`, `mendarab kedua-dua belah dengan ${c} mengekalkan tanda yang sama`), `$${a} > ${b}$: $${a * c} > ${b * c}$`, 1],
         [T(`multiplying both sides by $-${c}$ keeps the sign the same`, `mendarab kedua-dua belah dengan $-${c}$ mengekalkan tanda yang sama`), `$${a} > ${b}$ but $${-a * c} < ${-b * c}$`, 0],
-        [T(`adding $-${c}$ to both sides reverses the sign`, `menambah $-${c}$ pada kedua-dua belah menyongsangkan tanda`), `$${a} > ${b}$ and $${a - c} > ${b - c}$`, 0],
+        [T(`adding $-${c}$ to both sides reverses the sign`, `menambah $-${c}$ pada kedua-dua belah menyongsangkan arah simbol ketaksamaan`), `$${a} > ${b}$ and $${a - c} > ${b - c}$`, 0],
         [T(`subtracting ${c} from both sides keeps the sign the same`, `menolak ${c} daripada kedua-dua belah mengekalkan tanda yang sama`), `$${a} > ${b}$ and $${a - c} > ${b - c}$`, 1],
       ];
       const [cl, ev, ok] = r.pick(F);
@@ -1598,10 +1598,10 @@
     (r) => {
       const [a, b] = pairGT(r, -9, -2), c = r.int(2, 5), nm = r.name();
       const good = cmpSym(-a * c, -b * c);
-      return { q: T(`${nm} wrote: "$${a} > ${b}$, so if I multiply both sides by $-${c}$ I get $${-a * c} > ${-b * c}$." Is ${nm} correct? Explain.`, `${nm} menulis: "$${a} > ${b}$, maka jika saya mendarab kedua-dua belah dengan $-${c}$ saya dapat $${-a * c} > ${-b * c}$." Adakah ${nm} betul? Terangkan.`), a: T(`No. Multiplying by a negative number reverses the sign, so $${a} > ${b}$ gives $${-a * c} ${good} ${-b * c}$.`, `Tidak. Mendarab dengan nombor negatif menyongsangkan tanda, maka $${a} > ${b}$ memberi $${-a * c} ${good} ${-b * c}$.`),
+      return { q: T(`${nm} wrote: "$${a} > ${b}$, so if I multiply both sides by $-${c}$ I get $${-a * c} > ${-b * c}$." Is ${nm} correct? Explain.`, `${nm} menulis: "$${a} > ${b}$, maka jika saya mendarab kedua-dua belah dengan $-${c}$ saya dapat $${-a * c} > ${-b * c}$." Adakah ${nm} betul? Terangkan.`), a: T(`No. Multiplying by a negative number reverses the sign, so $${a} > ${b}$ gives $${-a * c} ${good} ${-b * c}$.`, `Tidak. Mendarab dengan nombor negatif menyongsangkan arah simbol ketaksamaan, maka $${a} > ${b}$ memberi $${-a * c} ${good} ${-b * c}$.`),
         w: W(T(`Multiply each side of $${a} > ${b}$ by $-${c}$:`, `Darab setiap belah $${a} > ${b}$ dengan $-${c}$:`),
           `$${PT(a)} \\times (-${c}) = ${-a * c}$, &emsp;$${PT(b)} \\times (-${c}) = ${-b * c}$`,
-          T('Multiplying by a negative number reverses the inequality sign, which ' + nm + ' forgot.', 'Mendarab dengan nombor negatif menyongsangkan tanda ketaksamaan, yang dilupakan oleh ' + nm + '.'),
+          T('Multiplying by a negative number reverses the inequality sign, which ' + nm + ' forgot.', 'Mendarab dengan nombor negatif menyongsangkan arah simbol ketaksamaan, yang dilupakan oleh ' + nm + '.'),
           `$${-a * c} ${good} ${-b * c}$`), sp: 's' };
     },
     /* "between" statements */
@@ -1619,7 +1619,7 @@
       const [a, b] = pairGT(r, -6, 9), c = r.int(2, 5), s = r.chance();
       const R = [
         [`${b}\\ \\square\\ ${a}`, '<', T('the two sides are swapped, so the symbol turns round', 'kedudukan kedua-dua belah ditukar, jadi simbolnya dipusingkan')],
-        [`${PT(-a)}\\ \\square\\ ${PT(-b)}`, '<', T('both sides are multiplied by $-1$, which reverses the sign', 'kedua-dua belah didarab dengan $-1$, yang menyongsangkan tanda')],
+        [`${PT(-a)}\\ \\square\\ ${PT(-b)}`, '<', T('both sides are multiplied by $-1$, which reverses the sign', 'kedua-dua belah didarab dengan $-1$, yang menyongsangkan arah simbol ketaksamaan')],
         [`${a + c}\\ \\square\\ ${b + c}`, '>', T(`${c} is added to both sides, so the sign stays the same`, `${c} ditambah pada kedua-dua belah, jadi tandanya kekal sama`)],
         [`${a - c}\\ \\square\\ ${b - c}`, '>', T(`${c} is subtracted from both sides, so the sign stays the same`, `${c} ditolak daripada kedua-dua belah, jadi tandanya kekal sama`)],
       ];
@@ -1633,10 +1633,10 @@
     /* reciprocal / zero care */
     (r) => {
       const [a, b] = pairGT(r, 1, 9), nm = r.name();
-      return { q: T(`${nm} claims: "If $x > y$, then $\\dfrac{1}{x} < \\dfrac{1}{y}$." (a) Test with $x = ${a}$, $y = ${b}$. (b) Test with $x = ${b}$, $y = -${a}$. (c) Is the claim always true?`, `${nm} mendakwa: "Jika $x > y$, maka $\\dfrac{1}{x} < \\dfrac{1}{y}$." (a) Uji dengan $x = ${a}$, $y = ${b}$. (b) Uji dengan $x = ${b}$, $y = -${a}$. (c) Adakah dakwaan itu sentiasa benar?`), a: T(`(a) $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$: true. (b) $\\dfrac{1}{${b}} > -\\dfrac{1}{${a}}$: the claim fails. (c) No; it is true only when $x$ and $y$ are both positive (same side of zero).`, `(a) $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$: benar. (b) $\\dfrac{1}{${b}} > -\\dfrac{1}{${a}}$: dakwaan gagal. (c) Tidak; ia benar hanya apabila $x$ dan $y$ kedua-duanya positif (pada sebelah yang sama bagi sifar).`),
+      return { q: T(`${nm} claims: "If $x > y$, then $\\dfrac{1}{x} < \\dfrac{1}{y}$." (a) Test with $x = ${a}$, $y = ${b}$. (b) Test with $x = ${b}$, $y = -${a}$. (c) Is the claim always true?`, `${nm} mendakwa: "Jika $x > y$, maka $\\dfrac{1}{x} < \\dfrac{1}{y}$." (a) Uji dengan $x = ${a}$, $y = ${b}$. (b) Uji dengan $x = ${b}$, $y = -${a}$. (c) Adakah dakwaan itu sentiasa betul?`), a: T(`(a) $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$: true. (b) $\\dfrac{1}{${b}} > -\\dfrac{1}{${a}}$: the claim fails. (c) No; it is true only when $x$ and $y$ are both positive (same side of zero).`, `(a) $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$: betul. (b) $\\dfrac{1}{${b}} > -\\dfrac{1}{${a}}$: dakwaan gagal. (c) Tidak; ia betul hanya apabila $x$ dan $y$ kedua-duanya positif (pada sebelah yang sama bagi sifar).`),
         w: W(T(`(a) $${a}$ and $${b}$ are both positive, and for positive numbers a larger denominator gives a smaller fraction, so $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$ — the claim works here.`, `(a) $${a}$ dan $${b}$ kedua-duanya positif, dan bagi nombor positif penyebut yang lebih besar memberi pecahan yang lebih kecil, jadi $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$ — dakwaan itu berhasil di sini.`),
           T(`(b) Now $${b} > -${a}$, but $\\dfrac{1}{${b}}$ is positive while $-\\dfrac{1}{${a}}$ is negative, so $\\dfrac{1}{${b}} > -\\dfrac{1}{${a}}$ — the claim fails.`, `(b) Sekarang $${b} > -${a}$, tetapi $\\dfrac{1}{${b}}$ positif manakala $-\\dfrac{1}{${a}}$ negatif, jadi $\\dfrac{1}{${b}} > -\\dfrac{1}{${a}}$ — dakwaan itu gagal.`),
-          T('(c) So the claim is not always true; it holds only when $x$ and $y$ are on the same side of zero, that is when both are positive.', '(c) Jadi dakwaan itu tidak sentiasa benar; ia benar hanya apabila $x$ dan $y$ berada pada sebelah sifar yang sama, iaitu apabila kedua-duanya positif.')), sp: 'l' };
+          T('(c) So the claim is not always true; it holds only when $x$ and $y$ are on the same side of zero, that is when both are positive.', '(c) Jadi dakwaan itu tidak sentiasa betul; ia betul hanya apabila $x$ dan $y$ berada pada sebelah sifar yang sama, iaitu apabila kedua-duanya positif.')), sp: 'l' };
     },
     /* generalisation true/false with counterexample */
     (r) => {
@@ -1649,7 +1649,7 @@
         [T(`If $a > b$, then $${c}a > ${c}b$.`, `Jika $a > b$, maka $${c}a > ${c}b$.`), true, '',
           T(`Multiplying both sides by the positive number ${c} keeps the sign the same.`, `Mendarab kedua-dua belah dengan nombor positif ${c} mengekalkan tanda yang sama.`)],
         [T(`If $a > b$, then $-${c}a > -${c}b$.`, `Jika $a > b$, maka $-${c}a > -${c}b$.`), false, `a = 2,\\ b = 1: -${2 * c} < -${c}`,
-          T(`Multiplying both sides by the negative number $-${c}$ reverses the sign, so the correct result is $-${c}a < -${c}b$.`, `Mendarab kedua-dua belah dengan nombor negatif $-${c}$ menyongsangkan tanda, jadi keputusan yang betul ialah $-${c}a < -${c}b$.`)],
+          T(`Multiplying both sides by the negative number $-${c}$ reverses the sign, so the correct result is $-${c}a < -${c}b$.`, `Mendarab kedua-dua belah dengan nombor negatif $-${c}$ menyongsangkan arah simbol ketaksamaan, jadi keputusan yang betul ialah $-${c}a < -${c}b$.`)],
         [T('If $a > b$ and $c > d$, then $a + c > b + d$.', 'Jika $a > b$ dan $c > d$, maka $a + c > b + d$.'), true, '',
           T('Two inequalities that point the same way may be added: the larger pair is added to the larger, the smaller to the smaller.', 'Dua ketaksamaan yang menghala ke arah yang sama boleh ditambah: yang lebih besar ditambah dengan yang lebih besar, yang lebih kecil dengan yang lebih kecil.')],
         [T('If $a > b$ and $c > d$, then $a - c > b - d$.', 'Jika $a > b$ dan $c > d$, maka $a - c > b - d$.'), false, `a = 5,\\ b = 4,\\ c = 3,\\ d = 0: 2 < 4`,
@@ -1657,13 +1657,13 @@
         [T('If $a > b$ and $b > 0$, then $a^2 > b^2$.', 'Jika $a > b$ dan $b > 0$, maka $a^2 > b^2$.'), true, '',
           T('Here both numbers are positive, and for positive numbers squaring keeps the order.', 'Di sini kedua-dua nombor positif, dan bagi nombor positif pengkuasaduaan mengekalkan tertib.')],
         [T('If $a > b$, then $\\dfrac{1}{a} < \\dfrac{1}{b}$.', 'Jika $a > b$, maka $\\dfrac{1}{a} < \\dfrac{1}{b}$.'), false, `a = 2,\\ b = -2: \\tfrac{1}{2} > -\\tfrac{1}{2}`,
-          T('The rule for reciprocals holds only when both numbers are on the same side of zero.', 'Hukum salingan hanya benar apabila kedua-dua nombor berada pada sebelah sifar yang sama.')],
+          T('The rule for reciprocals holds only when both numbers are on the same side of zero.', 'Hukum salingan hanya betul apabila kedua-dua nombor berada pada sebelah sifar yang sama.')],
         [T('If $a > b$, then $a - b > 0$.', 'Jika $a > b$, maka $a - b > 0$.'), true, '',
           T('$a > b$ means exactly that the difference $a - b$ is positive.', '$a > b$ bermaksud beza $a - b$ adalah positif.')],
       ];
       const [cl, ok, ce, why] = r.pick(CL);
-      return { q: T(`Decide whether the following statement is always true. If not, give a counterexample.<br>${cl.en}`, `Tentukan sama ada pernyataan berikut sentiasa benar. Jika tidak, berikan contoh penyangkal.<br>${cl.ms}`), a: ok ? T('Always true.', 'Sentiasa benar.') : T(`Not always true. Counterexample: $${ce}$.`, `Tidak sentiasa benar. Contoh penyangkal: $${ce}$.`),
-        w: W.apply(null, [why].concat(ok ? [T('So the statement is always true.', 'Jadi pernyataan itu sentiasa benar.')] : [T('One counterexample is enough to show it:', 'Satu contoh penyangkal sudah memadai untuk menunjukkannya:'), `$${ce}$`, T('So the statement is not always true.', 'Jadi pernyataan itu tidak sentiasa benar.')])), sp: 'm' };
+      return { q: T(`Decide whether the following statement is always true. If not, give a counterexample.<br>${cl.en}`, `Tentukan sama ada pernyataan berikut sentiasa betul. Jika tidak, berikan contoh penyangkal.<br>${cl.ms}`), a: ok ? T('Always true.', 'Sentiasa betul.') : T(`Not always true. Counterexample: $${ce}$.`, `Tidak sentiasa betul. Contoh penyangkal: $${ce}$.`),
+        w: W.apply(null, [why].concat(ok ? [T('So the statement is always true.', 'Jadi pernyataan itu sentiasa betul.')] : [T('One counterexample is enough to show it:', 'Satu contoh penyangkal sudah memadai untuk menunjukkannya:'), `$${ce}$`, T('So the statement is not always true.', 'Jadi pernyataan itu tidak sentiasa betul.')])), sp: 'm' };
     },
     /* compact table of operations */
     (r) => {
@@ -1674,7 +1674,7 @@
       return { q: T(`Given $${a} > ${b}$, fill in each blank with $>$ or $<$ to show the effect of each operation.<br>${tb}`, `Diberi $${a} > ${b}$, isi setiap tempat kosong dengan $>$ atau $<$ untuk menunjukkan kesan setiap operasi.<br>${tb2}`), a: T(rows.map((z, i) => `(${i + 1}) $${z[1]} ${cmpSym(z[1], z[2])} ${z[2]}$`).join('; ')),
         w: W.apply(null, [T('Work out both sides for each operation, then compare the two results.', 'Hitung kedua-dua belah bagi setiap operasi, kemudian bandingkan kedua-dua keputusan.')]
           .concat(rows.map((z, i) => `(${i + 1}) $${a} ${z[0]} = ${z[1]}$, &emsp;$${b} ${z[0]} = ${z[2]}$, &emsp;$${z[1]} ${cmpSym(z[1], z[2])} ${z[2]}$`))
-          .concat([T('Only multiplying by a negative number reverses the sign.', 'Hanya pendaraban dengan nombor negatif menyongsangkan tanda.')])), sp: 'm' };
+          .concat([T('Only multiplying by a negative number reverses the sign.', 'Hanya pendaraban dengan nombor negatif menyongsangkan arah simbol ketaksamaan.')])), sp: 'm' };
     },
     /* multiplicative inverse with explanation, positive */
     (r) => {
@@ -1683,7 +1683,7 @@
       return { q: T(`(a) Given $${a} > ${b}$, write the inequality relating $\\dfrac{1}{${a}}$ and $\\dfrac{1}{${b}}$. (b) Given $${c} > ${d}$, do the same for $\\dfrac{1}{${c}}$ and $\\dfrac{1}{${d}}$. (c) State a generalisation for positive numbers $p > q$.`, `(a) Diberi $${a} > ${b}$, tulis ketaksamaan yang menghubungkan $\\dfrac{1}{${a}}$ dan $\\dfrac{1}{${b}}$. (b) Diberi $${c} > ${d}$, lakukan perkara yang sama bagi $\\dfrac{1}{${c}}$ dan $\\dfrac{1}{${d}}$. (c) Nyatakan satu generalisasi bagi nombor positif $p > q$.`), a: T(`(a) $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$ (b) $\\dfrac{1}{${c}} < \\dfrac{1}{${d}}$ (c) If $p > q > 0$, then $\\dfrac{1}{p} < \\dfrac{1}{q}$.`, `(a) $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$ (b) $\\dfrac{1}{${c}} < \\dfrac{1}{${d}}$ (c) Jika $p > q > 0$, maka $\\dfrac{1}{p} < \\dfrac{1}{q}$.`),
         w: W(T(`(a) $${a} > ${b} > 0$, and sharing $1$ among more parts gives smaller parts, so $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$.`, `(a) $${a} > ${b} > 0$, dan membahagi $1$ kepada lebih banyak bahagian memberi bahagian yang lebih kecil, jadi $\\dfrac{1}{${a}} < \\dfrac{1}{${b}}$.`),
           T(`(b) In the same way, $${c} > ${d} > 0$ gives $\\dfrac{1}{${c}} < \\dfrac{1}{${d}}$.`, `(b) Dengan cara yang sama, $${c} > ${d} > 0$ memberi $\\dfrac{1}{${c}} < \\dfrac{1}{${d}}$.`),
-          T('(c) Both examples reverse the sign, so for positive numbers: if $p > q > 0$, then $\\dfrac{1}{p} < \\dfrac{1}{q}$.', '(c) Kedua-dua contoh menyongsangkan tanda, jadi bagi nombor positif: jika $p > q > 0$, maka $\\dfrac{1}{p} < \\dfrac{1}{q}$.'),
+          T('(c) Both examples reverse the sign, so for positive numbers: if $p > q > 0$, then $\\dfrac{1}{p} < \\dfrac{1}{q}$.', '(c) Kedua-dua contoh menyongsangkan arah simbol ketaksamaan, jadi bagi nombor positif: jika $p > q > 0$, maka $\\dfrac{1}{p} < \\dfrac{1}{q}$.'),
           T('This works only for numbers on the same side of zero.', 'Ini hanya berhasil bagi nombor pada sebelah sifar yang sama.')), sp: 'l' };
     },
     /* budget inequality and greatest integer */
@@ -1724,17 +1724,17 @@
         [`a + ${c} > b + ${c}`, true, T(`${c} is added to both sides, so the sign stays the same`, `${c} ditambah pada kedua-dua belah, jadi tandanya kekal sama`)],
         [`a - ${c} > b - ${c}`, true, T(`${c} is subtracted from both sides, so the sign stays the same`, `${c} ditolak daripada kedua-dua belah, jadi tandanya kekal sama`)],
         [`${c}a > ${c}b`, true, T(`both sides are multiplied by the positive number ${c}`, `kedua-dua belah didarab dengan nombor positif ${c}`)],
-        [`-${c}a > -${c}b`, false, T(`multiplying by $-${c}$ reverses the sign, so it should be $-${c}a < -${c}b$`, `mendarab dengan $-${c}$ menyongsangkan tanda, jadi sepatutnya $-${c}a < -${c}b$`)],
-        [`-a > -b`, false, T('multiplying by $-1$ reverses the sign, so it should be $-a < -b$', 'mendarab dengan $-1$ menyongsangkan tanda, jadi sepatutnya $-a < -b$')],
+        [`-${c}a > -${c}b`, false, T(`multiplying by $-${c}$ reverses the sign, so it should be $-${c}a < -${c}b$`, `mendarab dengan $-${c}$ menyongsangkan arah simbol ketaksamaan, jadi sepatutnya $-${c}a < -${c}b$`)],
+        [`-a > -b`, false, T('multiplying by $-1$ reverses the sign, so it should be $-a < -b$', 'mendarab dengan $-1$ menyongsangkan arah simbol ketaksamaan, jadi sepatutnya $-a < -b$')],
         [`b < a`, true, T('this is just $a > b$ written the other way round', 'ini hanyalah $a > b$ yang ditulis secara terbalik')],
         [`\\dfrac{a}{${c}} < \\dfrac{b}{${c}}`, false, T(`dividing by the positive number ${c} keeps the sign, so it should be $\\dfrac{a}{${c}} > \\dfrac{b}{${c}}$`, `membahagi dengan nombor positif ${c} mengekalkan tanda, jadi sepatutnya $\\dfrac{a}{${c}} > \\dfrac{b}{${c}}$`)],
-        [`-a < -b`, true, T('multiplying both sides by $-1$ reverses the sign', 'mendarab kedua-dua belah dengan $-1$ menyongsangkan tanda')],
+        [`-a < -b`, true, T('multiplying both sides by $-1$ reverses the sign', 'mendarab kedua-dua belah dengan $-1$ menyongsangkan arah simbol ketaksamaan')],
       ];
       const s4 = r.sample(CL, 4);
       need(s4.some((z) => z[1]) && s4.some((z) => !z[1]));
-      return { q: T(`Given $a > b$, which of the following are always true? ${s4.map((z, i) => `(${'abcd'[i]}) $${z[0]}$`).join(' &emsp; ')}`, `Diberi $a > b$, yang manakah antara berikut sentiasa benar? ${s4.map((z, i) => `(${'abcd'[i]}) $${z[0]}$`).join(' &emsp; ')}`), a: T(s4.map((z, i) => `(${'abcd'[i]}) ${z[1] ? 'true' : 'false'}`).join('; '), s4.map((z, i) => `(${'abcd'[i]}) ${z[1] ? 'benar' : 'palsu'}`).join('; ')),
+      return { q: T(`Given $a > b$, which of the following are always true? ${s4.map((z, i) => `(${'abcd'[i]}) $${z[0]}$`).join(' &emsp; ')}`, `Diberi $a > b$, yang manakah antara berikut sentiasa betul? ${s4.map((z, i) => `(${'abcd'[i]}) $${z[0]}$`).join(' &emsp; ')}`), a: T(s4.map((z, i) => `(${'abcd'[i]}) ${z[1] ? 'true' : 'false'}`).join('; '), s4.map((z, i) => `(${'abcd'[i]}) ${z[1] ? 'betul' : 'salah'}`).join('; ')),
         w: W.apply(null, [T('Look at what has been done to both sides of $a > b$ in each case.', 'Lihat apa yang telah dilakukan pada kedua-dua belah $a > b$ dalam setiap kes.')]
-          .concat(s4.map((z, i) => T(`(${'abcd'[i]}) ${z[1] ? 'True' : 'False'}: ${z[2].en}.`, `(${'abcd'[i]}) ${z[1] ? 'Benar' : 'Palsu'}: ${z[2].ms}.`)))), sp: 'm' };
+          .concat(s4.map((z, i) => T(`(${'abcd'[i]}) ${z[1] ? 'True' : 'False'}: ${z[2].en}.`, `(${'abcd'[i]}) ${z[1] ? 'Betul' : 'Salah'}: ${z[2].ms}.`)))), sp: 'm' };
     },
     /* four-number transitive chain */
     (r) => {
@@ -1763,12 +1763,12 @@
     (r) => {
       const [a, b] = pairGT(r, 2, 9), nm = r.name(), c = r.pick([-3, -2, 0]);
       const val = cmpSym(a * c, b * c);
-      return { q: T(`${nm} says: "Since $${a} > ${b}$, we have $${a}x > ${b}x$ for every value of $x$." Test the claim with $x = ${c}$. Is it true for every $x$? State the values of $x$ for which it is true.`, `${nm} berkata: "Oleh sebab $${a} > ${b}$, maka $${a}x > ${b}x$ bagi setiap nilai $x$." Uji dakwaan itu dengan $x = ${c}$. Adakah ia benar bagi setiap $x$? Nyatakan nilai $x$ yang menjadikannya benar.`), a: T(`No. When $x = ${c}$: $${a * c} ${val} ${b * c}$. It is true only when $x > 0$ (for $x < 0$ the sign reverses; for $x = 0$ both sides are 0).`, `Tidak. Apabila $x = ${c}$: $${a * c} ${val} ${b * c}$. Ia benar hanya apabila $x > 0$ (bagi $x < 0$ tanda disongsangkan; bagi $x = 0$ kedua-dua belah ialah 0).`),
+      return { q: T(`${nm} says: "Since $${a} > ${b}$, we have $${a}x > ${b}x$ for every value of $x$." Test the claim with $x = ${c}$. Is it true for every $x$? State the values of $x$ for which it is true.`, `${nm} berkata: "Oleh sebab $${a} > ${b}$, maka $${a}x > ${b}x$ bagi setiap nilai $x$." Uji dakwaan itu dengan $x = ${c}$. Adakah ia betul bagi setiap $x$? Nyatakan nilai $x$ yang menjadikannya betul.`), a: T(`No. When $x = ${c}$: $${a * c} ${val} ${b * c}$. It is true only when $x > 0$ (for $x < 0$ the sign reverses; for $x = 0$ both sides are 0).`, `Tidak. Apabila $x = ${c}$: $${a * c} ${val} ${b * c}$. Ia betul hanya apabila $x > 0$ (bagi $x < 0$ tanda disongsangkan; bagi $x = 0$ kedua-dua belah ialah 0).`),
         w: W(T(`Substitute $x = ${c}$ into both sides.`, `Gantikan $x = ${c}$ ke dalam kedua-dua belah.`),
           `$${a} \\times ${PT(c)} = ${a * c}$, &emsp;$${b} \\times ${PT(c)} = ${b * c}$`,
           `$${a * c} ${val} ${b * c}$`,
-          T(c === 0 ? 'Both sides become $0$, so they are equal and the claim fails.' : 'Multiplying by a negative number reverses the sign, so the claim fails.', c === 0 ? 'Kedua-dua belah menjadi $0$, jadi ia sama dan dakwaan itu gagal.' : 'Mendarab dengan nombor negatif menyongsangkan tanda, jadi dakwaan itu gagal.'),
-          T('The claim is true only for $x > 0$.', 'Dakwaan itu benar hanya bagi $x > 0$.')), sp: 'm' };
+          T(c === 0 ? 'Both sides become $0$, so they are equal and the claim fails.' : 'Multiplying by a negative number reverses the sign, so the claim fails.', c === 0 ? 'Kedua-dua belah menjadi $0$, jadi ia sama dan dakwaan itu gagal.' : 'Mendarab dengan nombor negatif menyongsangkan arah simbol ketaksamaan, jadi dakwaan itu gagal.'),
+          T('The claim is true only for $x > 0$.', 'Dakwaan itu betul hanya bagi $x > 0$.')), sp: 'm' };
     },
     /* limits */
     (r) => {
@@ -1802,10 +1802,10 @@
       const v = lv(r), k = r.int(3, 20), s = r.pick(SYS), inn = holds(k + 1, s, k) ? k + 1 : k - 1, out = holds(k - 1, s, k) ? k + 1 : k - 1;
       need(holds(inn, s, k) && !holds(out, s, k));
       const same = incl(s);
-      return { q: T(`(a) Write "$${v}$ is ${s[0] === '>' ? 'greater than' : 'less than'}${incl(s) ? ' or equal to' : ''} ${k}" as an inequality. (b) Show that $${v} = ${inn}$ satisfies it. (c) Show that $${v} = ${out}$ does not.`, `(a) Tulis "$${v}$ ${s[0] === '>' ? 'lebih besar daripada' : 'kurang daripada'}${incl(s) ? ' atau sama dengan' : ''} ${k}" sebagai ketaksamaan. (b) Tunjukkan bahawa $${v} = ${inn}$ memuaskannya. (c) Tunjukkan bahawa $${v} = ${out}$ tidak memuaskannya.`), a: T(`(a) $${v} ${SY[s]} ${k}$ (b) $${inn} ${SY[s]} ${k}$ is true (c) $${out} ${SY[s]} ${k}$ is false because $${out} ${SY[out > k ? '>' : '<']} ${k}$`, `(a) $${v} ${SY[s]} ${k}$ (b) $${inn} ${SY[s]} ${k}$ adalah benar (c) $${out} ${SY[s]} ${k}$ adalah palsu kerana $${out} ${SY[out > k ? '>' : '<']} ${k}$`),
+      return { q: T(`(a) Write "$${v}$ is ${s[0] === '>' ? 'greater than' : 'less than'}${incl(s) ? ' or equal to' : ''} ${k}" as an inequality. (b) Show that $${v} = ${inn}$ satisfies it. (c) Show that $${v} = ${out}$ does not.`, `(a) Tulis "$${v}$ ${s[0] === '>' ? 'lebih besar daripada' : 'kurang daripada'}${incl(s) ? ' atau sama dengan' : ''} ${k}" sebagai ketaksamaan. (b) Tunjukkan bahawa $${v} = ${inn}$ memuaskannya. (c) Tunjukkan bahawa $${v} = ${out}$ tidak memuaskannya.`), a: T(`(a) $${v} ${SY[s]} ${k}$ (b) $${inn} ${SY[s]} ${k}$ is true (c) $${out} ${SY[s]} ${k}$ is false because $${out} ${SY[out > k ? '>' : '<']} ${k}$`, `(a) $${v} ${SY[s]} ${k}$ (b) $${inn} ${SY[s]} ${k}$ adalah betul (c) $${out} ${SY[s]} ${k}$ adalah salah kerana $${out} ${SY[out > k ? '>' : '<']} ${k}$`),
         w: W(T(`(a) ${incl(s) ? 'The words "or equal to" mean the value $' + k + '$ itself is allowed' : 'The value $' + k + '$ itself is not allowed'}, so the inequality is $${v} ${SY[s]} ${k}$.`, `(a) ${incl(s) ? 'Perkataan "atau sama dengan" bermaksud nilai $' + k + '$ itu sendiri dibenarkan' : 'Nilai $' + k + '$ itu sendiri tidak dibenarkan'}, jadi ketaksamaannya ialah $${v} ${SY[s]} ${k}$.`),
-          T(`(b) Substituting $${v} = ${inn}$ gives $${inn} ${SY[s]} ${k}$, which is true.`, `(b) Penggantian $${v} = ${inn}$ memberi $${inn} ${SY[s]} ${k}$, yang benar.`),
-          T(`(c) Substituting $${v} = ${out}$ gives $${out} ${cmpSym(out, k)} ${k}$, so $${out} ${SY[s]} ${k}$ is false.`, `(c) Penggantian $${v} = ${out}$ memberi $${out} ${cmpSym(out, k)} ${k}$, jadi $${out} ${SY[s]} ${k}$ adalah palsu.`)), sp: 'm' };
+          T(`(b) Substituting $${v} = ${inn}$ gives $${inn} ${SY[s]} ${k}$, which is true.`, `(b) Penggantian $${v} = ${inn}$ memberi $${inn} ${SY[s]} ${k}$, yang betul.`),
+          T(`(c) Substituting $${v} = ${out}$ gives $${out} ${cmpSym(out, k)} ${k}$, so $${out} ${SY[s]} ${k}$ is false.`, `(c) Penggantian $${v} = ${out}$ memberi $${out} ${cmpSym(out, k)} ${k}$, jadi $${out} ${SY[s]} ${k}$ adalah salah.`)), sp: 'm' };
     },
     /* complete the rules in words */
     (r) => {
@@ -1847,7 +1847,7 @@
     }
     if (a !== 1) {
       L.push(a < 0
-        ? T(`Divide both sides by $${a}$; dividing by a negative number reverses the sign:`, `Bahagi kedua-dua belah dengan $${a}$; membahagi dengan nombor negatif menyongsangkan tanda:`)
+        ? T(`Divide both sides by $${a}$; dividing by a negative number reverses the sign:`, `Bahagi kedua-dua belah dengan $${a}$; membahagi dengan nombor negatif menyongsangkan arah simbol ketaksamaan:`)
         : T(`Divide both sides by $${a}$:`, `Bahagi kedua-dua belah dengan $${a}$:`));
     }
     L.push(`$${stx(so)}$`);
@@ -1873,7 +1873,7 @@
     if (co !== 1) {
       L.push(`$${lin(co, 0)} ${SY[s]} ${e - b}$`);
       L.push(co < 0
-        ? T(`Divide both sides by $${co}$; dividing by a negative number reverses the sign:`, `Bahagi kedua-dua belah dengan $${co}$; membahagi dengan nombor negatif menyongsangkan tanda:`)
+        ? T(`Divide both sides by $${co}$; dividing by a negative number reverses the sign:`, `Bahagi kedua-dua belah dengan $${co}$; membahagi dengan nombor negatif menyongsangkan arah simbol ketaksamaan:`)
         : T(`Divide both sides by $${co}$:`, `Bahagi kedua-dua belah dengan $${co}$:`));
     }
     L.push(`$${stx(so)}$`);
@@ -1886,7 +1886,7 @@
     (I) => T(`Determine the range of values of $x$ for which ${I}.`, `Tentukan julat nilai $x$ bagi ${I}.`),
     (I) => T(`Find the solution of ${I}.`, `Cari penyelesaian bagi ${I}.`),
     (I) => T(`Solve for $x$: ${I}.`, `Selesaikan untuk $x$: ${I}.`),
-    (I) => T(`What values of $x$ make ${I} true?`, `Apakah nilai $x$ yang menjadikan ${I} benar?`),
+    (I) => T(`What values of $x$ make ${I} true?`, `Apakah nilai $x$ yang menjadikan ${I} betul?`),
     (I) => T(`Find all the possible values of $x$ if ${I}.`, `Cari semua nilai $x$ yang mungkin jika ${I}.`),
     (I) => T(`Express the solution of ${I} as an inequality in $x$.`, `Nyatakan penyelesaian bagi ${I} sebagai ketaksamaan dalam $x$.`),
     (I) => T(`By isolating $x$, work out the solution of ${I}.`, `Dengan mengasingkan $x$, hitung penyelesaian bagi ${I}.`),
@@ -1974,10 +1974,10 @@
     (r) => {
       const c = r.int(2, 9), k = r.int(2, 9), s = r.pick(SYS), good = r.chance();
       const shown = good ? k : k + c;
-      return { q: T(`True or false: the solution of $x - ${c} ${SY[s]} ${k}$ is $x ${SY[s]} ${shown}$.`, `Benar atau palsu: penyelesaian bagi $x - ${c} ${SY[s]} ${k}$ ialah $x ${SY[s]} ${shown}$.`), a: good ? T(`False. $x - ${c} ${SY[s]} ${k}$ gives $x ${SY[s]} ${k + c}$.`, `Palsu. $x - ${c} ${SY[s]} ${k}$ memberi $x ${SY[s]} ${k + c}$.`) : T('True.', 'Benar.'),
+      return { q: T(`True or false: the solution of $x - ${c} ${SY[s]} ${k}$ is $x ${SY[s]} ${shown}$.`, `Betul atau salah: penyelesaian bagi $x - ${c} ${SY[s]} ${k}$ ialah $x ${SY[s]} ${shown}$.`), a: good ? T(`False. $x - ${c} ${SY[s]} ${k}$ gives $x ${SY[s]} ${k + c}$.`, `Salah. $x - ${c} ${SY[s]} ${k}$ memberi $x ${SY[s]} ${k + c}$.`) : T('True.', 'Betul.'),
         w: W(T(`Solve it: add ${c} to both sides.`, `Selesaikannya: tambah ${c} pada kedua-dua belah.`),
           `$x ${SY[s]} ${k} + ${c} = ${k + c}$`,
-          T(good ? `The statement gives $x ${SY[s]} ${shown}$, which is different, so it is false.` : `That is exactly the statement, so it is true.`, good ? `Pernyataan itu memberi $x ${SY[s]} ${shown}$, yang berbeza, jadi ia palsu.` : `Itu tepat seperti pernyataan itu, jadi ia benar.`)), sp: 'xs' };
+          T(good ? `The statement gives $x ${SY[s]} ${shown}$, which is different, so it is false.` : `That is exactly the statement, so it is true.`, good ? `Pernyataan itu memberi $x ${SY[s]} ${shown}$, yang berbeza, jadi ia salah.` : `Itu tepat seperti pernyataan itu, jadi ia betul.`)), sp: 'xs' };
     },
     /* which number line? -> pick the correct description */
     (r) => {
@@ -2006,7 +2006,7 @@
       const cols = rng(k - 2, k + 2), row = cols.map((x) => (holds(a * x + b, s, c) ? '\\checkmark' : '\\times'));
       const tb = (l) => SPM.table([[`$${lin(a, b)} ${SY[s]} ${c}$`].concat(cols.map(() => ''))], { head: [`$x$`].concat(cols), rowHead: true });
       const so = sol(a, b, c, s);
-      return { q: T(`Test each value of $x$ in the table in the inequality $${lin(a, b)} ${SY[s]} ${c}$ (write a tick if it is true and a cross if it is false). Then solve the inequality.<br>${tb('en')}`, `Uji setiap nilai $x$ dalam jadual dalam ketaksamaan $${lin(a, b)} ${SY[s]} ${c}$ (tulis tanda betul jika benar dan tanda salah jika palsu). Kemudian selesaikan ketaksamaan itu.<br>${tb('ms')}`), a: T(cols.map((x, i) => `$x=${x}$: $${row[i]}$`).join('; ') + `. $${stx(so)}$`),
+      return { q: T(`Test each value of $x$ in the table in the inequality $${lin(a, b)} ${SY[s]} ${c}$ (write a tick if it is true and a cross if it is false). Then solve the inequality.<br>${tb('en')}`, `Uji setiap nilai $x$ dalam jadual dalam ketaksamaan $${lin(a, b)} ${SY[s]} ${c}$ (tulis tanda betul jika betul dan tanda salah jika salah). Kemudian selesaikan ketaksamaan itu.<br>${tb('ms')}`), a: T(cols.map((x, i) => `$x=${x}$: $${row[i]}$`).join('; ') + `. $${stx(so)}$`),
         w: W.apply(null, [T(`Substitute each value of $x$ into $${lin(a, b)}$ and compare it with $${c}$.`, `Gantikan setiap nilai $x$ ke dalam $${lin(a, b)}$ dan bandingkan dengan $${c}$.`),
           cols.map((x, i) => `$x = ${x}$: $${a}(${x}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * x + b}$ $${row[i]}$`).join(', &emsp;'),
           T('Solving the inequality gives the same answer:', 'Menyelesaikan ketaksamaan itu memberi jawapan yang sama:')].concat(solveSteps(a, b, c, s, so))), sp: 's' };
@@ -2057,9 +2057,9 @@
     /* error: sign not reversed */
     (r) => {
       const s = r.pick(['>', '<']), a = -r.int(2, 5), k = r.int(-5, 5), c = a * k, nm = r.name(), so = sol(a, 0, c, s);
-      return { q: T(`${nm} solved $${a}x ${SY[s]} ${c}$ and wrote $x ${SY[s]} ${k}$. Is this correct? If not, give the correct solution.`, `${nm} menyelesaikan $${a}x ${SY[s]} ${c}$ dan menulis $x ${SY[s]} ${k}$. Adakah ini betul? Jika tidak, berikan penyelesaian yang betul.`), a: T(`No. Dividing by the negative number $${a}$ reverses the sign, so $${stx(so)}$.`, `Tidak. Membahagi dengan nombor negatif $${a}$ menyongsangkan tanda, maka $${stx(so)}$.`),
+      return { q: T(`${nm} solved $${a}x ${SY[s]} ${c}$ and wrote $x ${SY[s]} ${k}$. Is this correct? If not, give the correct solution.`, `${nm} menyelesaikan $${a}x ${SY[s]} ${c}$ dan menulis $x ${SY[s]} ${k}$. Adakah ini betul? Jika tidak, berikan penyelesaian yang betul.`), a: T(`No. Dividing by the negative number $${a}$ reverses the sign, so $${stx(so)}$.`, `Tidak. Membahagi dengan nombor negatif $${a}$ menyongsangkan arah simbol ketaksamaan, maka $${stx(so)}$.`),
         w: W(T(`Divide both sides of $${a}x ${SY[s]} ${c}$ by $${a}$.`, `Bahagi kedua-dua belah $${a}x ${SY[s]} ${c}$ dengan $${a}$.`),
-          T(`$${c} \\div ${PT(a)} = ${k}$, but dividing by a negative number reverses the inequality sign.`, `$${c} \\div ${PT(a)} = ${k}$, tetapi membahagi dengan nombor negatif menyongsangkan tanda ketaksamaan.`),
+          T(`$${c} \\div ${PT(a)} = ${k}$, but dividing by a negative number reverses the inequality sign.`, `$${c} \\div ${PT(a)} = ${k}$, tetapi membahagi dengan nombor negatif menyongsangkan arah simbol ketaksamaan.`),
           `$${stx(so)}$`,
           T(`${nm} kept the original sign, and that is the mistake.`, `${nm} mengekalkan tanda asal, dan itulah kesilapannya.`)), sp: 's' };
     },
@@ -2095,10 +2095,10 @@
     (r) => {
       const s = r.pick(SYS), a = r.int(2, 5), k = r.int(1, 8), b = r.nz(-6, 6), c = a * k + b, so = sol(a, b, c, s);
       const inn = s[0] === '>' ? k + 1 : k - 1, out = s[0] === '>' ? k - 1 : k + 1;
-      return { q: T(`Solve $${lin(a, b)} ${SY[s]} ${c}$. Then check your answer by testing $x = ${inn}$ and $x = ${out}$.`, `Selesaikan $${lin(a, b)} ${SY[s]} ${c}$. Kemudian semak jawapan anda dengan menguji $x = ${inn}$ dan $x = ${out}$.`), a: T(`$${stx(so)}$. $x = ${inn}$: $${a * inn + b} ${SY[s]} ${c}$ is true. $x = ${out}$: $${a * out + b} ${SY[s]} ${c}$ is false.`, `$${stx(so)}$. $x = ${inn}$: $${a * inn + b} ${SY[s]} ${c}$ adalah benar. $x = ${out}$: $${a * out + b} ${SY[s]} ${c}$ adalah palsu.`),
+      return { q: T(`Solve $${lin(a, b)} ${SY[s]} ${c}$. Then check your answer by testing $x = ${inn}$ and $x = ${out}$.`, `Selesaikan $${lin(a, b)} ${SY[s]} ${c}$. Kemudian semak jawapan anda dengan menguji $x = ${inn}$ dan $x = ${out}$.`), a: T(`$${stx(so)}$. $x = ${inn}$: $${a * inn + b} ${SY[s]} ${c}$ is true. $x = ${out}$: $${a * out + b} ${SY[s]} ${c}$ is false.`, `$${stx(so)}$. $x = ${inn}$: $${a * inn + b} ${SY[s]} ${c}$ adalah betul. $x = ${out}$: $${a * out + b} ${SY[s]} ${c}$ adalah salah.`),
         w: W.apply(null, solveSteps(a, b, c, s, so).concat([
-          T(`Check $x = ${inn}$: $${a}(${inn}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * inn + b}$, and $${a * inn + b} ${SY[s]} ${c}$ is true.`, `Semak $x = ${inn}$: $${a}(${inn}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * inn + b}$, dan $${a * inn + b} ${SY[s]} ${c}$ adalah benar.`),
-          T(`Check $x = ${out}$: $${a}(${out}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * out + b}$, and $${a * out + b} ${SY[s]} ${c}$ is false.`, `Semak $x = ${out}$: $${a}(${out}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * out + b}$, dan $${a * out + b} ${SY[s]} ${c}$ adalah palsu.`),
+          T(`Check $x = ${inn}$: $${a}(${inn}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * inn + b}$, and $${a * inn + b} ${SY[s]} ${c}$ is true.`, `Semak $x = ${inn}$: $${a}(${inn}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * inn + b}$, dan $${a * inn + b} ${SY[s]} ${c}$ adalah betul.`),
+          T(`Check $x = ${out}$: $${a}(${out}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * out + b}$, and $${a * out + b} ${SY[s]} ${c}$ is false.`, `Semak $x = ${out}$: $${a}(${out}) ${b < 0 ? '-' : '+'} ${Math.abs(b)} = ${a * out + b}$, dan $${a * out + b} ${SY[s]} ${c}$ adalah salah.`),
           T('The two checks agree with the solution.', 'Kedua-dua semakan itu selaras dengan penyelesaian.'),
         ])), sp: 'm' };
     },
@@ -2347,7 +2347,7 @@
       const yes = l.includes(x), nm = r.pick(SETN);
       const q = r.pick([
         X((L, t) => `${t('Given', 'Diberi')} $${nm} = ${RO(l, L)}$, ${t('state whether', 'nyatakan sama ada')} $${E(x, L)} \\in ${nm}$ ${t('or', 'atau')} $${E(x, L)} \\notin ${nm}$.`),
-        X((L, t) => `${t('True or false', 'Benar atau palsu')}: $${E(x, L)} \\in ${nm}$, ${t('where', 'dengan')} $${nm} = ${RO(l, L)}$.`),
+        X((L, t) => `${t('True or false', 'Betul atau salah')}: $${E(x, L)} \\in ${nm}$, ${t('where', 'dengan')} $${nm} = ${RO(l, L)}$.`),
         X((L, t) => `${t('Fill in the blank with', 'Isi tempat kosong dengan')} $\\in$ ${t('or', 'atau')} $\\notin$: $${E(x, L)}\\ \\square\\ ${RO(l, L)}$.`),
       ]);
       return { q, a: X((L, t) => `$${E(x, L)} ${yes ? '\\in' : '\\notin'} ${nm}$`),
@@ -2492,9 +2492,9 @@
     (r) => {
       const U = makeUni(r, r.pick(['num', 'let'])), [{ l }] = pick2(r, U, 1), nm = r.pick(SETN);
       const stm = r.sample(U.items, 4).map((x) => [x, l.includes(x)]);
-      return { q: X((L, t) => `${t('Given', 'Diberi')} $${nm} = ${RO(l, L)}$. ${t('State whether each statement is true or false.', 'Nyatakan sama ada setiap pernyataan benar atau palsu.')} ${stm.map((z, i) => `(${'abcd'[i]}) $${E(z[0], L)} \\in ${nm}$`).join(' &emsp; ')}`), a: X((L, t) => stm.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; ')),
+      return { q: X((L, t) => `${t('Given', 'Diberi')} $${nm} = ${RO(l, L)}$. ${t('State whether each statement is true or false.', 'Nyatakan sama ada setiap pernyataan betul atau salah.')} ${stm.map((z, i) => `(${'abcd'[i]}) $${E(z[0], L)} \\in ${nm}$`).join(' &emsp; ')}`), a: X((L, t) => stm.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; ')),
         w: W(X((L, t) => `${t('Check each element against the list', 'Semak setiap unsur dengan senarai')} $${RO(l, L)}$.`),
-          X((L, t) => stm.map((z, i) => `(${'abcd'[i]}) $${E(z[0], L)}$ ${z[1] ? t('is in the list', 'ada dalam senarai') : t('is not in the list', 'tiada dalam senarai')} — ${z[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; '))), sp: 's' };
+          X((L, t) => stm.map((z, i) => `(${'abcd'[i]}) $${E(z[0], L)}$ ${z[1] ? t('is in the list', 'ada dalam senarai') : t('is not in the list', 'tiada dalam senarai')} — ${z[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; '))), sp: 's' };
     },
     /* count elements of a described set */
     (r) => {
@@ -2731,9 +2731,9 @@
           X((L, t) => t(`The dash means "complement": start from ξ and leave out everything that is already in ${nm}.`, `Tanda koma atas bermaksud "pelengkap": bermula daripada ξ dan tinggalkan semua yang sudah berada dalam ${nm}.`))],
         [X((L, t) => `${t('What symbol is used for the universal set?', 'Apakah simbol yang digunakan bagi set semesta?')}`), X(() => '$\\xi$'),
           X((L, t) => t('The universal set holds every element under discussion, and is written with the Greek letter $\\xi$ (xi).', 'Set semesta mengandungi setiap unsur yang dibincangkan, dan ditulis dengan huruf Greek $\\xi$ (xi).'))],
-        [X((L, t) => `${t('True or false: an element can belong to both', 'Benar atau palsu: suatu unsur boleh tergolong dalam kedua-dua')} $${nm}$ ${t('and', 'dan')} $${nm}'$.`), X((L, t) => t('False: an element of ξ is either in the set or in its complement, never both.', 'Palsu: unsur dalam ξ sama ada dalam set itu atau dalam pelengkapnya, tidak kedua-duanya.')),
+        [X((L, t) => `${t('True or false: an element can belong to both', 'Betul atau salah: suatu unsur boleh tergolong dalam kedua-dua')} $${nm}$ ${t('and', 'dan')} $${nm}'$.`), X((L, t) => t('False: an element of ξ is either in the set or in its complement, never both.', 'Salah: unsur dalam ξ sama ada dalam set itu atau dalam pelengkapnya, tidak kedua-duanya.')),
           X((L, t) => t(`${nm}′ is made of exactly the elements that ${nm} does not have, so the two sets cannot share an element.`, `${nm}′ terdiri daripada unsur yang tiada dalam ${nm}, jadi kedua-dua set itu tidak boleh berkongsi unsur.`))],
-        [X((L, t) => `${t('True or false: every element of', 'Benar atau palsu: setiap unsur')} $${nm}'$ ${t('is an element of', 'ialah unsur bagi')} $\\xi$.`), X((L, t) => t('True.', 'Benar.')),
+        [X((L, t) => `${t('True or false: every element of', 'Betul atau salah: setiap unsur')} $${nm}'$ ${t('is an element of', 'ialah unsur bagi')} $\\xi$.`), X((L, t) => t('True.', 'Betul.')),
           X((L, t) => t(`${nm}′ is taken from inside ξ, so every one of its elements must also be in ξ.`, `${nm}′ diambil daripada dalam ξ, jadi setiap unsurnya mesti berada dalam ξ juga.`))],
       ];
       const [q, a, wl] = r.pick(F);
@@ -2828,10 +2828,10 @@
     /* statements about A' */
     (r) => {
       const U = makeUni(r), [{ l }] = pick2(r, U, 1), nm = r.pick(SETN), c = comp(U, l), x = r.sample(U.items, 4);
-      return { q: X((L, t) => `$${XI(U, L)}$, $${nm} = ${RO(l, L)}$. ${t('State whether each is true or false.', 'Nyatakan sama ada setiap pernyataan benar atau palsu.')} ${x.map((z, i) => `(${'abcd'[i]}) $${E(z, L)} \\in ${nm}'$`).join(' &emsp; ')}`), a: X((L, t) => x.map((z, i) => `(${'abcd'[i]}) ${c.includes(z) ? t('true', 'benar') : t('false', 'palsu')}`).join('; ')),
+      return { q: X((L, t) => `$${XI(U, L)}$, $${nm} = ${RO(l, L)}$. ${t('State whether each is true or false.', 'Nyatakan sama ada setiap pernyataan betul atau salah.')} ${x.map((z, i) => `(${'abcd'[i]}) $${E(z, L)} \\in ${nm}'$`).join(' &emsp; ')}`), a: X((L, t) => x.map((z, i) => `(${'abcd'[i]}) ${c.includes(z) ? t('true', 'betul') : t('false', 'salah')}`).join('; ')),
         w: W(X((L, t) => `${t('First find the complement:', 'Cari pelengkap dahulu:')} $${nm}' = ${RO(c, L)}$.`),
           X((L, t) => `${t('An element is in', 'Suatu unsur berada dalam')} $${nm}'$ ${t('exactly when it is not in', 'tepat apabila ia tiada dalam')} $${nm}$.`),
-          X((L, t) => x.map((z, i) => `(${'abcd'[i]}) $${E(z, L)}$ ${c.includes(z) ? t('is in', 'ada dalam') : t('is not in', 'tiada dalam')} $${nm}'$ — ${c.includes(z) ? t('true', 'benar') : t('false', 'palsu')}`).join('; '))), sp: 's' };
+          X((L, t) => x.map((z, i) => `(${'abcd'[i]}) $${E(z, L)}$ ${c.includes(z) ? t('is in', 'ada dalam') : t('is not in', 'tiada dalam')} $${nm}'$ — ${c.includes(z) ? t('true', 'betul') : t('false', 'salah')}`).join('; '))), sp: 's' };
     },
     /* n(A) from n(xi) and n(A') with description */
     (r) => {
@@ -2893,10 +2893,10 @@
       const U = makeUni(r), [{ l }] = pick2(r, U, 1), c = comp(U, l), nm = r.pick(SETN);
       const S1 = [[`n(${nm}) + n(${nm}') = n(\\xi)`, 1], [`n(${nm}) = n(${nm}')`, 0], [`${nm} \\text{ and } ${nm}' \\text{ share an element}`, 0], [`${nm}' \\text{ contains only elements of } \\xi`, 1], [`n(${nm}') > n(\\xi)`, 0]];
       const g = r.pick(S1.filter((z) => z[1])), w = r.sample(S1.filter((z) => !z[1]), 2), o = r.shuffle([g].concat(w));
-      return { q: X((L, t) => `${t('Which statement about', 'Pernyataan yang manakah tentang')} $${nm}$ ${t('and its complement', 'dan pelengkapnya')} $${nm}'$ ${t('is always true?', 'sentiasa benar?')}<br>${o.map((z, i) => `(${AB[i]}) $${z[0]}$`).join('<br>')}`), a: X((L) => `${AB[o.indexOf(g)]}: $${g[0]}$`),
+      return { q: X((L, t) => `${t('Which statement about', 'Pernyataan yang manakah tentang')} $${nm}$ ${t('and its complement', 'dan pelengkapnya')} $${nm}'$ ${t('is always true?', 'sentiasa betul?')}<br>${o.map((z, i) => `(${AB[i]}) $${z[0]}$`).join('<br>')}`), a: X((L) => `${AB[o.indexOf(g)]}: $${g[0]}$`),
         w: W(X((L, t) => `${t('Every element of ξ lies in exactly one of', 'Setiap unsur ξ berada dalam tepat satu daripada')} $${nm}$ ${t('and', 'dan')} $${nm}'$, ${t('and nothing outside ξ is in either of them.', 'dan tiada apa-apa di luar ξ berada dalam mana-mana daripadanya.')}`),
           X((L, t) => `${t('Test it with', 'Uji dengan')} $${nm} = ${RO(l, L)}$ ${t('and', 'dan')} $${nm}' = ${RO(c, L)}$: $${l.length} + ${c.length} = ${U.items.length}$.`),
-          X((L, t) => `${t('So the statement that is always true is', 'Jadi pernyataan yang sentiasa benar ialah')} (${AB[o.indexOf(g)]}).`)), sp: 's' };
+          X((L, t) => `${t('So the statement that is always true is', 'Jadi pernyataan yang sentiasa betul ialah')} (${AB[o.indexOf(g)]}).`)), sp: 's' };
     },
   ];
 
@@ -2994,7 +2994,7 @@
     (a, b, A, B, L, t) => `$${a} = ${RO(A, L)}$ ${t('and', 'dan')} $${b} = ${RO(B, L)}$. ${t('Is', 'Adakah')} $${a} \\subseteq ${b}$? ${t('Give a reason.', 'Berikan sebab.')}`,
     (a, b, A, B, L, t) => `${t('Given', 'Diberi')} $${a} = ${RO(A, L)}$ ${t('and', 'dan')} $${b} = ${RO(B, L)}$, ${t('determine whether', 'tentukan sama ada')} $${a}$ ${t('is a subset of', 'ialah subset bagi')} $${b}$.`,
     (a, b, A, B, L, t) => `${t('Decide whether every element of', 'Tentukan sama ada setiap unsur')} $${a} = ${RO(A, L)}$ ${t('is in', 'terdapat dalam')} $${b} = ${RO(B, L)}$. ${t('Then write', 'Kemudian tulis')} $${a} \\subseteq ${b}$ ${t('or', 'atau')} $${a} \\nsubseteq ${b}$.`,
-    (a, b, A, B, L, t) => `${t('True or false', 'Benar atau palsu')}: $${a} \\subseteq ${b}$, ${t('where', 'dengan')} $${a} = ${RO(A, L)}$ ${t('and', 'dan')} $${b} = ${RO(B, L)}$.`,
+    (a, b, A, B, L, t) => `${t('True or false', 'Betul atau salah')}: $${a} \\subseteq ${b}$, ${t('where', 'dengan')} $${a} = ${RO(A, L)}$ ${t('and', 'dan')} $${b} = ${RO(B, L)}$.`,
   ];
   const e113 = [
     /* is A subset of B */
@@ -3067,10 +3067,10 @@
       const ST = [[(L) => `${E(inA, L)} \\in ${nm}`, 1], [(L) => `\\{${E(inA, L)}\\} \\subseteq ${nm}`, 1], [(L) => `\\{${E(inA, L)}\\} \\in ${nm}`, 0], [(L) => `${E(out, L)} \\in ${nm}`, 0], [(L) => `${nm} \\subseteq ${nm}`, 1], [(L) => `\\{${E(out, L)}\\} \\subseteq ${nm}`, 0], [(L) => `${E(inA, L)} \\subseteq ${nm}`, 0]];
       const four = r.sample(ST, 4);
       need(four.some((z) => z[1]) && four.some((z) => !z[1]));
-      return { q: X((L, t) => `${t('Given', 'Diberi')} $${nm} = ${RO(A, L)}$. ${t('State whether each statement is true or false. (A set is a subset of itself.)', 'Nyatakan sama ada setiap pernyataan benar atau palsu. (Suatu set ialah subset bagi dirinya sendiri.)')}<br>${four.map((z, i) => `(${'abcd'[i]}) $${z[0](L)}$`).join(' &emsp; ')}`), a: X((L, t) => four.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; ')),
+      return { q: X((L, t) => `${t('Given', 'Diberi')} $${nm} = ${RO(A, L)}$. ${t('State whether each statement is true or false. (A set is a subset of itself.)', 'Nyatakan sama ada setiap pernyataan betul atau salah. (Suatu set ialah subset bagi dirinya sendiri.)')}<br>${four.map((z, i) => `(${'abcd'[i]}) $${z[0](L)}$`).join(' &emsp; ')}`), a: X((L, t) => four.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; ')),
         w: W(X((L, t) => `$\\in$ ${t('joins an element to a set, while', 'menghubungkan unsur dengan set, manakala')} $\\subseteq$ ${t('joins a set to a set; a single element written inside braces is a set.', 'menghubungkan set dengan set; satu unsur yang ditulis dalam tanda kurung dakap ialah satu set.')}`),
           X((L, t) => `${t('Here', 'Di sini')} $${E(inA, L)} \\in ${nm}$ ${t('and', 'dan')} $${E(out, L)} \\notin ${nm}$.`),
-          X((L, t) => four.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; '))), sp: 's' };
+          X((L, t) => four.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; '))), sp: 's' };
     },
     /* nested Venn -> statements */
     (r) => {
@@ -3084,7 +3084,7 @@
     (r) => {
       const s = nset(r, 3, 8), [a, b] = nm2(r), same = r.chance(), l2 = same ? s.l.slice() : s.l.concat([s.l[s.l.length - 1] + 1]);
       need(same || !s.l.includes(l2[l2.length - 1]));
-      return { q: X((L, t) => `$${a} = ${s.sb(L)}$ ${t('and', 'dan')} $${b} = ${RO(l2, L)}$. ${t('Is', 'Adakah')} $${a} \\subseteq ${b}$? ${t('Is', 'Adakah')} $${b} \\subseteq ${a}$? ${t('Are the sets equal?', 'Adakah kedua-dua set itu sama?')}`), a: X((L, t) => same ? `${t('Yes, yes; the sets are equal, so each is a subset of the other.', 'Ya, ya; kedua-dua set itu sama, maka setiap satu ialah subset bagi yang lain.')}` : `$${a} \\subseteq ${b}$ ${t('is true; but', 'benar; tetapi')} $${b} \\subseteq ${a}$ ${t('is false because', 'palsu kerana')} $${l2[l2.length - 1]} \\in ${b}$, $${l2[l2.length - 1]} \\notin ${a}$. ${t('The sets are not equal.', 'Set itu tidak sama.')}`),
+      return { q: X((L, t) => `$${a} = ${s.sb(L)}$ ${t('and', 'dan')} $${b} = ${RO(l2, L)}$. ${t('Is', 'Adakah')} $${a} \\subseteq ${b}$? ${t('Is', 'Adakah')} $${b} \\subseteq ${a}$? ${t('Are the sets equal?', 'Adakah kedua-dua set itu sama?')}`), a: X((L, t) => same ? `${t('Yes, yes; the sets are equal, so each is a subset of the other.', 'Ya, ya; kedua-dua set itu sama, maka setiap satu ialah subset bagi yang lain.')}` : `$${a} \\subseteq ${b}$ ${t('is true; but', 'betul; tetapi')} $${b} \\subseteq ${a}$ ${t('is false because', 'salah kerana')} $${l2[l2.length - 1]} \\in ${b}$, $${l2[l2.length - 1]} \\notin ${a}$. ${t('The sets are not equal.', 'Set itu tidak sama.')}`),
         w: W(X((L, t) => `${t('Write the first set in roster form:', 'Tulis set pertama dalam bentuk senarai:')} $${a} = ${RO(s.l, L)}$.`),
           X((L, t) => same ? `${t('The two lists are identical, so each set contains the other:', 'Kedua-dua senarai adalah serupa, jadi setiap set mengandungi yang lain:')} $${a} \\subseteq ${b}$ ${t('and', 'dan')} $${b} \\subseteq ${a}$.` : `${t('Every element of', 'Setiap unsur')} $${a}$ ${t('is in', 'ada dalam')} $${b}$, ${t('so', 'jadi')} $${a} \\subseteq ${b}$.`),
           X((L, t) => same ? `${t('Two sets that are subsets of each other are equal.', 'Dua set yang menjadi subset antara satu sama lain adalah sama.')}` : `${t('But', 'Tetapi')} $${l2[l2.length - 1]} \\in ${b}$ ${t('and', 'dan')} $${l2[l2.length - 1]} \\notin ${a}$, ${t('so', 'jadi')} $${b} \\nsubseteq ${a}$ ${t('and the sets are not equal.', 'dan set itu tidak sama.')}`)), sp: 's' };
@@ -3109,21 +3109,21 @@
     /* reverse direction */
     (r) => {
       const z = abPair(r, true), [a, b] = nm2(r);
-      return { q: X((L, t) => `$${a} = ${RO(z.A, L)}$, $${b} = ${RO(z.B, L)}$. ${t('Which is true:', 'Yang manakah benar:')} $${a} \\subseteq ${b}$ ${t('or', 'atau')} $${b} \\subseteq ${a}$? ${t('Give a reason.', 'Berikan sebab.')}`), a: X((L, t) => `$${a} \\subseteq ${b}$: ${t('every element of', 'setiap unsur')} $${a}$ ${t('is in', 'ada dalam')} $${b}$; ${t('but', 'tetapi')} $${b} \\nsubseteq ${a}$ ${t('because', 'kerana')} $${E(z.B.find((x) => !z.A.includes(x)), L)} \\in ${b}$, $\\notin ${a}$.`),
+      return { q: X((L, t) => `$${a} = ${RO(z.A, L)}$, $${b} = ${RO(z.B, L)}$. ${t('Which is true:', 'Yang manakah betul:')} $${a} \\subseteq ${b}$ ${t('or', 'atau')} $${b} \\subseteq ${a}$? ${t('Give a reason.', 'Berikan sebab.')}`), a: X((L, t) => `$${a} \\subseteq ${b}$: ${t('every element of', 'setiap unsur')} $${a}$ ${t('is in', 'ada dalam')} $${b}$; ${t('but', 'tetapi')} $${b} \\nsubseteq ${a}$ ${t('because', 'kerana')} $${E(z.B.find((x) => !z.A.includes(x)), L)} \\in ${b}$, $\\notin ${a}$.`),
         w: W(X((L, t) => `${t('Check the smaller claim first: every element of', 'Semak dakwaan yang lebih kecil dahulu: setiap unsur')} $${a} = ${RO(z.A, L)}$ ${t('appears in', 'muncul dalam')} $${b} = ${RO(z.B, L)}$, ${t('so', 'jadi')} $${a} \\subseteq ${b}$.`),
           X((L, t) => `${t('Now the other way round:', 'Sekarang sebaliknya:')} $${E(z.B.find((x) => !z.A.includes(x)), L)}$ ${t('is in', 'ada dalam')} $${b}$ ${t('but not in', 'tetapi tiada dalam')} $${a}$.`),
-          X((L, t) => `${t('So only', 'Jadi hanya')} $${a} \\subseteq ${b}$ ${t('is true; subsets do not work both ways unless the sets are equal.', 'yang benar; subset tidak berfungsi dua hala melainkan set itu sama.')}`)), sp: 's' };
+          X((L, t) => `${t('So only', 'Jadi hanya')} $${a} \\subseteq ${b}$ ${t('is true; subsets do not work both ways unless the sets are equal.', 'yang betul; subset tidak berfungsi dua hala melainkan set itu sama.')}`)), sp: 's' };
     },
     /* Venn -> statements about subset and complement */
     (r) => {
       const z = nest(r);
       const S1 = [['A \\subseteq B', 1], ['B \\subseteq A', 0], ['A \\subseteq \\xi', 1], ['\\xi \\subseteq B', 0], ['B \\subseteq \\xi', 1]];
       const f = r.sample(S1, 4);
-      return { fig: nfig(z), q: X((L, t) => `${t('Using the Venn diagram, state whether each statement is true or false.', 'Menggunakan gambar rajah Venn, nyatakan sama ada setiap pernyataan benar atau palsu.')} ${f.map((q, i) => `(${'abcd'[i]}) $${q[0]}$`).join(' &emsp; ')}`), a: X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; ')),
+      return { fig: nfig(z), q: X((L, t) => `${t('Using the Venn diagram, state whether each statement is true or false.', 'Menggunakan gambar rajah Venn, nyatakan sama ada setiap pernyataan betul atau salah.')} ${f.map((q, i) => `(${'abcd'[i]}) $${q[0]}$`).join(' &emsp; ')}`), a: X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; ')),
         w: W(X((L, t) => `${t('From the diagram', 'Daripada rajah itu')} $A = ${RO(z.A, L)}$, $B = ${RO(z.B, L)}$, ${t('and every element lies inside ξ.', 'dan setiap unsur berada dalam ξ.')}`),
           X((L, t) => `${t('A is drawn inside B, so A ⊆ B; but B has elements outside A, for example', 'A dilukis di dalam B, jadi A ⊆ B; tetapi B mempunyai unsur di luar A, contohnya')} $${z.mid[0]}$, ${t('so B is not a subset of A.', 'jadi B bukan subset bagi A.')}`),
           X((L, t) => `${t('Both A and B sit inside ξ, so both are subsets of ξ, but ξ is not a subset of B.', 'Kedua-dua A dan B berada dalam ξ, jadi kedua-duanya subset bagi ξ, tetapi ξ bukan subset bagi B.')}`),
-          X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; '))), sp: 's' };
+          X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; '))), sp: 's' };
     },
     /* descriptions in words: subsets by rule */
     (r) => {
@@ -3136,11 +3136,11 @@
     /* choose sets that are subsets of a number-set */
     (r) => {
       const z = nest(r), o = [[z.A, `${z.ka}`], [z.B, `${z.kb}`]];
-      return { q: X((L, t) => `$\\xi = ${RO(z.items, L)}$. ${t('Set', 'Set')} $P = ${RO(z.A, L)}$, $Q = ${RO(z.B, L)}$ ${t('and', 'dan')} $R = ${RO(z.out, L)}$. ${t('Which of these statements are true:', 'Yang manakah antara pernyataan ini benar:')} (a) $P \\subseteq Q$ (b) $Q \\subseteq P$ (c) $R \\subseteq \\xi$ (d) $P \\subseteq R$`), a: X((L, t) => `(a) ${t('true', 'benar')}; (b) ${t('false', 'palsu')}; (c) ${t('true', 'benar')}; (d) ${t('false', 'palsu')}`),
-        w: W(X((L, t) => `(a) ${t('Every element of P is also in Q, so', 'Setiap unsur P juga ada dalam Q, jadi')} $P \\subseteq Q$ — ${t('true.', 'benar.')}`),
-          X((L, t) => `(b) $${z.mid[0]} \\in Q$ ${t('but', 'tetapi')} $${z.mid[0]} \\notin P$, ${t('so', 'jadi')} $Q \\nsubseteq P$ — ${t('false.', 'palsu.')}`),
-          X((L, t) => `(c) ${t('R is made of elements of ξ, so', 'R terdiri daripada unsur ξ, jadi')} $R \\subseteq \\xi$ — ${t('true.', 'benar.')}`),
-          X((L, t) => `(d) $${z.A[0]} \\in P$ ${t('but', 'tetapi')} $${z.A[0]} \\notin R$, ${t('so', 'jadi')} $P \\nsubseteq R$ — ${t('false.', 'palsu.')}`)), sp: 's' };
+      return { q: X((L, t) => `$\\xi = ${RO(z.items, L)}$. ${t('Set', 'Set')} $P = ${RO(z.A, L)}$, $Q = ${RO(z.B, L)}$ ${t('and', 'dan')} $R = ${RO(z.out, L)}$. ${t('Which of these statements are true:', 'Yang manakah antara pernyataan ini betul:')} (a) $P \\subseteq Q$ (b) $Q \\subseteq P$ (c) $R \\subseteq \\xi$ (d) $P \\subseteq R$`), a: X((L, t) => `(a) ${t('true', 'betul')}; (b) ${t('false', 'salah')}; (c) ${t('true', 'betul')}; (d) ${t('false', 'salah')}`),
+        w: W(X((L, t) => `(a) ${t('Every element of P is also in Q, so', 'Setiap unsur P juga ada dalam Q, jadi')} $P \\subseteq Q$ — ${t('true.', 'betul.')}`),
+          X((L, t) => `(b) $${z.mid[0]} \\in Q$ ${t('but', 'tetapi')} $${z.mid[0]} \\notin P$, ${t('so', 'jadi')} $Q \\nsubseteq P$ — ${t('false.', 'salah.')}`),
+          X((L, t) => `(c) ${t('R is made of elements of ξ, so', 'R terdiri daripada unsur ξ, jadi')} $R \\subseteq \\xi$ — ${t('true.', 'betul.')}`),
+          X((L, t) => `(d) $${z.A[0]} \\in P$ ${t('but', 'tetapi')} $${z.A[0]} \\notin R$, ${t('so', 'jadi')} $P \\nsubseteq R$ — ${t('false.', 'salah.')}`)), sp: 's' };
     },
   ];
 
@@ -3153,16 +3153,16 @@
       need(A.length >= 2 && C.length !== B.length);
       const fr = r.int(0, 2);
       const S1 = [[`A \\subseteq B`, A.every((x) => B.includes(x))], [`B \\subseteq C`, B.every((x) => C.includes(x))], [`A \\subseteq C`, A.every((x) => C.includes(x))], [`C \\subseteq A`, C.every((x) => A.includes(x))]];
-      return { q: X((L, t) => `$\\xi = \\{x : x \\text{ ${t('is an integer', 'ialah integer')}},\\ 1 \\le x \\le ${N}\\}$. $A$ = ${t(`multiples of ${k1}`, `gandaan bagi ${k1}`)}, $B$ = ${t(`multiples of ${k2}`, `gandaan bagi ${k2}`)}, $C$ = ${t(`multiples of ${k3}`, `gandaan bagi ${k3}`)}. ${[t('State whether each is true or false:', 'Nyatakan sama ada setiap pernyataan benar atau palsu:'), t('Which of these statements are correct?', 'Yang manakah antara pernyataan ini betul?'), t('Mark each statement as true (T) or false (F):', 'Tandakan setiap pernyataan sebagai benar (B) atau palsu (P):')][fr]} ${S1.map((z, i) => `(${'abcd'[i]}) $${z[0]}$`).join(' &emsp; ')}`), a: X((L, t) => S1.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; ')),
+      return { q: X((L, t) => `$\\xi = \\{x : x \\text{ ${t('is an integer', 'ialah integer')}},\\ 1 \\le x \\le ${N}\\}$. $A$ = ${t(`multiples of ${k1}`, `gandaan bagi ${k1}`)}, $B$ = ${t(`multiples of ${k2}`, `gandaan bagi ${k2}`)}, $C$ = ${t(`multiples of ${k3}`, `gandaan bagi ${k3}`)}. ${[t('State whether each is true or false:', 'Nyatakan sama ada setiap pernyataan betul atau salah:'), t('Which of these statements are correct?', 'Yang manakah antara pernyataan ini betul?'), t('Mark each statement as true (T) or false (F):', 'Tandakan setiap pernyataan sebagai betul (B) atau salah (P):')][fr]} ${S1.map((z, i) => `(${'abcd'[i]}) $${z[0]}$`).join(' &emsp; ')}`), a: X((L, t) => S1.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; ')),
         w: W(X((L, t) => `${t('List the three sets:', 'Senaraikan ketiga-tiga set:')} $A = ${RO(A, L)}$, $B = ${RO(B, L)}$, $C = ${RO(C, L)}$.`),
           X((L, t) => `${t('A set is a subset of another only if every one of its elements is in the other set.', 'Suatu set ialah subset bagi set lain hanya jika setiap unsurnya berada dalam set itu.')}`),
-          X((L, t) => S1.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; '))), sp: 'm' };
+          X((L, t) => S1.map((z, i) => `(${'abcd'[i]}) ${z[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; '))), sp: 'm' };
     },
     /* mixed representation */
     (r) => {
       const z = nest(r), R = z.B;
-      return { fig: nfig(z), q: X((L, t) => `${t('The Venn diagram shows the sets', 'Gambar rajah Venn menunjukkan set')} $A$, $B$ ${t('and', 'dan')} $\\xi$. ${t('Set', 'Set')} $C = ${RO(R.slice(0, 2), L)}$ ${t('and set', 'dan set')} $D$ = ${t(`multiples of ${z.kb} in ξ`, `gandaan bagi ${z.kb} dalam ξ`)}. ${t('Is', 'Adakah')} (a) $C \\subseteq B$? (b) $A \\subseteq D$? (c) $D \\subseteq A$? (d) $D = B$?`), a: X((L, t) => `(a) ${t('true', 'benar')} (b) ${t('true', 'benar')} (c) ${t('false', 'palsu')} (d) ${t('true: both are the multiples of', 'benar: kedua-duanya ialah gandaan bagi')} ${z.kb}`),
-        w: W(X((L, t) => `${t('From the diagram', 'Daripada rajah itu')} $A = ${RO(z.A, L)}$ ${t('and', 'dan')} $B = ${RO(z.B, L)}$; ${t('B is exactly the multiples of', 'B ialah tepat gandaan bagi')} ${z.kb} ${t('in ξ, so', 'dalam ξ, jadi')} $D = B$ — (d) ${t('true', 'benar')}.`),
+      return { fig: nfig(z), q: X((L, t) => `${t('The Venn diagram shows the sets', 'Gambar rajah Venn menunjukkan set')} $A$, $B$ ${t('and', 'dan')} $\\xi$. ${t('Set', 'Set')} $C = ${RO(R.slice(0, 2), L)}$ ${t('and set', 'dan set')} $D$ = ${t(`multiples of ${z.kb} in ξ`, `gandaan bagi ${z.kb} dalam ξ`)}. ${t('Is', 'Adakah')} (a) $C \\subseteq B$? (b) $A \\subseteq D$? (c) $D \\subseteq A$? (d) $D = B$?`), a: X((L, t) => `(a) ${t('true', 'betul')} (b) ${t('true', 'betul')} (c) ${t('false', 'salah')} (d) ${t('true: both are the multiples of', 'betul: kedua-duanya ialah gandaan bagi')} ${z.kb}`),
+        w: W(X((L, t) => `${t('From the diagram', 'Daripada rajah itu')} $A = ${RO(z.A, L)}$ ${t('and', 'dan')} $B = ${RO(z.B, L)}$; ${t('B is exactly the multiples of', 'B ialah tepat gandaan bagi')} ${z.kb} ${t('in ξ, so', 'dalam ξ, jadi')} $D = B$ — (d) ${t('true', 'betul')}.`),
           X((L, t) => `(a) ${t('Both elements of C are taken from B, so', 'Kedua-dua unsur C diambil daripada B, jadi')} $C \\subseteq B$.`),
           X((L, t) => `(b) ${t('A sits inside B, and', 'A berada di dalam B, dan')} $D = B$, ${t('so', 'jadi')} $A \\subseteq D$.`),
           X((L, t) => `(c) ${t('But', 'Tetapi')} $${z.mid[0]} \\in D$ ${t('and', 'dan')} $${z.mid[0]} \\notin A$, ${t('so', 'jadi')} $D \\nsubseteq A$.`)), sp: 'm' };
@@ -3215,15 +3215,15 @@
       const U = makeUni(r, r.pick(['num', 'num', 'day', 'month', 'shape'])), ps = pick2(r, U, 2), [a, b] = nm2(r);
       const f = (x, y) => x.every((z) => y.includes(z)), ab = f(ps[0].l, ps[1].l), ba = f(ps[1].l, ps[0].l);
       const cx = (x, y) => x.find((z) => !y.includes(z));
-      return { q: X((L, t) => `${t('The universal set is', 'Set semesta ialah')} ${U.xd[L]}. $${a}$ = ${ps[0].p[L]}, $${b}$ = ${ps[1].p[L]}. ${t('Decide whether (i)', 'Tentukan sama ada (i)')} $${a} \\subseteq ${b}$ ${t('and (ii)', 'dan (ii)')} $${b} \\subseteq ${a}$. ${t('Give a counterexample for each false statement.', 'Berikan contoh penyangkal bagi setiap pernyataan yang palsu.')}`), a: X((L, t) => `(i) ${ab ? t('true', 'benar') : `${t('false', 'palsu')}: $${E(cx(ps[0].l, ps[1].l), L)} \\in ${a}$, $\\notin ${b}$`} (ii) ${ba ? t('true', 'benar') : `${t('false', 'palsu')}: $${E(cx(ps[1].l, ps[0].l), L)} \\in ${b}$, $\\notin ${a}$`}`),
+      return { q: X((L, t) => `${t('The universal set is', 'Set semesta ialah')} ${U.xd[L]}. $${a}$ = ${ps[0].p[L]}, $${b}$ = ${ps[1].p[L]}. ${t('Decide whether (i)', 'Tentukan sama ada (i)')} $${a} \\subseteq ${b}$ ${t('and (ii)', 'dan (ii)')} $${b} \\subseteq ${a}$. ${t('Give a counterexample for each false statement.', 'Berikan contoh penyangkal bagi setiap pernyataan yang salah.')}`), a: X((L, t) => `(i) ${ab ? t('true', 'betul') : `${t('false', 'salah')}: $${E(cx(ps[0].l, ps[1].l), L)} \\in ${a}$, $\\notin ${b}$`} (ii) ${ba ? t('true', 'betul') : `${t('false', 'salah')}: $${E(cx(ps[1].l, ps[0].l), L)} \\in ${b}$, $\\notin ${a}$`}`),
         w: W(X((L, t) => `${t('List the two sets:', 'Senaraikan kedua-dua set:')} $${a} = ${RO(ps[0].l, L)}$, $${b} = ${RO(ps[1].l, L)}$.`),
-          X((L, t) => `(i) ${ab ? `${t('Every element of', 'Setiap unsur')} $${a}$ ${t('is in', 'ada dalam')} $${b}$, ${t('so it is true.', 'jadi ia benar.')}` : `$${E(cx(ps[0].l, ps[1].l), L)} \\in ${a}$ ${t('but', 'tetapi')} $\\notin ${b}$, ${t('so it is false.', 'jadi ia palsu.')}`}`),
-          X((L, t) => `(ii) ${ba ? `${t('Every element of', 'Setiap unsur')} $${b}$ ${t('is in', 'ada dalam')} $${a}$, ${t('so it is true.', 'jadi ia benar.')}` : `$${E(cx(ps[1].l, ps[0].l), L)} \\in ${b}$ ${t('but', 'tetapi')} $\\notin ${a}$, ${t('so it is false.', 'jadi ia palsu.')}`}`)), sp: 'm' };
+          X((L, t) => `(i) ${ab ? `${t('Every element of', 'Setiap unsur')} $${a}$ ${t('is in', 'ada dalam')} $${b}$, ${t('so it is true.', 'jadi ia betul.')}` : `$${E(cx(ps[0].l, ps[1].l), L)} \\in ${a}$ ${t('but', 'tetapi')} $\\notin ${b}$, ${t('so it is false.', 'jadi ia salah.')}`}`),
+          X((L, t) => `(ii) ${ba ? `${t('Every element of', 'Setiap unsur')} $${b}$ ${t('is in', 'ada dalam')} $${a}$, ${t('so it is true.', 'jadi ia betul.')}` : `$${E(cx(ps[1].l, ps[0].l), L)} \\in ${b}$ ${t('but', 'tetapi')} $\\notin ${a}$, ${t('so it is false.', 'jadi ia salah.')}`}`)), sp: 'm' };
     },
     /* subset and complement */
     (r) => {
       const z = nest(r), ca = z.items.filter((x) => !z.A.includes(x)), cb = z.out;
-      return { q: X((L, t) => `$\\xi = ${RO(z.items, L)}$, $A = ${RO(z.A, L)}$ ${t('and', 'dan')} $B = ${RO(z.B, L)}$, ${t('where', 'dengan')} $A \\subseteq B$. ${t("List $A'$ and $B'$. Is $B' \\subseteq A'$? Is $A' \\subseteq B'$?", "Senaraikan $A'$ dan $B'$. Adakah $B' \\subseteq A'$? Adakah $A' \\subseteq B'$?")}`), a: X((L, t) => `$A' = ${RO(ca, L)}$, $B' = ${RO(cb, L)}$. $B' \\subseteq A'$: ${t('true', 'benar')}; $A' \\subseteq B'$: ${t('false', 'palsu')} ($${z.mid[0]} \\in A'$, $\\notin B'$).`),
+      return { q: X((L, t) => `$\\xi = ${RO(z.items, L)}$, $A = ${RO(z.A, L)}$ ${t('and', 'dan')} $B = ${RO(z.B, L)}$, ${t('where', 'dengan')} $A \\subseteq B$. ${t("List $A'$ and $B'$. Is $B' \\subseteq A'$? Is $A' \\subseteq B'$?", "Senaraikan $A'$ dan $B'$. Adakah $B' \\subseteq A'$? Adakah $A' \\subseteq B'$?")}`), a: X((L, t) => `$A' = ${RO(ca, L)}$, $B' = ${RO(cb, L)}$. $B' \\subseteq A'$: ${t('true', 'betul')}; $A' \\subseteq B'$: ${t('false', 'salah')} ($${z.mid[0]} \\in A'$, $\\notin B'$).`),
         w: W(X((L, t) => `$A'$ ${t('is ξ without the elements of A:', 'ialah ξ tanpa unsur A:')} $A' = ${RO(ca, L)}$.`),
           X((L, t) => `$B'$ ${t('is ξ without the elements of B:', 'ialah ξ tanpa unsur B:')} $B' = ${RO(cb, L)}$.`),
           X((L, t) => `${t('Anything outside the bigger set B is also outside the smaller set A, so', 'Apa-apa yang di luar set yang lebih besar B juga berada di luar set yang lebih kecil A, jadi')} $B' \\subseteq A'$.`),
@@ -3288,7 +3288,7 @@
     [(t) => t('State n(A) and n(B).', 'Nyatakan n(A) dan n(B).'), () => `${z.A.length}, ${z.B.length}`, (L, t) => `${t('Count the inner circle and then the whole outer circle:', 'Bilang bulatan dalam, kemudian keseluruhan bulatan luar:')} $n(A) = ${z.A.length}$, $n(B) = ${z.A.length} + ${z.mid.length} = ${z.B.length}$.`],
     [(t) => t('State n(ξ).', 'Nyatakan n(ξ).'), () => `${z.items.length}`, (L, t) => `${t('Add all three regions:', 'Tambah ketiga-tiga kawasan:')} $${z.A.length} + ${z.mid.length} + ${z.out.length} = ${z.items.length}$.`],
     [(t) => t('State n(B′).', 'Nyatakan n(B′).'), () => `${z.out.length}`, (L, t) => `${t('Count the elements outside circle B:', 'Bilang unsur di luar bulatan B:')} $n(B') = ${z.out.length}$.`],
-    [(t) => t('Write a true statement about A and B using a subset symbol.', 'Tulis satu pernyataan benar tentang A dan B menggunakan simbol subset.'), () => '$A \\subseteq B$', (L, t) => `${t('Circle A lies completely inside circle B, so every element of A is in B:', 'Bulatan A terletak sepenuhnya di dalam bulatan B, jadi setiap unsur A berada dalam B:')} $A \\subseteq B$.`],
+    [(t) => t('Write a true statement about A and B using a subset symbol.', 'Tulis satu pernyataan betul tentang A dan B menggunakan simbol subset.'), () => '$A \\subseteq B$', (L, t) => `${t('Circle A lies completely inside circle B, so every element of A is in B:', 'Bulatan A terletak sepenuhnya di dalam bulatan B, jadi setiap unsur A berada dalam B:')} $A \\subseteq B$.`],
     [(t) => t('Is B ⊆ A? Give a reason.', 'Adakah B ⊆ A? Berikan sebab.'), (L, t) => `${t('No', 'Tidak')}: ${z.mid[0]} ∈ B, ${z.mid[0]} ∉ A`, (L, t) => `${t('B has elements in the ring outside A, for example', 'B mempunyai unsur dalam gelang di luar A, contohnya')} $${z.mid[0]}$, ${t('so B is not a subset of A.', 'jadi B bukan subset bagi A.')}`],
     [(t) => t(`Where is the number ${x} placed: inside A, inside B only, or outside B?`, `Di manakah nombor ${x} diletakkan: di dalam A, di dalam B sahaja, atau di luar B?`), (L, t) => z.A.includes(x) ? t('inside A', 'di dalam A') : z.mid.includes(x) ? t('inside B only', 'di dalam B sahaja') : t('outside B', 'di luar B'), (L, t) => `${x} ${z.A.includes(x) ? t('is a multiple of both numbers, so it goes inside A.', 'ialah gandaan bagi kedua-dua nombor, jadi ia berada di dalam A.') : z.mid.includes(x) ? t('is in B but not in A, so it goes in the ring between the circles.', 'berada dalam B tetapi bukan dalam A, jadi ia berada dalam gelang antara kedua-dua bulatan.') : t('is in neither circle, so it goes outside B.', 'tiada dalam mana-mana bulatan, jadi ia berada di luar B.')}`],
     [(t) => t('State the number of elements that are in B but not in A.', 'Nyatakan bilangan unsur yang berada dalam B tetapi bukan dalam A.'), () => `${z.mid.length}`, (L, t) => `${t('Those are the elements in the ring:', 'Itulah unsur dalam gelang:')} $${z.B.length} - ${z.A.length} = ${z.mid.length}$.`],
@@ -3404,10 +3404,10 @@
       const z = nest(r), x = r.pick(z.A), y = r.pick(z.mid), w = r.pick(z.out);
       const ST = [[`${x} \\in A`, 1], [`${y} \\in A`, 0], [`${y} \\in B`, 1], [`${w} \\in B`, 0], [`${w} \\in B'`, 1], [`${x} \\in B'`, 0], [`${y} \\in A'`, 1]];
       const f = r.sample(ST, 4);
-      return { fig: nfig(z), q: X((L, t) => `${t('Using the Venn diagram, state whether each statement is true or false.', 'Menggunakan gambar rajah Venn, nyatakan sama ada setiap pernyataan benar atau palsu.')} ${f.map((q, i) => `(${'abcd'[i]}) $${q[0]}$`).join(' &emsp; ')}`), a: X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; ')),
+      return { fig: nfig(z), q: X((L, t) => `${t('Using the Venn diagram, state whether each statement is true or false.', 'Menggunakan gambar rajah Venn, nyatakan sama ada setiap pernyataan betul atau salah.')} ${f.map((q, i) => `(${'abcd'[i]}) $${q[0]}$`).join(' &emsp; ')}`), a: X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; ')),
         w: W(X((L, t) => `${t('Read the regions:', 'Baca kawasan itu:')} $${x}$ ${t('is inside A (so inside B too),', 'berada di dalam A (jadi di dalam B juga),')} $${y}$ ${t('is in the ring (in B but not in A), and', 'berada dalam gelang (dalam B tetapi bukan dalam A), dan')} $${w}$ ${t('is outside B.', 'berada di luar B.')}`),
           X((L, t) => `${t('An element is in B′ exactly when it lies outside circle B, and in A′ exactly when it lies outside circle A.', 'Suatu unsur berada dalam B′ tepat apabila ia terletak di luar bulatan B, dan dalam A′ tepat apabila ia terletak di luar bulatan A.')}`),
-          X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'benar') : t('false', 'palsu')}`).join('; '))), sp: 's' };
+          X((L, t) => f.map((q, i) => `(${'abcd'[i]}) ${q[1] ? t('true', 'betul') : t('false', 'salah')}`).join('; '))), sp: 's' };
     },
     /* the diagram: describe A in words */
     (r) => {
@@ -3451,7 +3451,7 @@
     /* diagram -> set-builder descriptions and statements */
     (r) => {
       const z = nest(r);
-      return { fig: nfig(z), q: X((L, t) => t('The Venn diagram shows A ⊆ B ⊆ ξ, where ξ contains the integers from 1 to ' + z.N + '. (a) Describe A and B in words. (b) List A′. (c) Write a true statement using ⊆ and one using ∈.', 'Gambar rajah Venn menunjukkan A ⊆ B ⊆ ξ, dengan ξ mengandungi integer dari 1 hingga ' + z.N + '. (a) Huraikan A dan B dalam perkataan. (b) Senaraikan A′. (c) Tulis satu pernyataan benar menggunakan ⊆ dan satu menggunakan ∈.')), a: X((L, t) => `(a) A: ${nA(z)[L]}; B: ${nB(z)[L]} (b) $A' = ${RO(z.items.filter((x) => !z.A.includes(x)), L)}$ (c) $A \\subseteq B$; $${z.A[0]} \\in A$`),
+      return { fig: nfig(z), q: X((L, t) => t('The Venn diagram shows A ⊆ B ⊆ ξ, where ξ contains the integers from 1 to ' + z.N + '. (a) Describe A and B in words. (b) List A′. (c) Write a true statement using ⊆ and one using ∈.', 'Gambar rajah Venn menunjukkan A ⊆ B ⊆ ξ, dengan ξ mengandungi integer dari 1 hingga ' + z.N + '. (a) Huraikan A dan B dalam perkataan. (b) Senaraikan A′. (c) Tulis satu pernyataan betul menggunakan ⊆ dan satu menggunakan ∈.')), a: X((L, t) => `(a) A: ${nA(z)[L]}; B: ${nB(z)[L]} (b) $A' = ${RO(z.items.filter((x) => !z.A.includes(x)), L)}$ (c) $A \\subseteq B$; $${z.A[0]} \\in A$`),
         w: W(X((L, t) => `(a) ${t('The inner circle holds', 'Bulatan dalam mengandungi')} $${RO(z.A, L)}$ — ${t('these are the', 'ini ialah')} ${nA(z)[L]}; ${t('the outer circle holds', 'bulatan luar mengandungi')} $${RO(z.B, L)}$ — ${t('the', '')} ${nB(z)[L]}.`),
           X((L, t) => `(b) ${t('A′ is everything outside the inner circle:', 'A′ ialah semua di luar bulatan dalam:')} $${RO(z.items.filter((x) => !z.A.includes(x)), L)}$.`),
           X((L, t) => `(c) ${t('Circle A lies inside circle B, so', 'Bulatan A terletak di dalam bulatan B, jadi')} $A \\subseteq B$; ${t('and a single element of A gives', 'dan satu unsur A memberi')} $${z.A[0]} \\in A$ (${t('use ∈ for an element, ⊆ for a set', 'gunakan ∈ bagi unsur, ⊆ bagi set')}).`)), sp: 'l' };

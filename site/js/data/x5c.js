@@ -103,7 +103,7 @@
         [T('Two right-angled triangles with both pairs of legs (the two shorter sides) equal must be congruent.', 'Dua segi tiga bersudut tegak dengan kedua-dua pasang kaki (dua sisi lebih pendek) yang sama mestilah kongruen.'), true, T('The two legs and the right angle between them give SAS.', 'Dua kaki dan sudut tegak yang diapitnya memberikan SAS.')],
         [T('Any two equilateral triangles are automatically congruent to each other, whatever their side length.', 'Mana-mana dua segi tiga sama sisi adalah secara automatik kongruen antara satu sama lain, walau apa pun panjang sisinya.'), false, T('All their angles are $60^\\circ$, but side lengths can differ: they are only similar.', 'Semua sudutnya $60^\\circ$, tetapi panjang sisi boleh berbeza: kedua-duanya hanya serupa.')],
       ]);
-      return { q: T(`True or false? "${st[0].en}"`, `Benar atau palsu? "${st[0].ms}"`), a: st[1] ? T('True', 'Benar') : T('False', 'Palsu'), w: W(st[2]), sp: 'xs' };
+      return { q: T(`True or false? "${st[0].en}"`, `Betul atau salah? "${st[0].ms}"`), a: st[1] ? T('True', 'Betul') : T('False', 'Salah'), w: W(st[2]), sp: 'xs' };
     },
     (r) => {
       const [x, y, z, p, q, s] = letPick(r);
@@ -208,7 +208,7 @@
       need(apex > 0);
       const [x, y, z] = letPick(r);
       need(x !== 'M' && y !== 'M' && z !== 'M');
-      return { q: T(`$\\triangle ${x}${y}${z}$ is isosceles with $${x}${y} = ${x}${z}$. $M$ is the midpoint of $${y}${z}$. Use $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$ to show $${x}M \\perp ${y}${z}$, given $\\angle ${x}${y}${z} = ${base}^\\circ$. Find $\\angle ${x}M${z}$.`, `$\\triangle ${x}${y}${z}$ ialah sama kaki dengan $${x}${y} = ${x}${z}$. $M$ ialah titik tengah $${y}${z}$. Gunakan $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$ untuk menunjukkan $${x}M \\perp ${y}${z}$, diberi $\\angle ${x}${y}${z} = ${base}^\\circ$. Cari $\\angle ${x}M${z}$.`), a: T(`$${x}${y} = ${x}${z}$, $${y}M = ${z}M$ ($M$ midpoint) and $${x}M$ is common: SSS, so $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$. Hence $\\angle ${x}M${y} = \\angle ${x}M${z}$, and since they are supplementary, each is $90^\\circ$; so $${x}M \\perp ${y}${z}$ and $\\angle ${x}M${z} = 90^\\circ$.`, `$${x}${y} = ${x}${z}$, $${y}M = ${z}M$ ($M$ titik tengah) dan $${x}M$ sisi sepunya: SSS, jadi $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$. Justeru $\\angle ${x}M${y} = \\angle ${x}M${z}$, dan kerana kedua-duanya berpelengkap, setiap satu ialah $90^\\circ$; jadi $${x}M \\perp ${y}${z}$ dan $\\angle ${x}M${z} = 90^\\circ$.`), w: W(T(`$${x}${y} = ${x}${z}$ (given), $${y}M = ${z}M$ (midpoint), $${x}M$ common: SSS`, `$${x}${y} = ${x}${z}$ (diberi), $${y}M = ${z}M$ (titik tengah), $${x}M$ sepunya: SSS`), `$\\angle ${x}M${y} + \\angle ${x}M${z} = 180^\\circ$, $\\angle ${x}M${y} = \\angle ${x}M${z}$`, `$\\angle ${x}M${z} = \\dfrac{180^\\circ}{2} = 90^\\circ$`, T(`The base angle $${base}^\\circ$ is not needed: the result holds for any isosceles triangle.`, `Sudut tapak $${base}^\\circ$ tidak diperlukan: keputusan ini benar bagi mana-mana segi tiga sama kaki.`)), sp: 'l' };
+      return { q: T(`$\\triangle ${x}${y}${z}$ is isosceles with $${x}${y} = ${x}${z}$. $M$ is the midpoint of $${y}${z}$. Use $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$ to show $${x}M \\perp ${y}${z}$, given $\\angle ${x}${y}${z} = ${base}^\\circ$. Find $\\angle ${x}M${z}$.`, `$\\triangle ${x}${y}${z}$ ialah sama kaki dengan $${x}${y} = ${x}${z}$. $M$ ialah titik tengah $${y}${z}$. Gunakan $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$ untuk menunjukkan $${x}M \\perp ${y}${z}$, diberi $\\angle ${x}${y}${z} = ${base}^\\circ$. Cari $\\angle ${x}M${z}$.`), a: T(`$${x}${y} = ${x}${z}$, $${y}M = ${z}M$ ($M$ midpoint) and $${x}M$ is common: SSS, so $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$. Hence $\\angle ${x}M${y} = \\angle ${x}M${z}$, and since they are supplementary, each is $90^\\circ$; so $${x}M \\perp ${y}${z}$ and $\\angle ${x}M${z} = 90^\\circ$.`, `$${x}${y} = ${x}${z}$, $${y}M = ${z}M$ ($M$ titik tengah) dan $${x}M$ sisi sepunya: SSS, jadi $\\triangle ${x}${y}M \\equiv \\triangle ${x}${z}M$. Justeru $\\angle ${x}M${y} = \\angle ${x}M${z}$, dan kerana kedua-duanya berpelengkap, setiap satu ialah $90^\\circ$; jadi $${x}M \\perp ${y}${z}$ dan $\\angle ${x}M${z} = 90^\\circ$.`), w: W(T(`$${x}${y} = ${x}${z}$ (given), $${y}M = ${z}M$ (midpoint), $${x}M$ common: SSS`, `$${x}${y} = ${x}${z}$ (diberi), $${y}M = ${z}M$ (titik tengah), $${x}M$ sepunya: SSS`), `$\\angle ${x}M${y} + \\angle ${x}M${z} = 180^\\circ$, $\\angle ${x}M${y} = \\angle ${x}M${z}$`, `$\\angle ${x}M${z} = \\dfrac{180^\\circ}{2} = 90^\\circ$`, T(`The base angle $${base}^\\circ$ is not needed: the result holds for any isosceles triangle.`, `Sudut tapak $${base}^\\circ$ tidak diperlukan: keputusan ini betul bagi mana-mana segi tiga sama kaki.`)), sp: 'l' };
     },
     (r) => {
       const k = r.pick([2, 3]), a = r.int(3, 7), b = r.int(3, 7), ang = r.pick([40, 55, 65]);
@@ -441,7 +441,7 @@
         [T('The centre of enlargement is always the origin.', 'Pusat pembesaran sentiasa berada pada asalan.'), false, T('Any point can be the centre of an enlargement.', 'Mana-mana titik boleh menjadi pusat pembesaran.')],
         [T('For an enlargement, all lengths in the image are multiplied by $k$, and all areas are multiplied by $k$ as well.', 'Bagi satu pembesaran, semua panjang dalam imej didarab dengan $k$, dan semua luas turut didarab dengan $k$.'), false, T('Areas are multiplied by $k^2$, not $k$.', 'Luas didarab dengan $k^2$, bukan $k$.')],
       ]);
-      return { q: T(`True or false? "${st[0].en}"`, `Benar atau palsu? "${st[0].ms}"`), a: st[1] ? T('True', 'Benar') : T('False', 'Palsu'), w: W(st[2]), sp: 'xs' };
+      return { q: T(`True or false? "${st[0].en}"`, `Betul atau salah? "${st[0].ms}"`), a: st[1] ? T('True', 'Betul') : T('False', 'Salah'), w: W(st[2]), sp: 'xs' };
     },
     (r) => {
       const C = [0, 0], f = r.pick(KSET.slice(0, 2));
@@ -960,7 +960,7 @@
         [T('Any triangle, even a scalene one, can be used to tessellate the plane.', 'Sebarang segi tiga, walaupun segi tiga sisi tak sama, boleh digunakan untuk bertesselasi pada satah.'), true, T('Six copies put each angle twice at a point: $2 \\times 180^\\circ = 360^\\circ$.', 'Enam salinan meletakkan setiap sudut dua kali pada satu titik: $2 \\times 180^\\circ = 360^\\circ$.')],
         [T('If shapes meeting at a point leave a small gap, the pattern is still considered a valid tessellation.', 'Jika bentuk yang bertemu pada satu titik meninggalkan jurang kecil, corak itu masih dianggap tesselasi yang sah.'), false, T('A tessellation must have no gaps at all.', 'Tesselasi tidak boleh mempunyai sebarang jurang.')],
       ]);
-      return { q: T(`True or false? "${st[0].en}"`, `Benar atau palsu? "${st[0].ms}"`), a: st[1] ? T('True', 'Benar') : T('False', 'Palsu'), w: W(st[2]), sp: 'xs' };
+      return { q: T(`True or false? "${st[0].en}"`, `Betul atau salah? "${st[0].ms}"`), a: st[1] ? T('True', 'Betul') : T('False', 'Salah'), w: W(st[2]), sp: 'xs' };
     },
     (r) => {
       const area = r.pick([4, 6, 8, 9, 12]), k = r.int(6, 15), ctx = r.pick(TILECTX);
@@ -1168,7 +1168,7 @@
         [T('$\\tan\\theta$ is positive in both quadrant I and quadrant III.', '$\\tan\\theta$ adalah positif dalam kedua-dua sukuan I dan sukuan III.'), true, T('$\\tan\\theta = \\dfrac{y}{x}$, and $x$, $y$ have the same sign in quadrants I and III.', '$\\tan\\theta = \\dfrac{y}{x}$, dan $x$, $y$ mempunyai tanda yang sama dalam sukuan I dan III.')],
         [T('An angle of $265^\\circ$ lies in quadrant IV.', 'Satu sudut $265^\\circ$ berada dalam sukuan IV.'), false, T('$180^\\circ < 265^\\circ < 270^\\circ$, so quadrant III.', '$180^\\circ < 265^\\circ < 270^\\circ$, jadi sukuan III.')],
       ]);
-      return { q: T(`True or false? "${st[0].en}"`, `Benar atau palsu? "${st[0].ms}"`), a: st[1] ? T('True', 'Benar') : T('False', 'Palsu'), w: W(st[2]), sp: 'xs' };
+      return { q: T(`True or false? "${st[0].en}"`, `Betul atau salah? "${st[0].ms}"`), a: st[1] ? T('True', 'Betul') : T('False', 'Salah'), w: W(st[2]), sp: 'xs' };
     },
     (r) => {
       const signs = r.pick([[1, 1, 'I'], [1, -1, 'II'], [-1, -1, 'III'], [-1, 1, 'IV']]);
@@ -1255,7 +1255,7 @@
     (r) => {
       const ref = r.pick([30, 45, 60]), fn = r.pick(['sin', 'cos']);
       const t2 = 180 - ref;
-      return { q: T(`By evaluating both sides using exact values, determine whether $\\${fn}\\,(180^\\circ - ${ref}^\\circ) = \\${fn}\\,${ref}^\\circ$ is true.`, `Dengan menilai kedua-dua belah menggunakan nilai tepat, tentukan sama ada $\\${fn}\\,(180^\\circ - ${ref}^\\circ) = \\${fn}\\,${ref}^\\circ$ adalah benar.`), a: T(`LHS $= \\${fn}\\,${t2}^\\circ = ${exactTex(fn, t2)}$; RHS $= \\${fn}\\,${ref}^\\circ = ${exactTex(fn, ref)}$. ${fn === 'sin' ? 'Equal — the statement is true (in general, $\\sin(180^\\circ - \\theta) = \\sin\\theta$).' : 'NOT equal — the statement is false; in general $\\cos(180^\\circ - \\theta) = -\\cos\\theta$.'}`, `KSK $= \\${fn}\\,${t2}^\\circ = ${exactTex(fn, t2)}$; SSK $= \\${fn}\\,${ref}^\\circ = ${exactTex(fn, ref)}$. ${fn === 'sin' ? 'Sama — kenyataan itu benar (secara am, $\\sin(180^\\circ - \\theta) = \\sin\\theta$).' : 'TIDAK sama — kenyataan itu palsu; secara am $\\cos(180^\\circ - \\theta) = -\\cos\\theta$.'}`), w: W(T(`$180^\\circ - ${ref}^\\circ = ${t2}^\\circ$ is in quadrant II with reference angle $${ref}^\\circ$`, `$180^\\circ - ${ref}^\\circ = ${t2}^\\circ$ berada dalam sukuan II dengan sudut rujukan $${ref}^\\circ$`), signLine(fn, 2), `$\\${fn}\\,${t2}^\\circ = ${fn === 'sin' ? '' : '-'}\\${fn}\\,${ref}^\\circ = ${exactTex(fn, t2)}$`), sp: 'm' };
+      return { q: T(`By evaluating both sides using exact values, determine whether $\\${fn}\\,(180^\\circ - ${ref}^\\circ) = \\${fn}\\,${ref}^\\circ$ is true.`, `Dengan menilai kedua-dua belah menggunakan nilai tepat, tentukan sama ada $\\${fn}\\,(180^\\circ - ${ref}^\\circ) = \\${fn}\\,${ref}^\\circ$ adalah betul.`), a: T(`LHS $= \\${fn}\\,${t2}^\\circ = ${exactTex(fn, t2)}$; RHS $= \\${fn}\\,${ref}^\\circ = ${exactTex(fn, ref)}$. ${fn === 'sin' ? 'Equal — the statement is true (in general, $\\sin(180^\\circ - \\theta) = \\sin\\theta$).' : 'NOT equal — the statement is false; in general $\\cos(180^\\circ - \\theta) = -\\cos\\theta$.'}`, `KSK $= \\${fn}\\,${t2}^\\circ = ${exactTex(fn, t2)}$; SSK $= \\${fn}\\,${ref}^\\circ = ${exactTex(fn, ref)}$. ${fn === 'sin' ? 'Sama — kenyataan itu betul (secara am, $\\sin(180^\\circ - \\theta) = \\sin\\theta$).' : 'TIDAK sama — kenyataan itu salah; secara am $\\cos(180^\\circ - \\theta) = -\\cos\\theta$.'}`), w: W(T(`$180^\\circ - ${ref}^\\circ = ${t2}^\\circ$ is in quadrant II with reference angle $${ref}^\\circ$`, `$180^\\circ - ${ref}^\\circ = ${t2}^\\circ$ berada dalam sukuan II dengan sudut rujukan $${ref}^\\circ$`), signLine(fn, 2), `$\\${fn}\\,${t2}^\\circ = ${fn === 'sin' ? '' : '-'}\\${fn}\\,${ref}^\\circ = ${exactTex(fn, t2)}$`), sp: 'm' };
     },
     (r) => {
       const ctx = r.pick(ANGCTX), t = r.pick(NONQ60.filter((v) => v > 90)), fn = r.pick(['sin', 'cos', 'tan']);
@@ -1497,7 +1497,7 @@
         [T('Adding a constant $c$ to $y = a\\sin bx$ shifts the whole graph up or down without changing its amplitude or period.', 'Menambah pemalar $c$ pada $y = a\\sin bx$ menganjak keseluruhan graf ke atas atau ke bawah tanpa mengubah amplitud atau tempohnya.'), true, T('Every $y$-value changes by the same $c$; the maximum and minimum both move by $c$.', 'Setiap nilai $y$ berubah dengan $c$ yang sama; maksimum dan minimum kedua-duanya beranjak sebanyak $c$.')],
         [T('The graph of $y = \\cos x$ is a reflection of $y = \\sin x$ in the $x$-axis.', 'Graf $y = \\cos x$ ialah pantulan $y = \\sin x$ pada paksi-$x$.'), false, T('Reflecting $y = \\sin x$ in the $x$-axis gives $y = -\\sin x$, which passes through $(0^\\circ, 0)$; $y = \\cos x$ passes through $(0^\\circ, 1)$.', 'Pantulan $y = \\sin x$ pada paksi-$x$ memberikan $y = -\\sin x$, yang melalui $(0^\\circ, 0)$; $y = \\cos x$ melalui $(0^\\circ, 1)$.')],
       ]);
-      return { q: T(`True or false? "${st[0].en}"`, `Benar atau palsu? "${st[0].ms}"`), a: st[1] ? T('True', 'Benar') : T('False', 'Palsu'), w: W(st[2]), sp: 'xs' };
+      return { q: T(`True or false? "${st[0].en}"`, `Betul atau salah? "${st[0].ms}"`), a: st[1] ? T('True', 'Betul') : T('False', 'Salah'), w: W(st[2]), sp: 'xs' };
     },
     (r) => {
       const a = r.int(2, 4), b = r.pick([1, 2, 3]), fn = r.pick(['sin', 'cos']);

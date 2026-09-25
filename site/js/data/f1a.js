@@ -832,11 +832,11 @@
       const a = r.int(-9, 9);
       const vals = [`${a}`, `\\dfrac{${r.int(1, 5)}}{${r.int(6, 9)}}`, `${r.int(1, 9) / 10}`, `-${r.int(1, 9) / 4}`];
       return {
-        q: T(`True or false: every integer is a rational number. Give an example.`, `Benar atau palsu: setiap integer ialah nombor nisbah. Berikan satu contoh.`),
-        a: T(`True. For example, $${a} = \\dfrac{${a}}{1}$.`, `Benar. Contohnya, $${a} = \\dfrac{${a}}{1}$.`),
+        q: T(`True or false: every integer is a rational number. Give an example.`, `Betul atau salah: setiap integer ialah nombor nisbah. Berikan satu contoh.`),
+        a: T(`True. For example, $${a} = \\dfrac{${a}}{1}$.`, `Betul. Contohnya, $${a} = \\dfrac{${a}}{1}$.`),
         w: W(
           T('A rational number is any number that can be written as $\\dfrac{a}{b}$ with $a$ and $b$ integers and $b \\neq 0$.', 'Nombor nisbah ialah sebarang nombor yang boleh ditulis sebagai $\\dfrac{a}{b}$ dengan $a$ dan $b$ ialah integer dan $b \\neq 0$.'),
-          T(`Every integer fits this form with denominator $1$, for example $${a} = \\dfrac{${a}}{1}$, so the statement is true.`, `Setiap integer menepati bentuk ini dengan penyebut $1$, contohnya $${a} = \\dfrac{${a}}{1}$, jadi pernyataan itu benar.`),
+          T(`Every integer fits this form with denominator $1$, for example $${a} = \\dfrac{${a}}{1}$, so the statement is true.`, `Setiap integer menepati bentuk ini dengan penyebut $1$, contohnya $${a} = \\dfrac{${a}}{1}$, jadi pernyataan itu betul.`),
         ),
         sp: 'xs',
       };
@@ -1493,7 +1493,7 @@
         w: W(
           T(`Left side: $\\sqrt{${a}} \\times \\sqrt{${b}} = ${Math.sqrt(a)} \\times ${Math.sqrt(b)} = ${Math.sqrt(a) * Math.sqrt(b)}$`, `Sebelah kiri: $\\sqrt{${a}} \\times \\sqrt{${b}} = ${Math.sqrt(a)} \\times ${Math.sqrt(b)} = ${Math.sqrt(a) * Math.sqrt(b)}$`),
           T(`Right side: $\\sqrt{${a} \\times ${b}} = \\sqrt{${a * b}} = ${Math.sqrt(a * b)}$`, `Sebelah kanan: $\\sqrt{${a} \\times ${b}} = \\sqrt{${a * b}} = ${Math.sqrt(a * b)}$`),
-          T('Both sides give the same value, so the statement is true.', 'Kedua-dua belah memberi nilai yang sama, jadi pernyataan itu benar.'),
+          T('Both sides give the same value, so the statement is true.', 'Kedua-dua belah memberi nilai yang sama, jadi pernyataan itu betul.'),
         ),
         sp: 's',
       };

@@ -101,7 +101,7 @@
   /* ---- working helpers ---- */
   const W = SPM.lines;
   /** true/false bank entry [en, ms, flag, whyEn, whyMs] -> reason first, verdict last */
-  const tfW = (t) => W(T(`Check the rule behind the statement: ${t[3]}`, `Semak peraturan di sebalik pernyataan itu: ${t[4]}`), T(`So the statement is ${t[2] ? 'true' : 'false'}.`, `Jadi pernyataan itu ${t[2] ? 'benar' : 'palsu'}.`));
+  const tfW = (t) => W(T(`Check the rule behind the statement: ${t[3]}`, `Semak peraturan di sebalik pernyataan itu: ${t[4]}`), T(`So the statement is ${t[2] ? 'true' : 'false'}.`, `Jadi pernyataan itu ${t[2] ? 'betul' : 'salah'}.`));
   /** put the answer words back into a cloze sentence */
   const fillBlanks = (s, ans) => { const ps = String(ans).split('; '); let i = 0; return s.replace(/____/g, () => ps[Math.min(i++, ps.length - 1)]); };
   /** why a relation has the class c, in general terms */
@@ -149,7 +149,7 @@
     ['The function $f(x) = x^2$ is many-to-one when negative and positive inputs are allowed.', 'Fungsi $f(x) = x^2$ ialah banyak dengan satu apabila input negatif dan positif dibenarkan.', 1, 'For example $f(-2) = f(2) = 4$.', 'Contohnya $f(-2) = f(2) = 4$.'],
     ['The rule $y = 2x + 1$ is a one-to-one function.', 'Peraturan $y = 2x + 1$ ialah fungsi satu dengan satu.', 1, 'Different values of $x$ always give different values of $2x + 1$.', 'Nilai $x$ yang berbeza sentiasa memberikan nilai $2x + 1$ yang berbeza.'],
     ['A many-to-one function has at least one output that comes from more than one input.', 'Fungsi banyak dengan satu mempunyai sekurang-kurangnya satu output yang datang daripada lebih daripada satu input.', 1, 'That is what many-to-one means.', 'Itulah maksud banyak dengan satu.'],
-    ['A function must have the same number of different outputs as different inputs.', 'Suatu fungsi mesti mempunyai bilangan output berbeza yang sama dengan bilangan input berbeza.', 0, 'That is true only for a one-to-one function; a many-to-one function has fewer different outputs.', 'Itu benar bagi fungsi satu dengan satu sahaja; fungsi banyak dengan satu mempunyai lebih sedikit output berbeza.'],
+    ['A function must have the same number of different outputs as different inputs.', 'Suatu fungsi mesti mempunyai bilangan output berbeza yang sama dengan bilangan input berbeza.', 0, 'That is true only for a one-to-one function; a many-to-one function has fewer different outputs.', 'Itu betul bagi fungsi satu dengan satu sahaja; fungsi banyak dengan satu mempunyai lebih sedikit output berbeza.'],
     ['The rule $y = x^3$ is a one-to-one function.', 'Peraturan $y = x^3$ ialah fungsi satu dengan satu.', 1, 'Different inputs always give different cubes, for example $2^3 = 8$ and $(-2)^3 = -8$.', 'Input yang berbeza sentiasa memberikan kuasa tiga yang berbeza, contohnya $2^3 = 8$ dan $(-2)^3 = -8$.'],
   ];
   const WORDR = [
@@ -257,9 +257,9 @@
     /* true / false */
     (r) => {
       const t = r.pick(TF);
-      const ph = [['State whether the statement is true or false: ', 'Nyatakan sama ada pernyataan berikut benar atau palsu: '], ['True or false? ', 'Benar atau palsu? '], ['Decide if this statement is true or false and give a reason: ', 'Tentukan sama ada pernyataan ini benar atau palsu dan berikan sebab: ']];
+      const ph = [['State whether the statement is true or false: ', 'Nyatakan sama ada pernyataan berikut betul atau salah: '], ['True or false? ', 'Betul atau salah? '], ['Decide if this statement is true or false and give a reason: ', 'Tentukan sama ada pernyataan ini betul atau salah dan berikan sebab: ']];
       const [pe, pm] = r.pick(ph);
-      return { q: T(`${pe}"${t[0]}"`, `${pm}"${t[1]}"`), a: T(`${t[2] ? 'True' : 'False'}. ${t[3]}`, `${t[2] ? 'Benar' : 'Palsu'}. ${t[4]}`), w: tfW(t), sp: 's' };
+      return { q: T(`${pe}"${t[0]}"`, `${pm}"${t[1]}"`), a: T(`${t[2] ? 'True' : 'False'}. ${t[3]}`, `${t[2] ? 'Betul' : 'Salah'}. ${t[4]}`), w: tfW(t), sp: 's' };
     },
     /* ordered pairs: function? */
     (r) => {
@@ -634,7 +634,7 @@
       const ts = TF.filter((t) => t[2]), fs = TF.filter((t) => !t[2]);
       const a = r.pick(ts), b = r.pick(fs), sw = r.chance();
       const two = sw ? [b, a] : [a, b];
-      return { q: T(`One of the following statements is true and the other is false. Decide which is which and give a reason, then correct the false statement.${P(two.map((t) => T(t[0], t[1]))).en}`, `Satu daripada pernyataan berikut benar dan satu lagi palsu. Tentukan yang mana satu dan berikan sebab, kemudian betulkan pernyataan yang palsu.${P(two.map((t) => T(t[0], t[1]))).ms}`), a: P(two.map((t) => T(`${t[2] ? 'True' : 'False'}: ${t[3]}`, `${t[2] ? 'Benar' : 'Palsu'}: ${t[4]}`))), w: W(T(`First statement: ${two[0][3]}`, `Pernyataan pertama: ${two[0][4]}`), T(`So it is ${two[0][2] ? 'true' : 'false'}.`, `Jadi ia ${two[0][2] ? 'benar' : 'palsu'}.`), T(`Second statement: ${two[1][3]}`, `Pernyataan kedua: ${two[1][4]}`), T(`So it is ${two[1][2] ? 'true' : 'false'}.`, `Jadi ia ${two[1][2] ? 'benar' : 'palsu'}.`)), sp: 'm' };
+      return { q: T(`One of the following statements is true and the other is false. Decide which is which and give a reason, then correct the false statement.${P(two.map((t) => T(t[0], t[1]))).en}`, `Satu daripada pernyataan berikut betul dan satu lagi salah. Tentukan yang mana satu dan berikan sebab, kemudian betulkan pernyataan yang salah.${P(two.map((t) => T(t[0], t[1]))).ms}`), a: P(two.map((t) => T(`${t[2] ? 'True' : 'False'}: ${t[3]}`, `${t[2] ? 'Betul' : 'Salah'}: ${t[4]}`))), w: W(T(`First statement: ${two[0][3]}`, `Pernyataan pertama: ${two[0][4]}`), T(`So it is ${two[0][2] ? 'true' : 'false'}.`, `Jadi ia ${two[0][2] ? 'betul' : 'salah'}.`), T(`Second statement: ${two[1][3]}`, `Pernyataan kedua: ${two[1][4]}`), T(`So it is ${two[1][2] ? 'true' : 'false'}.`, `Jadi ia ${two[1][2] ? 'betul' : 'salah'}.`)), sp: 'm' };
     },
     /* misconceptions with a graph */
     (r) => {
@@ -948,7 +948,7 @@
     /* true / false property bank */
     (r) => {
       const t = r.pick(PROP82);
-      return { q: T(`True or false? Give a reason: "${t[0]}"`, `Benar atau palsu? Berikan sebab: "${t[1]}"`), a: T(`${t[2] ? 'True' : 'False'}. ${t[3]}`, `${t[2] ? 'Benar' : 'Palsu'}. ${t[4]}`), w: tfW(t), sp: 's' };
+      return { q: T(`True or false? Give a reason: "${t[0]}"`, `Betul atau salah? Berikan sebab: "${t[1]}"`), a: T(`${t[2] ? 'True' : 'False'}. ${t[3]}`, `${t[2] ? 'Betul' : 'Salah'}. ${t[4]}`), w: tfW(t), sp: 's' };
     },
     /* real-life relation, table and reading */
     (r) => {
@@ -1487,7 +1487,7 @@
       const S1 = mkSeries(r, { kind: r.pick(['inc', 'dec']) });
       const claimTrue = r.chance();
       const claim = claimTrue ? trendWord(S1.vals) : (trendWord(S1.vals).en === 'increasing' ? T('decreasing', 'berkurang') : T('increasing', 'bertambah'));
-      return { q: T(`True or false? "The graph shows the ${S1.c.u[0]} ${claim.en} over time."`, `Benar atau palsu? "Graf menunjukkan ${S1.c.u[1]} ${claim.ms} mengikut masa."`), fig: mkFig(S1), a: claimTrue ? T('True', 'Benar') : T(`False; it is ${trendWord(S1.vals).en}.`, `Palsu; ia ${trendWord(S1.vals).ms}.`), w: W(endsLine(S1), T(`So the graph is ${trendWord(S1.vals).en}.`, `Jadi graf itu ${trendWord(S1.vals).ms}.`), claimTrue ? T('The statement says the same thing, so it is true.', 'Pernyataan itu menyatakan perkara yang sama, jadi ia benar.') : T(`The statement says ${claim.en}, so it is false.`, `Pernyataan itu menyatakan ${claim.ms}, jadi ia palsu.`)), sp: 's' };
+      return { q: T(`True or false? "The graph shows the ${S1.c.u[0]} ${claim.en} over time."`, `Betul atau salah? "Graf menunjukkan ${S1.c.u[1]} ${claim.ms} mengikut masa."`), fig: mkFig(S1), a: claimTrue ? T('True', 'Betul') : T(`False; it is ${trendWord(S1.vals).en}.`, `Salah; ia ${trendWord(S1.vals).ms}.`), w: W(endsLine(S1), T(`So the graph is ${trendWord(S1.vals).en}.`, `Jadi graf itu ${trendWord(S1.vals).ms}.`), claimTrue ? T('The statement says the same thing, so it is true.', 'Pernyataan itu menyatakan perkara yang sama, jadi ia betul.') : T(`The statement says ${claim.en}, so it is false.`, `Pernyataan itu menyatakan ${claim.ms}, jadi ia salah.`)), sp: 's' };
     },
     /* count how many intervals increase / decrease (constant graph excluded) */
     (r) => {
@@ -1510,7 +1510,7 @@
       const xi = (c2 - c1) / (m2 - m1), yi = m1 * xi + c1;
       need(Number.isInteger(xi) && Number.isInteger(yi) && Math.abs(xi) <= 4 && Math.abs(yi) <= 7);
       const fig = S.plane({ x: [-5, 5], y: [-8, 8], scale: 17, labelStep: 2, lines: [{ m: m1, c: c1, label: 'P' }, { m: m2, c: c2, label: 'Q', dash: true }], pts: [{ x: xi, y: yi }] });
-      return { q: T('The lines $P$ and $Q$ intersect at the marked point. State the coordinates and explain what is true about $y_P$ and $y_Q$ there.', 'Garis $P$ dan $Q$ bersilang pada titik yang ditandakan. Nyatakan koordinatnya dan terangkan apa yang benar tentang $y_P$ dan $y_Q$ di situ.'), fig, a: T(`$(${xi},\\ ${yi})$; at this point $y_P = y_Q = ${yi}$ (both lines have the same $y$-value for the same $x$).`, `$(${xi},\\ ${yi})$; pada titik ini $y_P = y_Q = ${yi}$ (kedua-dua garis mempunyai nilai $y$ yang sama bagi $x$ yang sama).`), w: W(T('Read the marked point down to the $x$-axis and across to the $y$-axis.', 'Baca titik yang ditanda ke bawah pada paksi-$x$ dan mendatar ke paksi-$y$.'), `$(${xi},\\ ${yi})$`, T(`The point lies on both lines, so at $x = ${xi}$ they have the same height: $y_P = y_Q = ${yi}$.`, `Titik itu terletak pada kedua-dua garis, jadi pada $x = ${xi}$ kedua-duanya mempunyai ketinggian yang sama: $y_P = y_Q = ${yi}$.`)), sp: 's' };
+      return { q: T('The lines $P$ and $Q$ intersect at the marked point. State the coordinates and explain what is true about $y_P$ and $y_Q$ there.', 'Garis $P$ dan $Q$ bersilang pada titik yang ditandakan. Nyatakan koordinatnya dan terangkan apa yang betul tentang $y_P$ dan $y_Q$ di situ.'), fig, a: T(`$(${xi},\\ ${yi})$; at this point $y_P = y_Q = ${yi}$ (both lines have the same $y$-value for the same $x$).`, `$(${xi},\\ ${yi})$; pada titik ini $y_P = y_Q = ${yi}$ (kedua-dua garis mempunyai nilai $y$ yang sama bagi $x$ yang sama).`), w: W(T('Read the marked point down to the $x$-axis and across to the $y$-axis.', 'Baca titik yang ditanda ke bawah pada paksi-$x$ dan mendatar ke paksi-$y$.'), `$(${xi},\\ ${yi})$`, T(`The point lies on both lines, so at $x = ${xi}$ they have the same height: $y_P = y_Q = ${yi}$.`, `Titik itu terletak pada kedua-dua garis, jadi pada $x = ${xi}$ kedua-duanya mempunyai ketinggian yang sama: $y_P = y_Q = ${yi}$.`)), sp: 's' };
     },
     /* find x from a table then classify */
     (r) => {
@@ -2094,7 +2094,7 @@
         ['Acceleration is the same as speed.', 'Pecutan adalah sama dengan laju.', 0, 'Acceleration is the rate of change of speed, not the speed itself.'],
       ]);
       const msWhy = tf[3] === 'Acceleration can be negative, which is a deceleration.' ? 'Pecutan boleh negatif, iaitu nyahpecutan.' : tf[3] === 'Acceleration is the rate of change of speed, not the speed itself.' ? 'Pecutan ialah kadar perubahan laju, bukan laju itu sendiri.' : '';
-      return { q: T(`True or false? "${tf[0]}"`, `Benar atau palsu? "${tf[1]}"`), a: tf[2] ? T('True', 'Benar') : T(`False. ${tf[3]}`, `Palsu. ${msWhy}`), w: W(tf[2] ? T('Compare the statement with the meaning of acceleration: the rate of change of speed.', 'Bandingkan pernyataan itu dengan maksud pecutan: kadar perubahan laju.') : T(`Compare the statement with the meaning of acceleration: ${tf[3]}`, `Bandingkan pernyataan itu dengan maksud pecutan: ${msWhy}`), T(`So the statement is ${tf[2] ? 'true' : 'false'}.`, `Jadi pernyataan itu ${tf[2] ? 'benar' : 'palsu'}.`)), sp: 'xs' };
+      return { q: T(`True or false? "${tf[0]}"`, `Betul atau salah? "${tf[1]}"`), a: tf[2] ? T('True', 'Betul') : T(`False. ${tf[3]}`, `Salah. ${msWhy}`), w: W(tf[2] ? T('Compare the statement with the meaning of acceleration: the rate of change of speed.', 'Bandingkan pernyataan itu dengan maksud pecutan: kadar perubahan laju.') : T(`Compare the statement with the meaning of acceleration: ${tf[3]}`, `Bandingkan pernyataan itu dengan maksud pecutan: ${msWhy}`), T(`So the statement is ${tf[2] ? 'true' : 'false'}.`, `Jadi pernyataan itu ${tf[2] ? 'betul' : 'salah'}.`)), sp: 'xs' };
     },
     /* constant speed => zero acceleration */
     (r) => {

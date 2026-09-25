@@ -449,7 +449,7 @@
       const s = r.pick(POLYH), q = r.pick(['F', 'E', 'V']), ok = r.chance();
       const v = ok ? s[q] : s[q] + r.pick([-2, -1, 1, 2]);
       need(v > 0);
-      return { q: T(`True or false: ${art(s.en)} has ${v} ${QN[q][0]}.`, `Benar atau palsu: ${s.ms} mempunyai ${v} ${QN[q][1]}.`), a: ok ? T('True', 'Benar') : T(`False; it has ${s[q]} ${QN[q][0]}.`, `Palsu; ia mempunyai ${s[q]} ${QN[q][1]}.`), w: W(fevLine(s, q), T(`The statement says ${v}, so it is ${ok ? 'true' : 'false'}.`, `Pernyataan itu menyebut ${v}, maka ia ${ok ? 'benar' : 'palsu'}.`)), sp: 'xs' };
+      return { q: T(`True or false: ${art(s.en)} has ${v} ${QN[q][0]}.`, `Betul atau salah: ${s.ms} mempunyai ${v} ${QN[q][1]}.`), a: ok ? T('True', 'Betul') : T(`False; it has ${s[q]} ${QN[q][0]}.`, `Salah; ia mempunyai ${s[q]} ${QN[q][1]}.`), w: W(fevLine(s, q), T(`The statement says ${v}, so it is ${ok ? 'true' : 'false'}.`, `Pernyataan itu menyebut ${v}, maka ia ${ok ? 'betul' : 'salah'}.`)), sp: 'xs' };
     },
     /* curved solids */
     (r) => {
@@ -2455,7 +2455,7 @@
         ['The line through $(1, 3)$ and $(6, 3)$ is horizontal.', 'Garis yang melalui $(1, 3)$ dan $(6, 3)$ adalah mengufuk.', true, 'Both points have $y = 3$.', 'Kedua-dua titik mempunyai $y = 3$.', 'Two points at the same height are joined by a horizontal line.', 'Dua titik pada ketinggian yang sama disambungkan oleh garis mengufuk.'],
       ];
       const b = r.pick(bank);
-      return { q: T(`True or false? Explain. ${b[0]}`, `Benar atau palsu? Jelaskan. ${b[1]}`), a: b[2] ? T(`True. ${b[3]}`, `Benar. ${b[4]}`) : T(`False. ${b[3]}`, `Palsu. ${b[4]}`), w: W(T(b[5], b[6]), T(`So the statement is ${b[2] ? 'true' : 'false'}: ${b[3]}`, `Jadi pernyataan itu ${b[2] ? 'benar' : 'palsu'}: ${b[4]}`)), sp: 's' };
+      return { q: T(`True or false? Explain. ${b[0]}`, `Betul atau salah? Jelaskan. ${b[1]}`), a: b[2] ? T(`True. ${b[3]}`, `Betul. ${b[4]}`) : T(`False. ${b[3]}`, `Salah. ${b[4]}`), w: W(T(b[5], b[6]), T(`So the statement is ${b[2] ? 'true' : 'false'}: ${b[3]}`, `Jadi pernyataan itu ${b[2] ? 'betul' : 'salah'}: ${b[4]}`)), sp: 's' };
     },
     /* which quadrants can a point be in? */
     (r) => {
@@ -2566,7 +2566,7 @@
       const pts = xs.map((x, i) => (i === 1 ? [x, k + 1] : [x, k]));
       const P = t === 2 ? pts : pts.map((p) => [p[1], p[0]]);
       const on = P.filter((p) => (t === 2 ? p[1] === k : p[0] === k));
-      return { q: T(`Which of the points ${P.map((p) => `$${pt(p)}$`).join(', ')} lie on the line $${t === 2 ? 'y' : 'x'} = ${k}$?`, `Antara titik ${P.map((p) => `$${pt(p)}$`).join(', ')}, yang manakah terletak pada garis $${t === 2 ? 'y' : 'x'} = ${k}$?`), a: T(on.map((p) => `$${pt(p)}$`).join(', ')), w: W(T(`A point lies on $${t === 2 ? 'y' : 'x'} = ${k}$ exactly when its $${t === 2 ? 'y' : 'x'}$-coordinate is $${k}$.`, `Satu titik terletak pada $${t === 2 ? 'y' : 'x'} = ${k}$ tepat apabila koordinat-$${t === 2 ? 'y' : 'x'}$nya ialah $${k}$.`), T(`That is true for ${on.map((p) => `$${pt(p)}$`).join(', ')}.`, `Itu benar bagi ${on.map((p) => `$${pt(p)}$`).join(', ')}.`)), sp: 's' };
+      return { q: T(`Which of the points ${P.map((p) => `$${pt(p)}$`).join(', ')} lie on the line $${t === 2 ? 'y' : 'x'} = ${k}$?`, `Antara titik ${P.map((p) => `$${pt(p)}$`).join(', ')}, yang manakah terletak pada garis $${t === 2 ? 'y' : 'x'} = ${k}$?`), a: T(on.map((p) => `$${pt(p)}$`).join(', ')), w: W(T(`A point lies on $${t === 2 ? 'y' : 'x'} = ${k}$ exactly when its $${t === 2 ? 'y' : 'x'}$-coordinate is $${k}$.`, `Satu titik terletak pada $${t === 2 ? 'y' : 'x'} = ${k}$ tepat apabila koordinat-$${t === 2 ? 'y' : 'x'}$nya ialah $${k}$.`), T(`That is true for ${on.map((p) => `$${pt(p)}$`).join(', ')}.`, `Itu betul bagi ${on.map((p) => `$${pt(p)}$`).join(', ')}.`)), sp: 's' };
     },
     /* position from distances to the axes */
     (r) => {

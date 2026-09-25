@@ -34,9 +34,9 @@
     return i === 0 ? (k < 0 ? `-${s}` : s) : `${k < 0 ? '-' : '+'} ${s}`;
   }).join(' ') || '0';
   /** "$v op c$ is true/false" */
-  const chk = (v, op, c) => T(`$${v} ${SYM[op]} ${c}$ is ${cmp(v, op, c) ? 'true' : 'false'}`, `$${v} ${SYM[op]} ${c}$ adalah ${cmp(v, op, c) ? 'benar' : 'palsu'}`);
+  const chk = (v, op, c) => T(`$${v} ${SYM[op]} ${c}$ is ${cmp(v, op, c) ? 'true' : 'false'}`, `$${v} ${SYM[op]} ${c}$ adalah ${cmp(v, op, c) ? 'betul' : 'salah'}`);
   /** substitute (x, y) into ax + by, compare with c: one line */
-  const subChk = (a, b, x, y, op, c) => { const v = a * x + b * y; return T(`$(${x}, ${y})$: $${subXY(a, b, x, y)} = ${v}$; $${v} ${SYM[op]} ${c}$ is ${cmp(v, op, c) ? 'true' : 'false'}`, `$(${x}, ${y})$: $${subXY(a, b, x, y)} = ${v}$; $${v} ${SYM[op]} ${c}$ adalah ${cmp(v, op, c) ? 'benar' : 'palsu'}`); };
+  const subChk = (a, b, x, y, op, c) => { const v = a * x + b * y; return T(`$(${x}, ${y})$: $${subXY(a, b, x, y)} = ${v}$; $${v} ${SYM[op]} ${c}$ is ${cmp(v, op, c) ? 'true' : 'false'}`, `$(${x}, ${y})$: $${subXY(a, b, x, y)} = ${v}$; $${v} ${SYM[op]} ${c}$ adalah ${cmp(v, op, c) ? 'betul' : 'salah'}`); };
   const MEAN = {
     '>': T('greater than (not equal to)', 'lebih besar daripada (tidak sama dengan)'),
     '>=': T('greater than or equal to', 'lebih besar daripada atau sama dengan'),
@@ -60,9 +60,9 @@
   /** drawing and shading one inequality: one line */
   /** the test-point check "value op value" as written for q (y op mx for lines through the origin) */
   const testTex = (q, x, y) => (q.c === 0 && q.b === 1 && q.a !== 0 ? `${y} ${SYM[q.op]} ${n(-q.a * x)}` : `${q.a * x + q.b * y} ${SYM[q.op]} ${q.c}`);
-  const shadeLine = (q, pre) => { const [x, y] = testPt(q), v = q.a * x + q.b * y, ok = cmp(v, q.op, q.c); return T(`${pre || ''}$${ineqTex(q)}$: ${LSTY(q.op).en} line $${lineEq(q)}$${thru(q)}; test $(${x}, ${y})$: $${testTex(q, x, y)}$ is ${ok ? 'true' : 'false'}, so shade the side ${ok ? 'containing' : 'away from'} $(${x}, ${y})$`, `${pre || ''}$${ineqTex(q)}$: garis ${LSTY(q.op).ms} $${lineEq(q)}$${thruMs(q)}; uji $(${x}, ${y})$: $${testTex(q, x, y)}$ adalah ${ok ? 'benar' : 'palsu'}, maka lorek sebelah yang ${ok ? 'mengandungi' : 'tidak mengandungi'} $(${x}, ${y})$`); };
+  const shadeLine = (q, pre) => { const [x, y] = testPt(q), v = q.a * x + q.b * y, ok = cmp(v, q.op, q.c); return T(`${pre || ''}$${ineqTex(q)}$: ${LSTY(q.op).en} line $${lineEq(q)}$${thru(q)}; test $(${x}, ${y})$: $${testTex(q, x, y)}$ is ${ok ? 'true' : 'false'}, so shade the side ${ok ? 'containing' : 'away from'} $(${x}, ${y})$`, `${pre || ''}$${ineqTex(q)}$: garis ${LSTY(q.op).ms} $${lineEq(q)}$${thruMs(q)}; uji $(${x}, ${y})$: $${testTex(q, x, y)}$ adalah ${ok ? 'betul' : 'salah'}, maka lorek sebelah yang ${ok ? 'mengandungi' : 'tidak mengandungi'} $(${x}, ${y})$`); };
   /** the same as two lines, for a single inequality */
-  const shadeSteps = (q) => { const [x, y] = testPt(q), v = q.a * x + q.b * y, ok = cmp(v, q.op, q.c); return [T(`Draw $${lineEq(q)}$${thru(q)} as a ${LSTY(q.op).en} line ($${SYM[q.op]}$ ${isStrict(q.op) ? 'excludes' : 'includes'} "equal to")`, `Lukis $${lineEq(q)}$${thruMs(q)} sebagai garis ${LSTY(q.op).ms} ($${SYM[q.op]}$ ${isStrict(q.op) ? 'tidak termasuk' : 'termasuk'} "sama dengan")`), T(`Test $(${x}, ${y})$: $${testTex(q, x, y)}$ is ${ok ? 'true' : 'false'}, so shade the side ${ok ? 'containing' : 'away from'} $(${x}, ${y})$`, `Uji $(${x}, ${y})$: $${testTex(q, x, y)}$ adalah ${ok ? 'benar' : 'palsu'}, maka lorek sebelah yang ${ok ? 'mengandungi' : 'tidak mengandungi'} $(${x}, ${y})$`)]; };
+  const shadeSteps = (q) => { const [x, y] = testPt(q), v = q.a * x + q.b * y, ok = cmp(v, q.op, q.c); return [T(`Draw $${lineEq(q)}$${thru(q)} as a ${LSTY(q.op).en} line ($${SYM[q.op]}$ ${isStrict(q.op) ? 'excludes' : 'includes'} "equal to")`, `Lukis $${lineEq(q)}$${thruMs(q)} sebagai garis ${LSTY(q.op).ms} ($${SYM[q.op]}$ ${isStrict(q.op) ? 'tidak termasuk' : 'termasuk'} "sama dengan")`), T(`Test $(${x}, ${y})$: $${testTex(q, x, y)}$ is ${ok ? 'true' : 'false'}, so shade the side ${ok ? 'containing' : 'away from'} $(${x}, ${y})$`, `Uji $(${x}, ${y})$: $${testTex(q, x, y)}$ adalah ${ok ? 'betul' : 'salah'}, maka lorek sebelah yang ${ok ? 'mengandungi' : 'tidak mengandungi'} $(${x}, ${y})$`)]; };
   const OVERLAP = T('The required region is where all the shaded parts overlap.', 'Rantau yang dikehendaki ialah kawasan pertindihan semua bahagian berlorek.');
   const relSym = (v, c) => (v < c ? '<' : v > c ? '>' : '=');
   /** value of the left side of q at (x, y) */
@@ -134,7 +134,7 @@
       const ok = sat(a, b, c, op, P[0], P[1]);
       return {
         q: T(`Does the point $(${P[0]}, ${P[1]})$ satisfy the inequality $${showLin(a, b)} ${SYM[op]} ${c}$?`, `Adakah titik $(${P[0]}, ${P[1]})$ memenuhi ketaksamaan $${showLin(a, b)} ${SYM[op]} ${c}$?`),
-        a: T(`${ok ? 'Yes' : 'No'}: $${v} ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Ya' : 'Tidak'}: $${v} ${SYM[op]} ${c}$ adalah ${ok ? 'benar' : 'palsu'}`),
+        a: T(`${ok ? 'Yes' : 'No'}: $${v} ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Ya' : 'Tidak'}: $${v} ${SYM[op]} ${c}$ adalah ${ok ? 'betul' : 'salah'}`),
         w: W(`$${subXY(a, b, P[0], P[1])} = ${v}$`, chk(v, op, c)),
         sp: 's',
       };
@@ -172,8 +172,8 @@
       const v = a * P[0] - b * P[1];
       const ok = op === '>' ? v > c : op === '>=' ? v >= c : op === '<' ? v < c : v <= c;
       return {
-        q: T(`True or false: the point $(${P[0]}, ${P[1]})$ satisfies $${poly([[a, 'x'], [-b, 'y']])} ${SYM[op]} ${c}$?`, `Benar atau palsu: titik $(${P[0]}, ${P[1]})$ memenuhi $${poly([[a, 'x'], [-b, 'y']])} ${SYM[op]} ${c}$?`),
-        a: T(`${ok ? 'True' : 'False'}: $${v} ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Benar' : 'Palsu'}: $${v} ${SYM[op]} ${c}$ adalah ${ok ? 'benar' : 'palsu'}`),
+        q: T(`True or false: the point $(${P[0]}, ${P[1]})$ satisfies $${poly([[a, 'x'], [-b, 'y']])} ${SYM[op]} ${c}$?`, `Betul atau salah: titik $(${P[0]}, ${P[1]})$ memenuhi $${poly([[a, 'x'], [-b, 'y']])} ${SYM[op]} ${c}$?`),
+        a: T(`${ok ? 'True' : 'False'}: $${v} ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Betul' : 'Salah'}: $${v} ${SYM[op]} ${c}$ adalah ${ok ? 'betul' : 'salah'}`),
         w: W(`$${subXY(a, -b, P[0], P[1])} = ${v}$`, chk(v, op, c)),
         sp: 's',
       };
@@ -274,7 +274,7 @@
       const actualTrue = sat(a, b, c, op, P[0], P[1]);
       return {
         q: T(`A student substitutes $(${P[0]}, ${P[1]})$ into $${showLin(a, b)} ${SYM[op]} ${c}$ and writes "$${wrongV} ${SYM[op]} ${c}$, so it is ${claimTrue ? 'a solution' : 'not a solution'}." Find the student's mistake and give the correct conclusion.`, `Seorang pelajar menggantikan $(${P[0]}, ${P[1]})$ ke dalam $${showLin(a, b)} ${SYM[op]} ${c}$ dan menulis "$${wrongV} ${SYM[op]} ${c}$, jadi ia ${claimTrue ? 'satu penyelesaian' : 'bukan penyelesaian'}." Cari kesilapan pelajar itu dan berikan kesimpulan yang betul.`),
-        a: T(`The correct value is $${correctV}$ (not $${wrongV}$), so it is ${actualTrue ? 'a solution' : 'not a solution'}: $${correctV} ${SYM[op]} ${c}$ is ${actualTrue ? 'true' : 'false'}.`, `Nilai yang betul ialah $${correctV}$ (bukan $${wrongV}$), jadi ia ${actualTrue ? 'satu penyelesaian' : 'bukan penyelesaian'}: $${correctV} ${SYM[op]} ${c}$ adalah ${actualTrue ? 'benar' : 'palsu'}.`),
+        a: T(`The correct value is $${correctV}$ (not $${wrongV}$), so it is ${actualTrue ? 'a solution' : 'not a solution'}: $${correctV} ${SYM[op]} ${c}$ is ${actualTrue ? 'true' : 'false'}.`, `Nilai yang betul ialah $${correctV}$ (bukan $${wrongV}$), jadi ia ${actualTrue ? 'satu penyelesaian' : 'bukan penyelesaian'}: $${correctV} ${SYM[op]} ${c}$ adalah ${actualTrue ? 'betul' : 'salah'}.`),
         w: W(`$${subXY(a, b, P[0], P[1])} = ${a * P[0]} + ${b * P[1]} = ${correctV}$`, T(`The student added the $y$-term $${b * P[1]}$ twice: $${correctV} + ${b * P[1]} = ${wrongV}$`, `Pelajar itu menambah sebutan $y$, iaitu $${b * P[1]}$, dua kali: $${correctV} + ${b * P[1]} = ${wrongV}$`), chk(correctV, op, c)),
         sp: 's',
       };
@@ -311,8 +311,8 @@
       const ok = v <= tot;
       return {
         q: T(`Alia buys $x$ ${i1.en} at RM${p1} each and $y$ ${i2.en} at RM${p2} each, spending not more than RM${tot} in total. (a) Write an inequality in $x$ and $y$. (b) Does $x = ${Px}, y = ${Py}$ satisfy your inequality? (c) State one other possible pair of non-negative integer values of $x$ and $y$.`, `Alia membeli $x$ ${i1.ms} pada harga RM${p1} sekeping dan $y$ ${i2.ms} pada harga RM${p2} sekeping, membelanjakan tidak melebihi RM${tot} secara keseluruhannya. (a) Tulis satu ketaksamaan dalam $x$ dan $y$. (b) Adakah $x = ${Px}, y = ${Py}$ memenuhi ketaksamaan anda? (c) Nyatakan satu lagi pasangan nilai integer bukan negatif bagi $x$ dan $y$ yang mungkin.`),
-        a: T(`(a) $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ (b) $${v} \\le ${tot}$ is ${ok ? 'true, so yes' : 'false, so no'} (c) e.g. $(0, 0)$`, `(a) $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ (b) $${v} \\le ${tot}$ adalah ${ok ? 'benar, jadi ya' : 'palsu, jadi tidak'} (c) cth. $(0, 0)$`),
-        w: W(T(`(a) Total cost $= ${poly([[p1, 'x'], [p2, 'y']])}$, not more than RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`, `(a) Jumlah kos $= ${poly([[p1, 'x'], [p2, 'y']])}$, tidak melebihi RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`), T(`(b) $${subXY(p1, p2, Px, Py)} = ${v}$; $${v} \\le ${tot}$ is ${ok ? 'true' : 'false'}`, `(b) $${subXY(p1, p2, Px, Py)} = ${v}$; $${v} \\le ${tot}$ adalah ${ok ? 'benar' : 'palsu'}`), T(`(c) $(0, 0)$: $${p1}(0) + ${p2}(0) = 0 \\le ${tot}$`, `(c) $(0, 0)$: $${p1}(0) + ${p2}(0) = 0 \\le ${tot}$`)),
+        a: T(`(a) $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ (b) $${v} \\le ${tot}$ is ${ok ? 'true, so yes' : 'false, so no'} (c) e.g. $(0, 0)$`, `(a) $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$ (b) $${v} \\le ${tot}$ adalah ${ok ? 'betul, jadi ya' : 'salah, jadi tidak'} (c) cth. $(0, 0)$`),
+        w: W(T(`(a) Total cost $= ${poly([[p1, 'x'], [p2, 'y']])}$, not more than RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`, `(a) Jumlah kos $= ${poly([[p1, 'x'], [p2, 'y']])}$, tidak melebihi RM${tot}: $${poly([[p1, 'x'], [p2, 'y']])} \\le ${tot}$`), T(`(b) $${subXY(p1, p2, Px, Py)} = ${v}$; $${v} \\le ${tot}$ is ${ok ? 'true' : 'false'}`, `(b) $${subXY(p1, p2, Px, Py)} = ${v}$; $${v} \\le ${tot}$ adalah ${ok ? 'betul' : 'salah'}`), T(`(c) $(0, 0)$: $${p1}(0) + ${p2}(0) = 0 \\le ${tot}$`, `(c) $(0, 0)$: $${p1}(0) + ${p2}(0) = 0 \\le ${tot}$`)),
         sp: 'm',
       };
     },
@@ -325,9 +325,9 @@
       const Pout = retry(() => { const x = r.int(0, 6), y = r.int(0, 6); need(!sat(a, b, c, op, x, y) && a * x + b * y !== c); return [x, y]; });
       const claim = r.chance(0.5); // claim: "all points satisfying x+y>k are ... true" (we test it correctly)
       return {
-        q: T(`A student conjectures that every point $(x, y)$ with $${showLin(a, b)} ${SYM[op]} ${c}$ lies in the solution region of the inequality. Test the point $(${Pin[0]}, ${Pin[1]})$, the boundary point $(${Pbound[0]}, ${Pbound[1]})$ and $(${Pout[0]}, ${Pout[1]})$, then state whether the conjecture is true.`, `Seorang pelajar membuat konjektur bahawa setiap titik $(x, y)$ dengan $${showLin(a, b)} ${SYM[op]} ${c}$ terletak dalam rantau penyelesaian ketaksamaan itu. Uji titik $(${Pin[0]}, ${Pin[1]})$, titik sempadan $(${Pbound[0]}, ${Pbound[1]})$ dan $(${Pout[0]}, ${Pout[1]})$, kemudian nyatakan sama ada konjektur itu benar.`),
-        a: T(`$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'satisfies' : 'does not satisfy'}; boundary point: satisfies only if the inequality is inclusive ($${SYM[op]}$ is ${op.length === 2 ? 'inclusive' : 'strict'}); $(${Pout[0]}, ${Pout[1]})$: does not satisfy. The conjecture is ${op.length === 2 ? 'true' : 'false (the boundary point is excluded)'}.`, `$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'memenuhi' : 'tidak memenuhi'}; titik sempadan: memenuhi hanya jika ketaksamaan itu terangkum ($${SYM[op]}$ ${op.length === 2 ? 'terangkum' : 'ketat'}); $(${Pout[0]}, ${Pout[1]})$: tidak memenuhi. Konjektur itu ${op.length === 2 ? 'benar' : 'palsu (titik sempadan tidak termasuk)'}.`),
-        w: W(subChk(a, b, Pin[0], Pin[1], op, c), subChk(a, b, Pbound[0], Pbound[1], op, c), subChk(a, b, Pout[0], Pout[1], op, c), T(`$${SYM[op]}$ includes equality, so boundary points belong to the region: every point satisfying $${showLin(a, b)} ${SYM[op]} ${c}$ is in the region and the conjecture is true.`, `$${SYM[op]}$ termasuk sama dengan, maka titik sempadan termasuk dalam rantau: setiap titik yang memenuhi $${showLin(a, b)} ${SYM[op]} ${c}$ berada dalam rantau dan konjektur itu benar.`)),
+        q: T(`A student conjectures that every point $(x, y)$ with $${showLin(a, b)} ${SYM[op]} ${c}$ lies in the solution region of the inequality. Test the point $(${Pin[0]}, ${Pin[1]})$, the boundary point $(${Pbound[0]}, ${Pbound[1]})$ and $(${Pout[0]}, ${Pout[1]})$, then state whether the conjecture is true.`, `Seorang pelajar membuat konjektur bahawa setiap titik $(x, y)$ dengan $${showLin(a, b)} ${SYM[op]} ${c}$ terletak dalam rantau penyelesaian ketaksamaan itu. Uji titik $(${Pin[0]}, ${Pin[1]})$, titik sempadan $(${Pbound[0]}, ${Pbound[1]})$ dan $(${Pout[0]}, ${Pout[1]})$, kemudian nyatakan sama ada konjektur itu betul.`),
+        a: T(`$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'satisfies' : 'does not satisfy'}; boundary point: satisfies only if the inequality is inclusive ($${SYM[op]}$ is ${op.length === 2 ? 'inclusive' : 'strict'}); $(${Pout[0]}, ${Pout[1]})$: does not satisfy. The conjecture is ${op.length === 2 ? 'true' : 'false (the boundary point is excluded)'}.`, `$(${Pin[0]}, ${Pin[1]})$: ${inTrue ? 'memenuhi' : 'tidak memenuhi'}; titik sempadan: memenuhi hanya jika ketaksamaan itu terangkum ($${SYM[op]}$ ${op.length === 2 ? 'terangkum' : 'ketat'}); $(${Pout[0]}, ${Pout[1]})$: tidak memenuhi. Konjektur itu ${op.length === 2 ? 'betul' : 'salah (titik sempadan tidak termasuk)'}.`),
+        w: W(subChk(a, b, Pin[0], Pin[1], op, c), subChk(a, b, Pbound[0], Pbound[1], op, c), subChk(a, b, Pout[0], Pout[1], op, c), T(`$${SYM[op]}$ includes equality, so boundary points belong to the region: every point satisfying $${showLin(a, b)} ${SYM[op]} ${c}$ is in the region and the conjecture is true.`, `$${SYM[op]}$ termasuk sama dengan, maka titik sempadan termasuk dalam rantau: setiap titik yang memenuhi $${showLin(a, b)} ${SYM[op]} ${c}$ berada dalam rantau dan konjektur itu betul.`)),
         sp: 'l',
       };
     },
@@ -476,7 +476,7 @@
       const ok = op === '>' ? 0 > c : op === '>=' ? 0 >= c : op === '<' ? 0 < c : 0 <= c;
       return {
         q: T(`Does the origin $(0, 0)$ satisfy the inequality $${p}x + ${q2}y ${SYM[op]} ${c}$? This is a common way to decide which side of a line to shade.`, `Adakah asalan $(0, 0)$ memenuhi ketaksamaan $${p}x + ${q2}y ${SYM[op]} ${c}$? Ini adalah satu cara lazim untuk menentukan sebelah mana garis perlu dilorek.`),
-        a: T(`${ok ? 'Yes' : 'No'}: $0 ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Ya' : 'Tidak'}: $0 ${SYM[op]} ${c}$ adalah ${ok ? 'benar' : 'palsu'}`),
+        a: T(`${ok ? 'Yes' : 'No'}: $0 ${SYM[op]} ${c}$ is ${ok ? 'true' : 'false'}`, `${ok ? 'Ya' : 'Tidak'}: $0 ${SYM[op]} ${c}$ adalah ${ok ? 'betul' : 'salah'}`),
         w: W(`$${subXY(p, q2, 0, 0)} = 0$`, chk(0, op, c)),
         sp: 's',
       };
@@ -486,8 +486,8 @@
       const op = r.pick(['>', '<', '>=', '<=']);
       const strict = op === '>' || op === '<';
       return {
-        q: T(`True or false: the inequality $x + y ${SYM[op]} 5$ is a strict inequality.`, `Benar atau palsu: ketaksamaan $x + y ${SYM[op]} 5$ ialah ketaksamaan ketat.`),
-        a: T(strict ? 'True' : 'False, it is inclusive', strict ? 'Benar' : 'Palsu, ia terangkum'),
+        q: T(`True or false: the inequality $x + y ${SYM[op]} 5$ is a strict inequality.`, `Betul atau salah: ketaksamaan $x + y ${SYM[op]} 5$ ialah ketaksamaan ketat.`),
+        a: T(strict ? 'True' : 'False, it is inclusive', strict ? 'Betul' : 'Salah, ia terangkum'),
         w: T(`$${SYM[op]}$ ${strict ? 'does not include "equal to", so the inequality is strict' : 'includes "equal to", so the inequality is inclusive, not strict'}`, `$${SYM[op]}$ ${strict ? 'tidak termasuk "sama dengan", maka ketaksamaan itu ketat' : 'termasuk "sama dengan", maka ketaksamaan itu terangkum, bukan ketat'}`),
         sp: 'xs',
       };
@@ -645,7 +645,7 @@
         q: T(`The table shows points on the boundary line $x + y = ${c}$. For each, state whether the point also satisfies $x \\ge ${k}$ (the second condition of the shaded region).<br>${SPM.table([['x', ...xs.map(n)], ['y', ...rows.map((v) => (v === null ? '-' : n(v)))]], { rowHead: true })}`, `Jadual menunjukkan titik pada garis sempadan $x + y = ${c}$. Bagi setiap satu, nyatakan sama ada titik itu turut memenuhi $x \\ge ${k}$ (syarat kedua rantau berlorek).<br>${SPM.table([['x', ...xs.map(n)], ['y', ...rows.map((v) => (v === null ? '-' : n(v)))]], { rowHead: true })}`),
         fig,
         a: T(xs.map((x, i) => `$x=${x}$: ${marks[i]}`).join('; '), xs.map((x, i) => `$x=${x}$: ${marksMs[i]}`).join('; ')),
-        w: T(`The condition $x \\ge ${k}$ depends only on $x$: true for $x = ${xs.filter((x) => x >= k).join(', ')}$, false for $x = ${xs.filter((x) => x < k).join(', ')}$`, `Syarat $x \\ge ${k}$ bergantung pada $x$ sahaja: benar bagi $x = ${xs.filter((x) => x >= k).join(', ')}$, palsu bagi $x = ${xs.filter((x) => x < k).join(', ')}$`),
+        w: T(`The condition $x \\ge ${k}$ depends only on $x$: true for $x = ${xs.filter((x) => x >= k).join(', ')}$, false for $x = ${xs.filter((x) => x < k).join(', ')}$`, `Syarat $x \\ge ${k}$ bergantung pada $x$ sahaja: betul bagi $x = ${xs.filter((x) => x >= k).join(', ')}$, salah bagi $x = ${xs.filter((x) => x < k).join(', ')}$`),
         sp: 'm',
       };
     },
@@ -662,7 +662,7 @@
         q: T(`The boundary line of a shaded region crosses the $x$-axis at $(${xi}, 0)$ and the $y$-axis at $(0, ${yi})$; the origin is ${shadeOrigin ? '' : 'not '}in the shaded region. Find the inequality that defines the region, in the form $ax + by \\le c$ or $ax + by \\ge c$.`, `Garis sempadan rantau berlorek memotong paksi-$x$ pada $(${xi}, 0)$ dan paksi-$y$ pada $(0, ${yi})$; asalan ${shadeOrigin ? '' : 'tidak '}terletak dalam rantau berlorek. Cari ketaksamaan yang menentukan rantau itu, dalam bentuk $ax + by \\le c$ atau $ax + by \\ge c$.`),
         fig,
         a: T(`$${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`),
-        w: W(T(`Line through $(${xi}, 0)$ and $(0, ${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, i.e. $${yi}x + ${xi}y = ${xi * yi}$`, `Garis melalui $(${xi}, 0)$ dan $(0, ${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, iaitu $${yi}x + ${xi}y = ${xi * yi}$`), T(`The origin gives $0 ${SYM[op]} ${xi * yi}$, which must be ${shadeOrigin ? 'true (origin inside)' : 'false (origin outside)'}: $${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`, `Asalan memberi $0 ${SYM[op]} ${xi * yi}$, yang mesti ${shadeOrigin ? 'benar (asalan di dalam)' : 'palsu (asalan di luar)'}: $${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`)),
+        w: W(T(`Line through $(${xi}, 0)$ and $(0, ${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, i.e. $${yi}x + ${xi}y = ${xi * yi}$`, `Garis melalui $(${xi}, 0)$ dan $(0, ${yi})$: $\\dfrac{x}{${xi}} + \\dfrac{y}{${yi}} = 1$, iaitu $${yi}x + ${xi}y = ${xi * yi}$`), T(`The origin gives $0 ${SYM[op]} ${xi * yi}$, which must be ${shadeOrigin ? 'true (origin inside)' : 'false (origin outside)'}: $${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`, `Asalan memberi $0 ${SYM[op]} ${xi * yi}$, yang mesti ${shadeOrigin ? 'betul (asalan di dalam)' : 'salah (asalan di luar)'}: $${yi}x + ${xi}y ${SYM[op]} ${xi * yi}$`)),
         sp: 'm',
       };
     },
@@ -675,7 +675,7 @@
       return {
         q: T(`A ${item.en} park has space for fewer than ${cap} vehicles in two zones, $x$ in zone $P$ and $y$ in zone $Q$: $x + y < ${cap}$. Explain why the point $(${P[0]}, ${P[1]})$ does NOT represent a possible number of vehicles in the two zones.`, `Sebuah tempat letak ${item.ms} mempunyai ruang untuk kurang daripada ${cap} kenderaan dalam dua zon, $x$ di zon $P$ dan $y$ di zon $Q$: $x + y < ${cap}$. Terangkan mengapa titik $(${P[0]}, ${P[1]})$ TIDAK mewakili bilangan kenderaan yang mungkin di kedua-dua zon.`),
         a: T(`$${P[0]} + ${P[1]} = ${cap}$, which is not less than ${cap}; the inequality is strict, so points on the boundary line $x + y = ${cap}$ are excluded.`, `$${P[0]} + ${P[1]} = ${cap}$, iaitu tidak kurang daripada ${cap}; ketaksamaan itu ketat, jadi titik pada garis sempadan $x + y = ${cap}$ tidak termasuk.`),
-        w: W(`$${P[0]} + ${P[1]} = ${cap}$`, T(`$${cap} < ${cap}$ is false: the point lies on the boundary line $x + y = ${cap}$, which is excluded because the inequality is strict (dashed line).`, `$${cap} < ${cap}$ adalah palsu: titik itu terletak pada garis sempadan $x + y = ${cap}$, yang tidak termasuk kerana ketaksamaan itu ketat (garis putus-putus).`)),
+        w: W(`$${P[0]} + ${P[1]} = ${cap}$`, T(`$${cap} < ${cap}$ is false: the point lies on the boundary line $x + y = ${cap}$, which is excluded because the inequality is strict (dashed line).`, `$${cap} < ${cap}$ adalah salah: titik itu terletak pada garis sempadan $x + y = ${cap}$, yang tidak termasuk kerana ketaksamaan itu ketat (garis putus-putus).`)),
         sp: 's',
       };
     },
@@ -749,7 +749,7 @@
       return {
         q: T(`Which system of inequalities has the origin $(0, 0)$ in its solution region?<br>${f('en')}`, `Sistem ketaksamaan manakah yang mempunyai asalan $(0, 0)$ dalam rantau penyelesaiannya?<br>${f('ms')}`),
         a: T(`(${'ABCD'[okIdx]})`),
-        w: W(T('Substitute $x = 0$, $y = 0$ into each system:', 'Gantikan $x = 0$, $y = 0$ ke dalam setiap sistem:'), ...opts.map((o, i) => T(`(${'ABCD'[i]}) $0 ${SYM[o.op1]} ${o.k}$ is ${cmp(0, o.op1, o.k) ? 'true' : 'false'}, $0 ${SYM[o.op2]} ${o.h}$ is ${cmp(0, o.op2, o.h) ? 'true' : 'false'}`, `(${'ABCD'[i]}) $0 ${SYM[o.op1]} ${o.k}$ ${cmp(0, o.op1, o.k) ? 'benar' : 'palsu'}, $0 ${SYM[o.op2]} ${o.h}$ ${cmp(0, o.op2, o.h) ? 'benar' : 'palsu'}`))),
+        w: W(T('Substitute $x = 0$, $y = 0$ into each system:', 'Gantikan $x = 0$, $y = 0$ ke dalam setiap sistem:'), ...opts.map((o, i) => T(`(${'ABCD'[i]}) $0 ${SYM[o.op1]} ${o.k}$ is ${cmp(0, o.op1, o.k) ? 'true' : 'false'}, $0 ${SYM[o.op2]} ${o.h}$ is ${cmp(0, o.op2, o.h) ? 'true' : 'false'}`, `(${'ABCD'[i]}) $0 ${SYM[o.op1]} ${o.k}$ ${cmp(0, o.op1, o.k) ? 'betul' : 'salah'}, $0 ${SYM[o.op2]} ${o.h}$ ${cmp(0, o.op2, o.h) ? 'betul' : 'salah'}`))),
         sp: 's',
       };
     },
@@ -1063,9 +1063,9 @@
       const fig = distFigT(pts, t1 + rest + 1, d + 15);
       const ok = claimed === rest;
       return {
-        q: T(`The graph shows a journey with a stop. True or false: the object is stationary for ${claimed} h.`, `Graf menunjukkan satu perjalanan dengan satu perhentian. Benar atau palsu: objek itu pegun selama ${claimed} j.`),
+        q: T(`The graph shows a journey with a stop. True or false: the object is stationary for ${claimed} h.`, `Graf menunjukkan satu perjalanan dengan satu perhentian. Betul atau salah: objek itu pegun selama ${claimed} j.`),
         fig,
-        a: T(`${ok ? 'True' : 'False'}, it is stationary for ${rest} h`, `${ok ? 'Benar' : 'Palsu'}, ia pegun selama ${rest} j`),
+        a: T(`${ok ? 'True' : 'False'}, it is stationary for ${rest} h`, `${ok ? 'Betul' : 'Salah'}, ia pegun selama ${rest} j`),
         w: W(T(`The horizontal segment runs from $t = ${t1}$ h to $t = ${t1 + rest}$ h (the distance stays at ${d} km)`, `Segmen mendatar dari $t = ${t1}$ j hingga $t = ${t1 + rest}$ j (jarak kekal ${d} km)`), T(`Stationary time $= ${t1 + rest} - ${t1} = ${rest}$ h`, `Masa pegun $= ${t1 + rest} - ${t1} = ${rest}$ j`)),
         sp: 's',
       };
@@ -1118,9 +1118,9 @@
       const pts = [[0, d0], [t, 0]];
       const fig = distFigT(pts, t + 1, d0 + 15);
       return {
-        q: T(`The graph shows an object moving toward the reference point (negative gradient). A student says its speed is $-${v}$ km/h. True or false, with a correction if needed.`, `Graf menunjukkan objek bergerak menghampiri titik rujukan (kecerunan negatif). Seorang pelajar berkata lajunya ialah $-${v}$ km/j. Benar atau palsu, dengan pembetulan jika perlu.`),
+        q: T(`The graph shows an object moving toward the reference point (negative gradient). A student says its speed is $-${v}$ km/h. True or false, with a correction if needed.`, `Graf menunjukkan objek bergerak menghampiri titik rujukan (kecerunan negatif). Seorang pelajar berkata lajunya ialah $-${v}$ km/j. Betul atau salah, dengan pembetulan jika perlu.`),
         fig,
-        a: T(`False: speed is the magnitude of the gradient, so the speed is ${v} km/h (not negative); the negative sign only shows the direction is toward the reference point.`, `Palsu: laju ialah magnitud kecerunan, jadi lajunya ialah ${v} km/j (bukan negatif); tanda negatif hanya menunjukkan arah menghampiri titik rujukan.`),
+        a: T(`False: speed is the magnitude of the gradient, so the speed is ${v} km/h (not negative); the negative sign only shows the direction is toward the reference point.`, `Salah: laju ialah magnitud kecerunan, jadi lajunya ialah ${v} km/j (bukan negatif); tanda negatif hanya menunjukkan arah menghampiri titik rujukan.`),
         w: W(T(`Gradient $= \\dfrac{0 - ${d0}}{${t} - 0} = -${v}$`, `Kecerunan $= \\dfrac{0 - ${d0}}{${t} - 0} = -${v}$`), T(`Speed is the magnitude of the gradient: ${v} km/h; the negative sign only shows the direction (toward the reference point).`, `Laju ialah magnitud kecerunan: ${v} km/j; tanda negatif hanya menunjukkan arah (menghampiri titik rujukan).`)),
         sp: 'm',
       };
@@ -1378,9 +1378,9 @@
       const pts = [[0, v], [t, v]];
       const fig = speedFigT(pts, t + 1, v + 5);
       return {
-        q: T(`The graph shows a horizontal segment at speed ${v} m/s. A student says "the acceleration is ${v} m/s² because that is the height of the graph." True or false?`, `Graf menunjukkan segmen mendatar pada laju ${v} m/s. Seorang pelajar berkata "pecutannya ialah ${v} m/s² kerana itulah ketinggian graf itu." Benar atau palsu?`),
+        q: T(`The graph shows a horizontal segment at speed ${v} m/s. A student says "the acceleration is ${v} m/s² because that is the height of the graph." True or false?`, `Graf menunjukkan segmen mendatar pada laju ${v} m/s. Seorang pelajar berkata "pecutannya ialah ${v} m/s² kerana itulah ketinggian graf itu." Betul atau salah?`),
         fig,
-        a: T('False: a horizontal segment has zero gradient, so the acceleration is 0 m/s²; the height of the graph gives the speed, not the acceleration.', 'Palsu: segmen mendatar mempunyai kecerunan sifar, jadi pecutannya ialah 0 m/s²; ketinggian graf memberikan laju, bukan pecutan.'),
+        a: T('False: a horizontal segment has zero gradient, so the acceleration is 0 m/s²; the height of the graph gives the speed, not the acceleration.', 'Salah: segmen mendatar mempunyai kecerunan sifar, jadi pecutannya ialah 0 m/s²; ketinggian graf memberikan laju, bukan pecutan.'),
         w: W(T('Acceleration is the gradient of a speed-time graph; a horizontal segment has gradient 0.', 'Pecutan ialah kecerunan graf laju-masa; segmen mendatar mempunyai kecerunan 0.'), T(`So the acceleration is 0 m/s²; the height, ${v} m/s, is the speed.`, `Maka pecutannya 0 m/s²; ketinggian, ${v} m/s, ialah laju.`)),
         sp: 's',
       };
@@ -2180,8 +2180,8 @@
     (r) => {
       const pct = r.pick([5, 8, 10, 12]);
       return {
-        q: T(`A job pays no base salary, only ${pct}% commission on sales. True or false: if there are no sales in a month, the pay for that month is RM0.`, `Satu kerja tidak membayar gaji asas, hanya komisen ${pct}% ke atas jualan. Benar atau palsu: jika tiada jualan dalam sebulan, gaji bagi bulan itu ialah RM0.`),
-        a: T('True', 'Benar'),
+        q: T(`A job pays no base salary, only ${pct}% commission on sales. True or false: if there are no sales in a month, the pay for that month is RM0.`, `Satu kerja tidak membayar gaji asas, hanya komisen ${pct}% ke atas jualan. Betul atau salah: jika tiada jualan dalam sebulan, gaji bagi bulan itu ialah RM0.`),
+        a: T('True', 'Betul'),
         w: W(T(`Pay = RM0 + ${pct}% × RM0 = RM0`, `Gaji = RM0 + ${pct}% × RM0 = RM0`), T('With no base salary, no sales means no pay.', 'Tanpa gaji asas, tiada jualan bermaksud tiada gaji.')),
         sp: 'xs',
       };
@@ -2205,7 +2205,7 @@
       const letter = 'ABCD'[opts.indexOf(correct.ans)];
       const f = (lang) => opts.map((o, i) => `(${'ABCD'[i]}) ${o[lang]}`).join('<br>');
       return {
-        q: T(`For ${correct.en}, which statement is true?<br>${f('en')}`, `Bagi ${correct.ms}, kenyataan manakah yang benar?<br>${f('ms')}`),
+        q: T(`For ${correct.en}, which statement is true?<br>${f('en')}`, `Bagi ${correct.ms}, kenyataan manakah yang betul?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
         w: T(`Fixed pay does not depend on sales, commission = rate × sales, and compound growth earns growth on earlier growth. So for ${correct.en}: ${correct.ans.en}.`, `Gaji tetap tidak bergantung pada jualan, komisen = kadar × jualan, dan pertumbuhan gabungan memperoleh pertumbuhan atas pertumbuhan terdahulu. Maka bagi ${correct.ms}: ${correct.ans.ms}.`),
         sp: 's',
@@ -2384,7 +2384,7 @@
       const letter = 'ABCD'[opts.indexOf(correct.ans)];
       const f = (lang) => opts.map((o, i) => `(${'ABCD'[i]}) ${o[lang]}`).join('<br>');
       return {
-        q: T(`If ${correct.en}, what is true?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang benar?<br>${f('ms')}`),
+        q: T(`If ${correct.en}, what is true?<br>${f('en')}`, `Jika ${correct.ms}, apakah yang betul?<br>${f('ms')}`),
         a: T(`(${letter}) ${correct.ans.en}`, `(${letter}) ${correct.ans.ms}`),
         w: T(`The formula and the pay rules give an answer only when every rate, time period and rule is stated, and the break-even point only marks where two jobs pay the same. So if ${correct.en}: ${correct.ans.en}.`, `Formula dan peraturan gaji hanya memberi jawapan apabila setiap kadar, tempoh masa dan peraturan dinyatakan, dan titik pulang modal hanya menandakan tempat dua kerja membayar sama. Maka jika ${correct.ms}: ${correct.ans.ms}.`),
         sp: 'm',

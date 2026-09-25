@@ -271,7 +271,7 @@
     (r) => { // simulated data disclosure
       const c = r.pick(CTX);
       return { q: T(`A report presents made-up numbers for ${c.en} without saying they are simulated, giving the impression the data were actually collected. Explain why this is a problem and what should have been done instead.`, `Satu laporan membentangkan nombor rekaan bagi ${c.ms} tanpa menyatakan ia adalah simulasi, memberi gambaran seolah-olah data itu benar-benar dikumpul. Terangkan mengapa ini bermasalah dan apa yang sepatutnya dilakukan.`),
-        a: T('Presenting simulated data as if it were real is misleading and undermines trust in the conclusion; any simulated or made-up data must be clearly labelled as such.', 'Membentangkan data simulasi seolah-olah ia benar adalah mengelirukan dan menjejaskan kepercayaan terhadap kesimpulan; sebarang data simulasi atau rekaan mesti dilabelkan dengan jelas sedemikian.'), w: W(T('Readers assume reported data were really collected; hidden simulation makes the conclusion untrustworthy.', 'Pembaca menganggap data yang dilaporkan benar-benar dikumpul; simulasi yang disembunyikan menjadikan kesimpulan tidak boleh dipercayai.'), T('Fix: label the data as simulated, or collect real data.', 'Pembetulan: labelkan data sebagai simulasi, atau kumpul data sebenar.')), sp: 'm' };
+        a: T('Presenting simulated data as if it were real is misleading and undermines trust in the conclusion; any simulated or made-up data must be clearly labelled as such.', 'Membentangkan data simulasi seolah-olah ia betul adalah mengelirukan dan menjejaskan kepercayaan terhadap kesimpulan; sebarang data simulasi atau rekaan mesti dilabelkan dengan jelas sedemikian.'), w: W(T('Readers assume reported data were really collected; hidden simulation makes the conclusion untrustworthy.', 'Pembaca menganggap data yang dilaporkan benar-benar dikumpul; simulasi yang disembunyikan menjadikan kesimpulan tidak boleh dipercayai.'), T('Fix: label the data as simulated, or collect real data.', 'Pembetulan: labelkan data sebagai simulasi, atau kumpul data sebenar.')), sp: 'm' };
     },
     (r) => { // population vs sample, and why a sample is used
       const c = r.pick(CATS);
@@ -874,13 +874,13 @@
   /* =============================================================== 8.2.3 Boxplots */
   /** reading the five-number summary off a boxplot */
   const boxRead = (q) => [
-    T(`Left end of the whisker: minimum $= ${n(q.min)}$; left edge of the box: $Q_1 = ${n(q.q1)}$`, `Hujung kiri sesungguk: minimum $= ${n(q.min)}$; tepi kiri kotak: $Q_1 = ${n(q.q1)}$`),
+    T(`Minimum value (far left of the plot) $= ${n(q.min)}$; left edge of the box: $Q_1 = ${n(q.q1)}$`, `Nilai minimum (paling kiri pada plot) $= ${n(q.min)}$; tepi kiri kotak: $Q_1 = ${n(q.q1)}$`),
     T(`Line inside the box: median $= ${n(q.med)}$`, `Garis dalam kotak: median $= ${n(q.med)}$`),
-    T(`Right edge of the box: $Q_3 = ${n(q.q3)}$; right end of the whisker: maximum $= ${n(q.max)}$`, `Tepi kanan kotak: $Q_3 = ${n(q.q3)}$; hujung kanan sesungguk: maksimum $= ${n(q.max)}$`)];
+    T(`Right edge of the box: $Q_3 = ${n(q.q3)}$; maximum value (far right of the plot) $= ${n(q.max)}$`, `Tepi kanan kotak: $Q_3 = ${n(q.q3)}$; nilai maksimum (paling kanan pada plot) $= ${n(q.max)}$`)];
   const iqrQ = (q, g) => T(`${lb(g)}IQR $= Q_3 - Q_1 = ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$`, `${lb(g)}JAK $= Q_3 - Q_1 = ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$`);
-  const whiskW = (q) => [
-    T(`Left whisker $= Q_1 - \\text{min} = ${n(q.q1)} - ${n(q.min)} = ${n(q.q1 - q.min)}$`, `Sesungguk kiri $= Q_1 - \\text{min} = ${n(q.q1)} - ${n(q.min)} = ${n(q.q1 - q.min)}$`),
-    T(`Right whisker $= \\text{max} - Q_3 = ${n(q.max)} - ${n(q.q3)} = ${n(q.max - q.q3)}$`, `Sesungguk kanan $= \\text{max} - Q_3 = ${n(q.max)} - ${n(q.q3)} = ${n(q.max - q.q3)}$`)];
+  const gapW = (q) => [
+    T(`Distance from minimum to $Q_1$ $= Q_1 - \\text{min} = ${n(q.q1)} - ${n(q.min)} = ${n(q.q1 - q.min)}$`, `Jarak dari nilai minimum ke $Q_1$ $= Q_1 - \\text{min} = ${n(q.q1)} - ${n(q.min)} = ${n(q.q1 - q.min)}$`),
+    T(`Distance from $Q_3$ to maximum $= \\text{max} - Q_3 = ${n(q.max)} - ${n(q.q3)} = ${n(q.max - q.q3)}$`, `Jarak dari $Q_3$ ke nilai maksimum $= \\text{max} - Q_3 = ${n(q.max)} - ${n(q.q3)} = ${n(q.max - q.q3)}$`)];
   const boxScale = (q) => [Math.floor(q.min / 5) * 5 - (q.min % 5 === 0 ? 5 : 0), Math.ceil(q.max / 5) * 5 + (q.max % 5 === 0 ? 5 : 0)];
   const g823e = [
     (r) => { // full five-number summary read
@@ -897,7 +897,7 @@
       const which = r.pick(['min', 'q1', 'med', 'q3', 'max']);
       const label = { min: T('minimum', 'minimum'), q1: T('first quartile, $Q_1$', 'kuartil pertama, $Q_1$'), med: T('median', 'median'), q3: T('third quartile, $Q_3$', 'kuartil ketiga, $Q_3$'), max: T('maximum', 'maksimum') }[which];
       return { q: T(`The boxplot shows ${c.en}. State the ${label.en} of the data.`, `Plot kotak menunjukkan ${c.ms}. Nyatakan ${label.ms} data itu.`), fig, a: T(String(n(q[which]))),
-        w: W({ min: T('Minimum = left end of the left whisker.', 'Minimum = hujung kiri sesungguk kiri.'), q1: T('$Q_1$ = left edge of the box.', '$Q_1$ = tepi kiri kotak.'), med: T('Median = the line inside the box.', 'Median = garis di dalam kotak.'), q3: T('$Q_3$ = right edge of the box.', '$Q_3$ = tepi kanan kotak.'), max: T('Maximum = right end of the right whisker.', 'Maksimum = hujung kanan sesungguk kanan.') }[which], `$${n(q[which])}$`), sp: 's' };
+        w: W({ min: T('Minimum value = far left end of the plot.', 'Nilai minimum = hujung paling kiri plot.'), q1: T('$Q_1$ = left edge of the box.', '$Q_1$ = tepi kiri kotak.'), med: T('Median = the line inside the box.', 'Median = garis di dalam kotak.'), q3: T('$Q_3$ = right edge of the box.', '$Q_3$ = tepi kanan kotak.'), max: T('Maximum value = far right end of the plot.', 'Nilai maksimum = hujung paling kanan plot.') }[which], `$${n(q[which])}$`), sp: 's' };
     },
     (r) => { // range/IQR directly from the boxplot
       const c = r.pick(CTX), v = genGroup(r, c, 9), q = quart(v);
@@ -906,15 +906,15 @@
       const which = r.pick(['range', 'iqr']);
       return { q: T(`The boxplot shows ${c.en}. Find the ${which === 'range' ? 'range' : 'interquartile range'} of the data.`, `Plot kotak menunjukkan ${c.ms}. Cari ${which === 'range' ? 'julat' : 'julat antara kuartil'} data itu.`), fig,
         a: T(`$${which === 'range' ? q.max - q.min : n(q.q3 - q.q1)}$`),
-        w: W(which === 'range' ? T(`Range = right whisker end - left whisker end $= ${q.max} - ${q.min} = ${q.max - q.min}$`, `Julat = hujung sesungguk kanan - hujung sesungguk kiri $= ${q.max} - ${q.min} = ${q.max - q.min}$`) : T(`IQR = right edge of box - left edge of box $= ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$`, `JAK = tepi kanan kotak - tepi kiri kotak $= ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$`)), sp: 's' };
+        w: W(which === 'range' ? T(`Range = maximum value - minimum value $= ${q.max} - ${q.min} = ${q.max - q.min}$`, `Julat = nilai maksimum - nilai minimum $= ${q.max} - ${q.min} = ${q.max - q.min}$`) : T(`IQR = right edge of box - left edge of box $= ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$`, `JAK = tepi kanan kotak - tepi kiri kotak $= ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$`)), sp: 's' };
     },
     (r) => { // box edges vs min/max misconception
       const c = r.pick(CTX), v = genGroup(r, c, 9), q = quart(v);
       const [lo, hi] = boxScale(q);
       const fig = boxFig([q], lo, hi);
       return { q: T(`The boxplot shows ${c.en}. A student says the left edge of the box is the minimum value. Is this correct? State the actual minimum and the actual left edge of the box.`, `Plot kotak menunjukkan ${c.ms}. Seorang murid berkata tepi kiri kotak ialah nilai minimum. Adakah ini betul? Nyatakan minimum sebenar dan tepi kiri kotak sebenar.`), fig,
-        a: T(`No: the left edge of the box is $Q_1 = ${n(q.q1)}$, not the minimum. The actual minimum is ${q.min} (the left end of the whisker).`, `Tidak: tepi kiri kotak ialah $Q_1 = ${n(q.q1)}$, bukan minimum. Minimum sebenar ialah ${q.min} (hujung kiri sesungguk).`),
-        w: W(T('The box spans $Q_1$ to $Q_3$; the whiskers extend out to the minimum and maximum.', 'Kotak merentang dari $Q_1$ hingga $Q_3$; sesungguk memanjang ke minimum dan maksimum.'), boxRead(q)[0]), sp: 'm' };
+        a: T(`No: the left edge of the box is $Q_1 = ${n(q.q1)}$, not the minimum. The actual minimum is ${q.min} (the far left end of the plot).`, `Tidak: tepi kiri kotak ialah $Q_1 = ${n(q.q1)}$, bukan minimum. Minimum sebenar ialah ${q.min} (hujung paling kiri plot).`),
+        w: W(T('The box spans $Q_1$ to $Q_3$; the plot extends out to the minimum and maximum values.', 'Kotak merentang dari $Q_1$ hingga $Q_3$; plot itu memanjang ke nilai minimum dan nilai maksimum.'), boxRead(q)[0]), sp: 'm' };
     },
     (r) => { // possible / impossible value
       const c = r.pick(CTX), v = genGroup(r, c, 9), q = quart(v);
@@ -936,7 +936,7 @@
       const fig = boxFig([q], lo, hi);
       return { q: T(`The data on ${c.en} are $${list(sortNum(v))}$. Construct a boxplot for this data, and state the range and the interquartile range.`, `Data ${c.ms} ialah $${list(sortNum(v))}$. Bina plot kotak bagi data ini, dan nyatakan julat dan julat antara kuartil.`),
         a: T(`${fig} Five-number summary: ${q.min}, ${n(q.q1)}, ${n(q.med)}, ${n(q.q3)}, ${q.max}; range ${q.max - q.min}; IQR ${n(q.q3 - q.q1)}`, `${fig} Ringkasan lima nombor: ${q.min}, ${n(q.q1)}, ${n(q.med)}, ${n(q.q3)}, ${q.max}; julat ${q.max - q.min}; JAK ${n(q.q3 - q.q1)}`),
-        w: W(medW(v), ...quartW(v), rangeW(v), iqrW(v), T('Draw the box from $Q_1$ to $Q_3$ with a line at the median, and whiskers out to the minimum and maximum, on a scale.', 'Lukis kotak dari $Q_1$ hingga $Q_3$ dengan garis pada median, dan sesungguk hingga minimum dan maksimum, pada satu skala.')), sp: 'l' };
+        w: W(medW(v), ...quartW(v), rangeW(v), iqrW(v), T('Draw the box from $Q_1$ to $Q_3$ with a line at the median, and extend the plot out to the minimum and maximum values, on a scale.', 'Lukis kotak dari $Q_1$ hingga $Q_3$ dengan garis pada median, dan panjangkan plot hingga nilai minimum dan nilai maksimum, pada satu skala.')), sp: 'l' };
     },
     (r) => { // two boxplots on common scale: compare median & IQR, choose more consistent
       const c = r.pick(CTX), a = quart(genGroup(r, c, 9)), b = quart(genGroup(r, c, 9));
@@ -948,16 +948,16 @@
         a: T(`Median: A $= ${n(a.med)}$, B $= ${n(b.med)}$. IQR: A $= ${n(a.q3 - a.q1)}$, B $= ${n(b.q3 - b.q1)}$. ${(a.q3 - a.q1) <= (b.q3 - b.q1) ? 'A' : 'B'} is more consistent (smaller IQR).`, `Median: A $= ${n(a.med)}$, B $= ${n(b.med)}$. JAK: A $= ${n(a.q3 - a.q1)}$, B $= ${n(b.q3 - b.q1)}$. ${(a.q3 - a.q1) <= (b.q3 - b.q1) ? 'A' : 'B'} lebih konsisten (JAK lebih kecil).`),
         w: W(T(`Median = line inside each box: A $= ${n(a.med)}$, B $= ${n(b.med)}$`, `Median = garis dalam setiap kotak: A $= ${n(a.med)}$, B $= ${n(b.med)}$`), iqrQ(a, 'A'), iqrQ(b, 'B'), T(`Smaller IQR (shorter box) = more consistent: Class ${a.q3 - a.q1 < b.q3 - b.q1 ? 'A' : 'B'}.`, `JAK lebih kecil (kotak lebih pendek) = lebih konsisten: Kelas ${a.q3 - a.q1 < b.q3 - b.q1 ? 'A' : 'B'}.`)), sp: 'l' };
     },
-    (r) => { // shape description via whisker lengths & median position
+    (r) => { // shape description via min-to-Q1 / Q3-to-max distances & median position
       const c = r.pick(CTX), v = genGroup(r, c, 9), q = quart(v);
       const [lo, hi] = boxScale(q);
       const fig = boxFig([q], lo, hi);
-      const leftWhisker = q.q1 - q.min, rightWhisker = q.max - q.q3;
-      const ratio = Math.max(leftWhisker, rightWhisker) / Math.max(0.5, Math.min(leftWhisker, rightWhisker));
+      const lowGap = q.q1 - q.min, highGap = q.max - q.q3;
+      const ratio = Math.max(lowGap, highGap) / Math.max(0.5, Math.min(lowGap, highGap));
       const roughlySym = ratio <= 1.4;
-      return { q: T(`The boxplot shows ${c.en}. Compare the length of the left whisker with the right whisker, and describe whether the data set appears roughly symmetric or skewed.`, `Plot kotak menunjukkan ${c.ms}. Bandingkan panjang sesungguk kiri dengan sesungguk kanan, dan huraikan sama ada set data itu kelihatan lebih kurang simetri atau senget.`), fig,
-        a: T(`Left whisker $= ${n(leftWhisker)}$, right whisker $= ${n(rightWhisker)}$. ${roughlySym ? 'The whiskers are close in length, suggesting a roughly symmetric spread.' : leftWhisker > rightWhisker ? 'The left whisker is clearly longer, suggesting the data is more spread out on the lower side.' : 'The right whisker is clearly longer, suggesting the data is more spread out on the upper side.'}`, `Sesungguk kiri $= ${n(leftWhisker)}$, sesungguk kanan $= ${n(rightWhisker)}$. ${roughlySym ? 'Sesungguk hampir sama panjang, menunjukkan serakan yang lebih kurang simetri.' : leftWhisker > rightWhisker ? 'Sesungguk kiri jelas lebih panjang, menunjukkan data lebih bertaburan di bahagian bawah.' : 'Sesungguk kanan jelas lebih panjang, menunjukkan data lebih bertaburan di bahagian atas.'}`),
-        w: W(...whiskW(q), T('Whiskers of similar length suggest symmetry; a clearly longer whisker shows the data stretch further on that side.', 'Sesungguk yang hampir sama panjang menunjukkan simetri; sesungguk yang jelas lebih panjang menunjukkan data lebih terentang pada bahagian itu.')), sp: 'm' };
+      return { q: T(`The boxplot shows ${c.en}. Compare the distance from the minimum to $Q_1$ with the distance from $Q_3$ to the maximum, and describe whether the data set appears roughly symmetric or skewed.`, `Plot kotak menunjukkan ${c.ms}. Bandingkan jarak dari nilai minimum ke $Q_1$ dengan jarak dari $Q_3$ ke nilai maksimum, dan huraikan sama ada set data itu kelihatan lebih kurang simetri atau senget.`), fig,
+        a: T(`Minimum to $Q_1$ $= ${n(lowGap)}$, $Q_3$ to maximum $= ${n(highGap)}$. ${roughlySym ? 'The two distances are close, suggesting a roughly symmetric spread.' : lowGap > highGap ? 'The distance from the minimum to $Q_1$ is clearly greater, suggesting the data is more spread out on the lower side.' : 'The distance from $Q_3$ to the maximum is clearly greater, suggesting the data is more spread out on the upper side.'}`, `Jarak nilai minimum ke $Q_1$ $= ${n(lowGap)}$, jarak $Q_3$ ke nilai maksimum $= ${n(highGap)}$. ${roughlySym ? 'Kedua-dua jarak hampir sama, menunjukkan serakan yang lebih kurang simetri.' : lowGap > highGap ? 'Jarak dari nilai minimum ke $Q_1$ jelas lebih besar, menunjukkan data lebih bertaburan di bahagian bawah.' : 'Jarak dari $Q_3$ ke nilai maksimum jelas lebih besar, menunjukkan data lebih bertaburan di bahagian atas.'}`),
+        w: W(...gapW(q), T('Similar distances on both sides suggest symmetry; a clearly greater distance shows the data stretch further on that side.', 'Jarak yang hampir sama pada kedua-dua belah menunjukkan simetri; jarak yang jelas lebih besar menunjukkan data lebih terentang pada bahagian itu.')), sp: 'm' };
     },
     (r) => { // equal-width intervals misconception
       const c = r.pick(CTX), v = genGroup(r, c, 9), q = quart(v);
@@ -993,16 +993,16 @@
         a: T(`No, an ordinary boxplot does not show ${cannot.en}. You CAN determine the five-number summary (minimum, $Q_1$, median, $Q_3$, maximum), and hence the range and interquartile range.`, `Tidak, plot kotak biasa tidak menunjukkan ${cannot.ms}. Anda BOLEH menentukan ringkasan lima nombor (minimum, $Q_1$, median, $Q_3$, maksimum), dan seterusnya julat dan julat antara kuartil.`),
         w: W(T('A boxplot is drawn from five numbers only; the individual values between them are not shown.', 'Plot kotak dilukis daripada lima nombor sahaja; nilai individu di antaranya tidak ditunjukkan.'), ...boxRead(q), T(`So range $= ${q.max} - ${q.min} = ${q.max - q.min}$ and IQR $= ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$ can be found.`, `Jadi julat $= ${q.max} - ${q.min} = ${q.max - q.min}$ dan JAK $= ${n(q.q3)} - ${n(q.q1)} = ${n(q.q3 - q.q1)}$ boleh dicari.`)), sp: 'm' };
     },
-    (r) => { // critique an unjustified symmetry claim using real (unequal) whiskers
+    (r) => { // critique an unjustified symmetry claim using real (unequal) min-to-Q1 / Q3-to-max distances
       const c = r.pick(CTX), v = genGroup(r, c, 9), q = quart(v);
-      const leftWhisker0 = q.q1 - q.min, rightWhisker0 = q.max - q.q3;
-      need(Math.max(leftWhisker0, rightWhisker0) / Math.max(0.5, Math.min(leftWhisker0, rightWhisker0)) >= 1.5);
+      const lowGap0 = q.q1 - q.min, highGap0 = q.max - q.q3;
+      need(Math.max(lowGap0, highGap0) / Math.max(0.5, Math.min(lowGap0, highGap0)) >= 1.5);
       const [lo, hi] = boxScale(q);
       const fig = boxFig([q], lo, hi);
-      const leftWhisker = leftWhisker0, rightWhisker = rightWhisker0;
-      return { q: T(`The boxplot shows ${c.en}. A student claims the data set is symmetric because the median line divides the box into two halves. Comment on this claim, referring to the actual whisker lengths shown.`, `Plot kotak menunjukkan ${c.ms}. Seorang murid mendakwa set data itu simetri kerana garis median membahagikan kotak kepada dua bahagian. Beri komen tentang dakwaan ini, dengan merujuk kepada panjang sesungguk sebenar yang ditunjukkan.`), fig,
-        a: T(`The claim is not fully justified: the median splitting the box does not by itself establish symmetry, since the whiskers differ noticeably in length (left $= ${n(leftWhisker)}$, right $= ${n(rightWhisker)}$), which indicates the data is skewed rather than symmetric.`, `Dakwaan itu tidak wajar sepenuhnya: median membahagikan kotak tidak dengan sendirinya membuktikan simetri, kerana sesungguk berbeza panjang dengan ketara (kiri $= ${n(leftWhisker)}$, kanan $= ${n(rightWhisker)}$), yang menunjukkan data itu senget dan bukan simetri.`),
-        w: W(...whiskW(q), T('Symmetry needs both a central median line and whiskers of similar length; here the whiskers differ clearly.', 'Simetri memerlukan garis median di tengah dan sesungguk yang hampir sama panjang; di sini sesungguk jelas berbeza.')), sp: 'l' };
+      const lowGap = lowGap0, highGap = highGap0;
+      return { q: T(`The boxplot shows ${c.en}. A student claims the data set is symmetric because the median line divides the box into two halves. Comment on this claim, referring to the actual distances from the minimum to $Q_1$ and from $Q_3$ to the maximum.`, `Plot kotak menunjukkan ${c.ms}. Seorang murid mendakwa set data itu simetri kerana garis median membahagikan kotak kepada dua bahagian. Beri komen tentang dakwaan ini, dengan merujuk kepada jarak sebenar dari nilai minimum ke $Q_1$ dan dari $Q_3$ ke nilai maksimum.`), fig,
+        a: T(`The claim is not fully justified: the median splitting the box does not by itself establish symmetry, since the distance from the minimum to $Q_1$ ($= ${n(lowGap)}$) and the distance from $Q_3$ to the maximum ($= ${n(highGap)}$) differ noticeably, which indicates the data is skewed rather than symmetric.`, `Dakwaan itu tidak wajar sepenuhnya: median membahagikan kotak tidak dengan sendirinya membuktikan simetri, kerana jarak dari nilai minimum ke $Q_1$ ($= ${n(lowGap)}$) dan jarak dari $Q_3$ ke nilai maksimum ($= ${n(highGap)}$) berbeza dengan ketara, yang menunjukkan data itu senget dan bukan simetri.`),
+        w: W(...gapW(q), T('Symmetry needs both a central median line and similar distances from the minimum to $Q_1$ and from $Q_3$ to the maximum; here they differ clearly.', 'Simetri memerlukan garis median di tengah dan jarak yang hampir sama dari nilai minimum ke $Q_1$ dan dari $Q_3$ ke nilai maksimum; di sini jarak itu jelas berbeza.')), sp: 'l' };
     },
     (r) => { // compare 3 boxplots, choose based on stated purpose
       const c = r.pick(CTX);

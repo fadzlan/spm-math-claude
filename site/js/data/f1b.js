@@ -377,7 +377,7 @@
         q: T(`Given that $(${x}, ${y})$ is a solution of $kx + ${b}y = ${c}$, find the value of $k$.`, `Diberi bahawa $(${x}, ${y})$ ialah satu penyelesaian bagi $kx + ${b}y = ${c}$, cari nilai $k$.`),
         a: T(`$k = ${k}$`),
         w: W(
-          T(`A solution makes the equation true, so substitute $x = ${x}$ and $y = ${y}$: $k(${x}) + ${b}(${par(y)}) = ${c}$`, `Satu penyelesaian menjadikan persamaan itu benar, jadi gantikan $x = ${x}$ dan $y = ${y}$: $k(${x}) + ${b}(${par(y)}) = ${c}$`),
+          T(`A solution makes the equation true, so substitute $x = ${x}$ and $y = ${y}$: $k(${x}) + ${b}(${par(y)}) = ${c}$`, `Satu penyelesaian menjadikan persamaan itu betul, jadi gantikan $x = ${x}$ dan $y = ${y}$: $k(${x}) + ${b}(${par(y)}) = ${c}$`),
           T(`$${x}k${b * y === 0 ? '' : (b * y < 0 ? ' - ' : ' + ') + Math.abs(b * y)} = ${c}$`),
           x === 1
             ? T(`$k = ${c} - ${numP(b * y)} = ${k}$`)
@@ -1088,7 +1088,7 @@
         a: T(`(a) $${par(B)} < ${A}$ (b) $${par(-A)} < ${par(-B)}$ (c) $${A + cc} > ${B + cc}$`),
         w: W(
           T(`(a) Read the statement the other way round: $${par(B)} < ${A}$.`, `(a) Baca pernyataan itu secara terbalik: $${par(B)} < ${A}$.`),
-          T(`(b) Multiplying both sides by $-1$ reverses the sign, so $${par(-A)} < ${par(-B)}$.`, `(b) Mendarab kedua-dua belah dengan $-1$ menyongsangkan tanda, jadi $${par(-A)} < ${par(-B)}$.`),
+          T(`(b) Multiplying both sides by $-1$ reverses the sign, so $${par(-A)} < ${par(-B)}$.`, `(b) Mendarab kedua-dua belah dengan $-1$ menyongsangkan arah simbol ketaksamaan, jadi $${par(-A)} < ${par(-B)}$.`),
           T(`(c) Adding the same number to both sides does not change the sign: $${A} + ${par(cc)} = ${A + cc}$ and $${B} + ${par(cc)} = ${B + cc}$, so $${A + cc} > ${B + cc}$.`, `(c) Menambah nombor yang sama pada kedua-dua belah tidak mengubah tanda: $${A} + ${par(cc)} = ${A + cc}$ dan $${B} + ${par(cc)} = ${B + cc}$, jadi $${A + cc} > ${B + cc}$.`),
         ),
         sp: 'm',
@@ -1104,7 +1104,7 @@
         q: T(`(a) Given $${a} > ${b}$, multiply both sides by $-${k}$. What happens to the inequality sign? (b) Verify by evaluating both sides.`, `(a) Diberi $${a} > ${b}$, darabkan kedua-dua belah dengan $-${k}$. Apakah yang berlaku kepada tanda ketaksamaan? (b) Sahkan dengan menilai kedua-dua belah.`),
         a: T(`(a) The sign reverses: $${-k * a} < ${-k * b}$ (b) $${-k * a}$ is less than $${-k * b}$`, `(a) Tanda berbalik: $${-k * a} < ${-k * b}$ (b) $${-k * a}$ kurang daripada $${-k * b}$`),
         w: W(
-          T('(a) Multiplying (or dividing) an inequality by a negative number reverses the inequality sign.', '(a) Mendarab (atau membahagi) suatu ketaksamaan dengan nombor negatif menyongsangkan tanda ketaksamaan.'),
+          T('(a) Multiplying (or dividing) an inequality by a negative number reverses the inequality sign.', '(a) Mendarab (atau membahagi) suatu ketaksamaan dengan nombor negatif menyongsangkan arah simbol ketaksamaan.'),
           T(`$${a} \\times (-${k}) = ${-k * a}$ and $${b} \\times (-${k}) = ${-k * b}$, so $${-k * a} < ${-k * b}$.`, `$${a} \\times (-${k}) = ${-k * a}$ dan $${b} \\times (-${k}) = ${-k * b}$, jadi $${-k * a} < ${-k * b}$.`),
           T(`(b) On a number line $${-k * a}$ lies to the left of $${-k * b}$, which confirms the reversed sign.`, `(b) Pada garis nombor, $${-k * a}$ terletak di sebelah kiri $${-k * b}$, yang mengesahkan tanda yang tersongsang itu.`),
         ),
@@ -1113,11 +1113,11 @@
     },
     (r) => {
       const a = r.int(2, 6), b = r.int(a + 1, 9);
-      return { q: T(`Ali claims: "If $x > y$, then $\\dfrac{1}{x} < \\dfrac{1}{y}$." Test this with $x = ${b}$, $y = ${a}$ (both positive) and with $x = 2$, $y = -3$. Is the claim always true?`, `Ali mendakwa: "Jika $x > y$, maka $\\dfrac{1}{x} < \\dfrac{1}{y}$." Uji dakwaan ini dengan $x = ${b}$, $y = ${a}$ (kedua-duanya positif) dan dengan $x = 2$, $y = -3$. Adakah dakwaan itu sentiasa benar?`), a: T(`No. It holds for positive numbers ($\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$) but fails when they have opposite signs: $\\dfrac{1}{2} > -\\dfrac{1}{3}$.`, `Tidak. Ia benar bagi nombor positif ($\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$) tetapi gagal apabila tandanya berlawanan: $\\dfrac{1}{2} > -\\dfrac{1}{3}$.`),
+      return { q: T(`Ali claims: "If $x > y$, then $\\dfrac{1}{x} < \\dfrac{1}{y}$." Test this with $x = ${b}$, $y = ${a}$ (both positive) and with $x = 2$, $y = -3$. Is the claim always true?`, `Ali mendakwa: "Jika $x > y$, maka $\\dfrac{1}{x} < \\dfrac{1}{y}$." Uji dakwaan ini dengan $x = ${b}$, $y = ${a}$ (kedua-duanya positif) dan dengan $x = 2$, $y = -3$. Adakah dakwaan itu sentiasa betul?`), a: T(`No. It holds for positive numbers ($\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$) but fails when they have opposite signs: $\\dfrac{1}{2} > -\\dfrac{1}{3}$.`, `Tidak. Ia betul bagi nombor positif ($\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$) tetapi gagal apabila tandanya berlawanan: $\\dfrac{1}{2} > -\\dfrac{1}{3}$.`),
         w: W(
-          T(`With $x = ${b}$ and $y = ${a}$: $\\dfrac{1}{${b}} \\approx ${SPM.fx(1 / b, 2)}$ and $\\dfrac{1}{${a}} \\approx ${SPM.fx(1 / a, 2)}$, so $\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$ and the claim holds here.`, `Dengan $x = ${b}$ dan $y = ${a}$: $\\dfrac{1}{${b}} \\approx ${SPM.fx(1 / b, 2)}$ dan $\\dfrac{1}{${a}} \\approx ${SPM.fx(1 / a, 2)}$, jadi $\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$ dan dakwaan itu benar di sini.`),
+          T(`With $x = ${b}$ and $y = ${a}$: $\\dfrac{1}{${b}} \\approx ${SPM.fx(1 / b, 2)}$ and $\\dfrac{1}{${a}} \\approx ${SPM.fx(1 / a, 2)}$, so $\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$ and the claim holds here.`, `Dengan $x = ${b}$ dan $y = ${a}$: $\\dfrac{1}{${b}} \\approx ${SPM.fx(1 / b, 2)}$ dan $\\dfrac{1}{${a}} \\approx ${SPM.fx(1 / a, 2)}$, jadi $\\dfrac{1}{${b}} < \\dfrac{1}{${a}}$ dan dakwaan itu betul di sini.`),
           T('With $x = 2$ and $y = -3$ we do have $x > y$, but $\\dfrac{1}{2} = 0.5$ while $-\\dfrac{1}{3} \\approx -0.33$, so $\\dfrac{1}{2} > -\\dfrac{1}{3}$.', 'Dengan $x = 2$ dan $y = -3$, memang $x > y$, tetapi $\\dfrac{1}{2} = 0.5$ manakala $-\\dfrac{1}{3} \\approx -0.33$, jadi $\\dfrac{1}{2} > -\\dfrac{1}{3}$.'),
-          T('One counter-example is enough to disprove a claim, so it is not always true: it needs $x$ and $y$ to have the same sign.', 'Satu contoh penyangkal sudah memadai untuk menyangkal sesuatu dakwaan, jadi ia tidak sentiasa benar: ia memerlukan $x$ dan $y$ mempunyai tanda yang sama.'),
+          T('One counter-example is enough to disprove a claim, so it is not always true: it needs $x$ and $y$ to have the same sign.', 'Satu contoh penyangkal sudah memadai untuk menyangkal sesuatu dakwaan, jadi ia tidak sentiasa betul: ia memerlukan $x$ dan $y$ mempunyai tanda yang sama.'),
         ),
         sp: 'm',
       };
@@ -1601,8 +1601,8 @@
       { from: ['U', 'ne'], to: ['L', 'ne'], name: T('corresponding angles', 'sudut sepadan') },
       { from: ['U', 'se'], to: ['L', 'nw'], name: T('alternate angles', 'sudut berselang-seli') },
       { from: ['U', 'sw'], to: ['L', 'ne'], name: T('alternate angles', 'sudut berselang-seli') },
-      { from: ['U', 'se'], to: ['L', 'ne'], name: T('co-interior angles', 'sudut dalam sebelah') },
-      { from: ['U', 'sw'], to: ['L', 'nw'], name: T('co-interior angles', 'sudut dalam sebelah') },
+      { from: ['U', 'se'], to: ['L', 'ne'], name: T('co-interior angles', 'sudut pedalaman sehala') },
+      { from: ['U', 'sw'], to: ['L', 'nw'], name: T('co-interior angles', 'sudut pedalaman sehala') },
       { from: ['U', 'nw'], to: ['L', 'nw'], name: T('corresponding angles', 'sudut sepadan') },
     ];
     const rel = r.pick(rels);
@@ -1617,7 +1617,7 @@
       w: W(
         T(`The two marked angles form a pair of ${rel.name.en}.`, `Dua sudut bertanda itu membentuk sepasang ${rel.name.ms}.`),
         coint
-          ? T('Co-interior angles between parallel lines add up to $180^\\circ$.', 'Sudut dalam sebelah antara garis selari berjumlah $180^\\circ$.')
+          ? T('Co-interior angles between parallel lines add up to $180^\\circ$.', 'Sudut pedalaman sehala antara garis selari berjumlah $180^\\circ$.')
           : T(`${rel.name.en.charAt(0).toUpperCase() + rel.name.en.slice(1)} between parallel lines are equal.`, `${rel.name.ms.charAt(0).toUpperCase() + rel.name.ms.slice(1)} antara garis selari adalah sama.`),
         coint ? T(`$x = 180 - ${given} = ${sol}$`) : T(`$x = ${sol}$`),
       ),
@@ -1634,11 +1634,11 @@
       return {
         q: T('In the diagram, $PQ \\parallel RS$. Find the values of $x$ and $y$, giving a reason for each.', 'Dalam rajah, $PQ \\parallel RS$. Cari nilai $x$ dan $y$, dengan memberi sebab bagi setiap jawapan.'),
         fig,
-        a: T(`$x = ${180 - t}$ (corresponding angle $${t}^\\circ$, then angles on a straight line); $y = ${180 - t}$ (co-interior/alternate)`, `$x = ${180 - t}$ (sudut sepadan $${t}^\\circ$, kemudian sudut pada garis lurus); $y = ${180 - t}$ (sudut dalam sebelah/berselang-seli)`),
+        a: T(`$x = ${180 - t}$ (corresponding angle $${t}^\\circ$, then angles on a straight line); $y = ${180 - t}$ (co-interior/alternate)`, `$x = ${180 - t}$ (sudut sepadan $${t}^\\circ$, kemudian sudut pada garis lurus); $y = ${180 - t}$ (sudut pedalaman sehala/berselang-seli)`),
         w: W(
           T(`The angle at the lower line corresponding to the $${t}^\\circ$ angle is also $${t}^\\circ$, because corresponding angles between parallel lines are equal.`, `Sudut pada garis bawah yang sepadan dengan sudut $${t}^\\circ$ juga $${t}^\\circ$, kerana sudut sepadan antara garis selari adalah sama.`),
           T(`$x$ is on a straight line with that angle: $x = 180 - ${t} = ${180 - t}$.`, `$x$ berada pada satu garis lurus dengan sudut itu: $x = 180 - ${t} = ${180 - t}$.`),
-          T(`$y$ is co-interior with the $${t}^\\circ$ angle, and co-interior angles add up to $180^\\circ$: $y = 180 - ${t} = ${180 - t}$.`, `$y$ ialah sudut dalam sebelah dengan sudut $${t}^\\circ$, dan sudut dalam sebelah berjumlah $180^\\circ$: $y = 180 - ${t} = ${180 - t}$.`),
+          T(`$y$ is co-interior with the $${t}^\\circ$ angle, and co-interior angles add up to $180^\\circ$: $y = 180 - ${t} = ${180 - t}$.`, `$y$ ialah sudut pedalaman sehala dengan sudut $${t}^\\circ$, dan sudut pedalaman sehala berjumlah $180^\\circ$: $y = 180 - ${t} = ${180 - t}$.`),
         ),
         sp: 'm',
       };
@@ -1705,9 +1705,9 @@
       return {
         q: T('$PQ \\parallel RS$. Form an equation and find $x$.', '$PQ \\parallel RS$. Bentukkan satu persamaan dan cari $x$.'),
         fig,
-        a: T(`$${lin(a, c)} + ${t} = 180$; $x = ${x}$ (co-interior angles)`, `$${lin(a, c)} + ${t} = 180$; $x = ${x}$ (sudut dalam sebelah)`),
+        a: T(`$${lin(a, c)} + ${t} = 180$; $x = ${x}$ (co-interior angles)`, `$${lin(a, c)} + ${t} = 180$; $x = ${x}$ (sudut pedalaman sehala)`),
         w: W(
-          T('The two marked angles are co-interior (on the same side of the transversal, between the parallel lines), so they add up to $180^\\circ$.', 'Dua sudut bertanda itu ialah sudut dalam sebelah (pada sisi yang sama bagi garis rentas, antara garis selari), jadi hasil tambahnya $180^\\circ$.'),
+          T('The two marked angles are co-interior (on the same side of the transversal, between the parallel lines), so they add up to $180^\\circ$.', 'Dua sudut bertanda itu ialah sudut pedalaman sehala (pada sisi yang sama bagi garis rentas, antara garis selari), jadi hasil tambahnya $180^\\circ$.'),
           T(`$${lin(a, c)} + ${t} = 180$`),
           T(`$${lin(a, 0)} = ${180 - t} - ${numP(c)} = ${a * x}$`),
           T(`$x = ${a * x} \\div ${a} = ${x}$`),
@@ -2304,9 +2304,9 @@
       return {
         q: withNTS(T('$PQRS$ is a parallelogram. Find $x$ and $y$.', '$PQRS$ ialah sebuah segi empat selari. Cari $x$ dan $y$.')),
         fig,
-        a: T(`$x = ${180 - a}$ (co-interior angles); $y = ${a}$ (opposite angles are equal)`, `$x = ${180 - a}$ (sudut dalam sebelah); $y = ${a}$ (sudut bertentang adalah sama)`),
+        a: T(`$x = ${180 - a}$ (co-interior angles); $y = ${a}$ (opposite angles are equal)`, `$x = ${180 - a}$ (sudut pedalaman sehala); $y = ${a}$ (sudut bertentang adalah sama)`),
         w: W(
-          T('In a parallelogram the opposite sides are parallel, so two angles next to each other along a side are co-interior and add up to $180^\\circ$.', 'Dalam segi empat selari, sisi bertentangan adalah selari, jadi dua sudut yang bersebelahan di sepanjang satu sisi ialah sudut dalam sebelah dan berjumlah $180^\\circ$.'),
+          T('In a parallelogram the opposite sides are parallel, so two angles next to each other along a side are co-interior and add up to $180^\\circ$.', 'Dalam segi empat selari, sisi bertentangan adalah selari, jadi dua sudut yang bersebelahan di sepanjang satu sisi ialah sudut pedalaman sehala dan berjumlah $180^\\circ$.'),
           T(`$x = 180 - ${a} = ${180 - a}$`),
           T(`Opposite angles of a parallelogram are equal, so $y = ${a}$.`, `Sudut bertentang segi empat selari adalah sama, jadi $y = ${a}$.`),
         ),
@@ -2337,9 +2337,9 @@
       return {
         q: withNTS(T('$ABCD$ is a trapezium with $AB \\parallel DC$. Find $x$ and $y$.', '$ABCD$ ialah sebuah trapezium dengan $AB \\parallel DC$. Cari $x$ dan $y$.')),
         fig,
-        a: T(`$x = ${180 - a}$, $y = ${180 - b}$ (co-interior angles between parallel lines)`, `$x = ${180 - a}$, $y = ${180 - b}$ (sudut dalam sebelah antara garis selari)`),
+        a: T(`$x = ${180 - a}$, $y = ${180 - b}$ (co-interior angles between parallel lines)`, `$x = ${180 - a}$, $y = ${180 - b}$ (sudut pedalaman sehala antara garis selari)`),
         w: W(
-          T('$AB \\parallel DC$, and each slanting side is a transversal, so the two angles at its ends are co-interior and add up to $180^\\circ$.', '$AB \\parallel DC$, dan setiap sisi condong ialah garis rentas, jadi dua sudut di hujungnya ialah sudut dalam sebelah dan berjumlah $180^\\circ$.'),
+          T('$AB \\parallel DC$, and each slanting side is a transversal, so the two angles at its ends are co-interior and add up to $180^\\circ$.', '$AB \\parallel DC$, dan setiap sisi condong ialah garis rentas, jadi dua sudut di hujungnya ialah sudut pedalaman sehala dan berjumlah $180^\\circ$.'),
           T(`$x = 180 - ${a} = ${180 - a}$`),
           T(`$y = 180 - ${b} = ${180 - b}$`),
         ),
@@ -2369,7 +2369,7 @@
       const half = a / 2;
       return { q: T(`$ABCD$ is a rhombus with $\\angle ABC = ${a}^\\circ$. The diagonals $AC$ and $BD$ meet at $M$. Find (a) $\\angle BAD$, (b) $\\angle ABD$, (c) $\\angle AMB$.`, `$ABCD$ ialah sebuah rombus dengan $\\angle ABC = ${a}^\\circ$. Pepenjuru $AC$ dan $BD$ bertemu di $M$. Cari (a) $\\angle BAD$, (b) $\\angle ABD$, (c) $\\angle AMB$.`), a: T(`(a) $${180 - a}^\\circ$ (b) $${half}^\\circ$ (c) $90^\\circ$`),
         w: W(
-          T(`(a) A rhombus is a parallelogram, so $\\angle BAD$ and $\\angle ABC$ are co-interior: $\\angle BAD = 180 - ${a} = ${180 - a}$, i.e. $${180 - a}^\\circ$.`, `(a) Rombus ialah segi empat selari, jadi $\\angle BAD$ dan $\\angle ABC$ ialah sudut dalam sebelah: $\\angle BAD = 180 - ${a} = ${180 - a}$, iaitu $${180 - a}^\\circ$.`),
+          T(`(a) A rhombus is a parallelogram, so $\\angle BAD$ and $\\angle ABC$ are co-interior: $\\angle BAD = 180 - ${a} = ${180 - a}$, i.e. $${180 - a}^\\circ$.`, `(a) Rombus ialah segi empat selari, jadi $\\angle BAD$ dan $\\angle ABC$ ialah sudut pedalaman sehala: $\\angle BAD = 180 - ${a} = ${180 - a}$, iaitu $${180 - a}^\\circ$.`),
           T(`(b) The diagonals of a rhombus bisect the angles, so $\\angle ABD = ${a} \\div 2 = ${half}$, i.e. $${half}^\\circ$.`, `(b) Pepenjuru rombus membahagi dua sama sudutnya, jadi $\\angle ABD = ${a} \\div 2 = ${half}$, iaitu $${half}^\\circ$.`),
           T('(c) The diagonals of a rhombus meet at right angles, so $\\angle AMB = 90^\\circ$.', '(c) Pepenjuru rombus bertemu secara serenjang, jadi $\\angle AMB = 90^\\circ$.'),
         ),

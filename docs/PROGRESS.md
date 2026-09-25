@@ -159,3 +159,42 @@ impossible or crashing generators). check.js gained four new checks: EN/BM maths
 
 **Still open for the user:** [MALAY-TERMS.md](MALAY-TERMS.md) – 9 terms that differ between files (A1–A9, with
 counts and a suggestion each), plus new wording to sanity-check. One replacement pass once decided.
+
+## Codebase sweep: Questions and answers on same line (2026-09-24)
+
+**Finding:** All 42 data files (6,536 generators) have question objects where the question (`q:`) and answer (`a:`) are defined on the same line of code.
+
+**Scope:** 5,346 instances across all files:
+- Form files (f*.js): 594 instances across 12 files
+- Exam files (x*.js): 4,752 instances across 30 files
+- Worst offenders: x2d.js (337), x2a.js (302), x1a.js (300), x1d.js (300)
+
+**Impact:** The answer is syntactically embedded immediately after the question in the source code structure:
+```javascript
+return { q: T(`Question...`), a: T(`Answer...`), w: W(...), sp: 's' };
+```
+
+This is not a bug or functional issue—it's a structural characteristic of how the question objects are defined. The answers are not inadvertently exposed in runtime views or output, as they are correctly gated by the `a:` property of each question object.
+
+**Status:** Documented and available for future reference if structural refactoring is desired.
+- 2026-09-24 – Malay review samples: `docs/malay-review/*.pdf`, one PDF per issue in MALAY-TERMS.md except A1/A5 (14 files), one Malay
+  question per listed topic with working shown, printed from the real site in Chromium. Where the flagged term occurs in a topic the
+  question shown is one that contains it; `_report.json` lists topics where no question with the term turned up (the doc's topic lists
+  are per source file, so many listed topics never use the term). A7 has no topic list in the doc, so its 21 topics are the ones where
+  "songsang" really appears. Not committed.
+- 2026-09-25 – Malay term decisions A1–A9 applied (see "Decisions applied" at the top of MALAY-TERMS.md): Betul/Salah for true/false (1,049
+  replacements; forged-*palsu* in the tax topic kept), *sudut pedalaman sehala*, *contoh penyangkal*, *isi padu*, *digit pertama*,
+  no whisker word (f4c, x4e, x5b rewritten in EN and BM as min-to-Q1 / Q3-to-max distances), x3d oblique-projection sentence, x5b
+  "semua cukai dan rebat". `npm run check` 0 problems, browser test passes. Open: B *mata peratusan* (examples sent), A6/A8 wording
+  to glance at. Not committed.
+- 2026-09-25 – Follow-up: A2 corrected to *sudut pedalaman sehala*; A8 withdrawn (syllabus/form3/ch07 only says "non-orthogonal / slanting
+  projection", never "oblique projection"), so the x3d sentence now just says it is not an orthogonal projection. A6 stem-and-leaf wording
+  (f1d, x1g) awaiting the user's answer.
+- 2026-09-25 – A6 settled: *digit sa* = units digit (7 uses, incl. the 2 *digit sebut* in x1d → *digit sa*); *digit pertama* = first digit and
+  *digit terakhir* = last digit are not used in the data. `npm run check` 0 problems.
+- 2026-09-25 – B *mata peratusan* (percentage points) confirmed by the user; no change. Other section-B terms not yet reviewed.
+- 2026-09-25 – B *titik pusingan*, *sebutan pemalar*, *gelang* confirmed by the user; remaining B terms and section C still to review.
+- 2026-09-25 – Section B decisions applied: pengelakan cukai (evasion; legal avoidance renamed penghindaran cukai), menyongsangkan arah simbol ketaksamaan, alat tepi lurus sahaja; other listed B terms kept. check.js 0 problems. Left: 5 working-step phrases + section C.
+- 2026-09-25 – Reverted penghindaran cukai -> pengelakan cukai secara sah (user: correct for legal avoidance); ketidaksamaan segi tiga; deduktibel -> lebihan (38); kept the other listed B/C terms. check.js 0 problems. Only the base-b borrowing sentence is unreviewed.
+- 2026-09-25 – Number-base column wording: lajur -> tempat in x4a (19 uses; 'tempat seterusnya' for the borrowing sentence). Table/matrix/vector 'lajur' kept. check.js 0 problems. All listed Malay terms now reviewed except any new ones.
+- 2026-09-25 – docs/malay-review/ deleted at the user's request (its PDFs showed the pre-decision wording). Malay term decisions committed.

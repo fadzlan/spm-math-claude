@@ -216,7 +216,7 @@
         [T(`an edge represents a direct ${c.es} between two ${c.vp}`, `satu tepi mewakili ${c.em} terus antara dua ${c.vm}`), true, T('this correctly describes what an edge represents', 'ini menerangkan dengan betul apa yang diwakili oleh tepi')],
         [T(`the length drawn for an edge always equals the actual ${c.u === 'RM' ? 'fare' : 'distance or time'}`, `panjang lukisan tepi sentiasa sama dengan ${c.u === 'RM' ? 'tambang' : 'jarak atau masa'} sebenar`), false, T('a schematic network is not drawn to scale; drawn length need not match the real value', 'rangkaian skematik tidak dilukis mengikut skala; panjang lukisan tidak semestinya sepadan dengan nilai sebenar')],
       ]);
-      return { q: T(`True or false: in a network of ${c.vp} and ${c.ep}, ${stmt[0].en}. Justify your answer.`, `Benar atau palsu: dalam rangkaian ${c.vm} dan ${c.em}, ${stmt[0].ms}. Justifikasikan jawapan anda.`), a: T(`${stmt[1] ? 'True' : 'False'}: ${stmt[2].en}`, `${stmt[1] ? 'Benar' : 'Palsu'}: ${stmt[2].ms}`), w: W(VE_DEF, T('The drawn length of an edge has no meaning; any distance, time or fare is written on the edge as a weight.', 'Panjang lukisan tepi tidak bermakna; sebarang jarak, masa atau tambang ditulis pada tepi sebagai pemberat.')), sp: 's' };
+      return { q: T(`True or false: in a network of ${c.vp} and ${c.ep}, ${stmt[0].en}. Justify your answer.`, `Betul atau salah: dalam rangkaian ${c.vm} dan ${c.em}, ${stmt[0].ms}. Justifikasikan jawapan anda.`), a: T(`${stmt[1] ? 'True' : 'False'}: ${stmt[2].en}`, `${stmt[1] ? 'Betul' : 'Salah'}: ${stmt[2].ms}`), w: W(VE_DEF, T('The drawn length of an edge has no meaning; any distance, time or fare is written on the edge as a weight.', 'Panjang lukisan tepi tidak bermakna; sebarang jarak, masa atau tambang ditulis pada tepi sebagai pemberat.')), sp: 's' };
     },
     (r) => {
       const nv = r.int(4, 6), g = buildGraph(r, nv, { extra: r.int(0, 2) }), v = r.int(0, nv - 1), c = r.pick(CTX);
@@ -505,7 +505,7 @@
         [T('a tree is a type of subgraph that must contain a cycle', 'sebuah pokok ialah sejenis subgraf yang mesti mengandungi kitar'), false, T('a tree must be connected and must have NO cycle', 'sebuah pokok mesti bersambung dan mesti TIADA kitar')],
       ];
       const s = r.pick(stmts);
-      return { q: T(`True or false, for a network of ${c.vp}: ${s[0].en}?`, `Benar atau palsu, bagi rangkaian ${c.vm}: ${s[0].ms}?`), a: T(`${s[1] ? 'True' : 'False'}: ${s[2].en}`, `${s[1] ? 'Benar' : 'Palsu'}: ${s[2].ms}`), w: W(T('Subgraph: uses only vertices and edges of the original graph (some or all of them). Tree: connected and no cycle.', 'Subgraf: menggunakan hanya bucu dan tepi graf asal (sebahagian atau semuanya). Pokok: bersambung dan tiada kitar.'), T(`So the statement is ${s[1] ? 'true' : 'false'}.`, `Maka pernyataan itu ${s[1] ? 'benar' : 'palsu'}.`)), sp: 's' };
+      return { q: T(`True or false, for a network of ${c.vp}: ${s[0].en}?`, `Betul atau salah, bagi rangkaian ${c.vm}: ${s[0].ms}?`), a: T(`${s[1] ? 'True' : 'False'}: ${s[2].en}`, `${s[1] ? 'Betul' : 'Salah'}: ${s[2].ms}`), w: W(T('Subgraph: uses only vertices and edges of the original graph (some or all of them). Tree: connected and no cycle.', 'Subgraf: menggunakan hanya bucu dan tepi graf asal (sebahagian atau semuanya). Pokok: bersambung dan tiada kitar.'), T(`So the statement is ${s[1] ? 'true' : 'false'}.`, `Maka pernyataan itu ${s[1] ? 'betul' : 'salah'}.`)), sp: 's' };
     },
   ];
   const g53m = [
@@ -633,7 +633,7 @@
         [T('the true compass direction between two places can normally be read from a geographical map', 'arah mata angin sebenar antara dua tempat biasanya boleh dibaca daripada peta geografi'), true],
       ];
       const s = r.pick(stmts);
-      return { q: T(`True or false: ${s[0].en}.`, `Benar atau palsu: ${s[0].ms}.`), a: s[1] ? T('True', 'Benar') : T('False', 'Palsu'), w: W(NETMAP, T(`So the statement is ${s[1] ? 'true' : 'false'}.`, `Maka pernyataan itu ${s[1] ? 'benar' : 'palsu'}.`)), sp: 'xs' };
+      return { q: T(`True or false: ${s[0].en}.`, `Betul atau salah: ${s[0].ms}.`), a: s[1] ? T('True', 'Betul') : T('False', 'Salah'), w: W(NETMAP, T(`So the statement is ${s[1] ? 'true' : 'false'}.`, `Maka pernyataan itu ${s[1] ? 'betul' : 'salah'}.`)), sp: 'xs' };
     },
     (r) => ({ q: T('State one feature that a geographical map shows but a schematic transport network diagram usually does not.', 'Nyatakan satu ciri yang ditunjukkan oleh peta geografi tetapi biasanya tidak ditunjukkan oleh rajah rangkaian pengangkutan skematik.'), a: T('True/scaled physical distance (or true compass direction, or real road shape/landmarks).', 'Jarak fizikal sebenar/berskala (atau arah mata angin sebenar, atau bentuk jalan/mercu tanda sebenar).'), w: W(NETMAP), sp: 's' }),
     (r) => ({ q: T('State one feature that a schematic transport network diagram shows clearly but a geographical map usually does not.', 'Nyatakan satu ciri yang ditunjukkan dengan jelas oleh rajah rangkaian pengangkutan skematik tetapi biasanya tidak ditunjukkan oleh peta geografi.'), a: T('Which stops/stations are directly connected and the route/transfer structure (without geographical clutter).', 'Perhentian/stesen yang disambungkan terus dan struktur laluan/pertukaran (tanpa kekusutan geografi).'), w: W(NETMAP), sp: 's' }),
