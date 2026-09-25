@@ -27,6 +27,7 @@
     Object.assign(state, JSON.parse(localStorage.getItem(STORE) || '{}'));
   } catch (e) {}
   state.keys = (state.keys || []).filter((k) => SPM.topics[k]);
+  if (!/^[0-9a-z]*$/.test(state.seed)) state.seed = ''; // the seed box holds a full paper code; state.seed is only its random part
   const save = () => {
     try {
       localStorage.setItem(STORE, JSON.stringify(state));
@@ -145,11 +146,15 @@
   function randomSeed() {
     return String(Math.floor(Math.random() * 900000) + 100000);
   }
+  /** the paper code (see SPM.encodeCode): the random seed plus count, difficulty and topics */
+  const paperCode = () => SPM.encodeCode({ nonce: state.seed, count: state.count, difficulty: state.difficulty, keys: [...sel] });
   let genSeq = 0; // bumped by every generate(), so one still waiting on packs can tell it has been superseded
   let prefetched = false;
   async function generate(newSeed) {
     if (newSeed === true || !state.seed) state.seed = randomSeed();
-    $('#seed').value = state.seed;
+    const code = paperCode();
+    $('#seed').value = code;
+    seedPop(false);
     const keys = (state.keys = [...sel]);
     save();
     const seq = ++genSeq;
@@ -165,7 +170,7 @@
       if (seq !== genSeq) return; // a newer generate() has taken over (and rendered, or will)
     }
     try {
-      current = SPM.generate({ keys, count: state.count, difficulty: state.difficulty, seed: state.seed });
+      current = SPM.generate({ keys, count: state.count, difficulty: state.difficulty, seed: code });
     } catch (e) {
       console.error(e);
       current = { items: [], error: e };
@@ -234,7 +239,7 @@
     const items = current.items;
     const { title, sub } = sheetTitle(items);
     const dl = state.difficulty;
-    let h = `<header class="sheet-head"><h2>${esc(title)}</h2><div class="sub">${esc(sub ? sub + ' · ' : '')}${esc(ws.level)}: ${esc(ws.diff[dl])} · ${esc(ws.questions(items.length))}</div>`;
+    let h = `<header class="sheet-head"><h2>${esc(title)}</h2><div class="sub">${esc(sub ? sub + ' · ' : '')}${esc(ws.level)}: ${esc(ws.diff[dl])} · ${esc(ws.questions(items.length))}</div><div class="code">${esc(ws.seed)}: ${esc(current.seed)}</div>`;
     if (state.header) h += `<div class="idline"><span class="nm">${esc(ws.name)}:</span><span class="cl">${esc(ws.cls)}:</span><span class="dt">${esc(ws.date)}:</span></div>`;
     h += '</header><ol class="questions">';
     items.forEach((it, i) => {
@@ -244,7 +249,7 @@
     h += '</ol>';
     // answers
     h += `<section class="answers${state.answersOpen ? '' : ' is-collapsed'}" id="answers"><button type="button" class="ans-toggle" aria-expanded="${state.answersOpen}" aria-controls="ans-body"><span class="chev" aria-hidden="true"></span><span class="ans-label">${esc(state.answersOpen ? ws.hideAnswers : ws.showAnswers)}</span></button>`;
-    h += `<div class="ans-body" id="ans-body"><div class="ans-print-title">${esc(ws.answers)} <small>${esc(title)}</small></div><ol class="ans-list">`;
+    h += `<div class="ans-body" id="ans-body"><div class="ans-print-title">${esc(ws.answers)} <small>${esc(title)}</small><small class="code">${esc(ws.seed)}: ${esc(current.seed)}</small></div><ol class="ans-list">`;
     items.forEach((it, i) => {
       const a = pick(it.a, lang);
       const w = state.working && it.w ? pick(it.w, lang) : '';
@@ -259,6 +264,18 @@
   function setPressed(groupSel, val) {
     $$(groupSel + ' button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.val === String(val))));
   }
+  /** show or hide the "invalid seed" popover under the seed box */
+  function seedPop(show) {
+    const input = $('#seed');
+    $('#seed-pop').hidden = !show;
+    if (show) {
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', 'seed-pop');
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+  }
   function applyUI() {
     const ui = UI();
     document.documentElement.lang = state.ui === 'ms' ? 'ms' : 'en';
@@ -267,6 +284,7 @@
       if (typeof v === 'string') el.textContent = v;
     });
     $$('[data-i18n-ph]').forEach((el) => (el.placeholder = ui[el.dataset.i18nPh]));
+    $$('[data-i18n-label]').forEach((el) => el.setAttribute('aria-label', ui[el.dataset.i18nLabel]));
     $('#fmt-hint').textContent = state.format === 'normal' ? ui.hintNormal : ui.hintCompact;
     $('#cols-wrap').classList.toggle('off', state.format !== 'compact');
     const presets = $('#count-presets');
@@ -295,7 +313,6 @@
 
   function init() {
     $('#count').value = state.count;
-    $('#seed').value = state.seed;
     $('#opt-header').checked = state.header;
     $('#opt-labels').checked = state.labels;
     $('#opt-cols').checked = state.cols;
@@ -385,9 +402,36 @@
         render();
       });
     }
+    // a full paper code restores its count, difficulty and topics too; a bare seed keeps the current ones
     $('#seed').addEventListener('change', (e) => {
-      state.seed = e.target.value.trim();
+      if (!e.target.value.trim()) return generate(true); // an emptied box just asks for a fresh seed
+      const c = SPM.decodeCode(e.target.value);
+      if (!c) {
+        seedPop(true);
+        return;
+      }
+      state.seed = c.nonce;
+      if (c.keys) {
+        setCount(c.count);
+        state.difficulty = c.difficulty;
+        setPressed('#difficulty', state.difficulty);
+        sel.clear();
+        c.keys.forEach((k) => sel.add(k));
+        syncChecks();
+      }
       schedule(0);
+    });
+    // the popover stays up until the code is edited, Esc is pressed or the user clicks away from it
+    $('#seed').addEventListener('input', () => seedPop(false));
+    $('#seed-pop-x').onclick = () => {
+      seedPop(false);
+      $('#seed').focus();
+    };
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !$('#seed-pop').hidden) seedPop(false);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (!$('#seed-pop').hidden && !e.target.closest('.seed-wrap')) seedPop(false);
     });
     $('#new-btn').onclick = () => generate(true);
     $('#print-btn').onclick = () => {

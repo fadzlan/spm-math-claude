@@ -28,7 +28,10 @@ bind elsewhere, e.g. `SPM_HOST=127.0.0.1 npm run dev`.
 * **Print / Save as PDF** – the answers are always on their own last page(s), never sharing a page with questions.
   On screen the answers are collapsed until you expand them.
 * Light and dark mode (follows the system, can be toggled), responsive layout.
-* A *seed* makes any worksheet reproducible; “New questions” draws a new seed.
+* A *seed* makes any worksheet reproducible; “New questions” draws a new seed. The seed box shows the full
+  paper code – random part, number of questions, difficulty and topics, e.g. `482913-20x-1abc.4a13` – and it is
+  printed on the sheet and the answer page. Typing a code back in restores all of those and the same questions
+  (a bare number keeps the current settings). Format: see `SPM.encodeCode` in `js/core.js`.
 * Maths is typeset with KaTeX (vendored in `site/vendor/katex`, works offline); diagrams are inline SVG generated
   from the same numbers as the answer key.
 * Deep variety: every topic has at least 150 (most have 300–400+) distinct question *templates* – not just

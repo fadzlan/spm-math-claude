@@ -454,6 +454,59 @@
   }
   SPM.makeOne = makeOne;
 
+  /* ------------------------------------------------------------ paper code
+   * One string that reproduces a paper: "{nonce}-{count}{difficulty}-{topics}", e.g. "482913-20x-1abc.4a13".
+   *   difficulty: e | m | a | x (mixed)
+   *   topics: one group per form, joined by "."; a group is the form number followed by "*" (whole form) or by
+   *   its chapters as letters (a = chapter 1), each followed by the 1-based positions of its selected topics
+   *   when only some are selected ("4a13" = Form 4, chapter 1, topics 1 and 3).
+   * Topics are numbered by position inside their chapter, so codes stay valid when topics are appended.
+   * The whole code is the RNG seed, so the count, difficulty and topics all feed the random draw.
+   */
+  const DIFF_CODE = { e: 'e', m: 'm', a: 'a', mixed: 'x' };
+  SPM.encodeCode = function ({ nonce, count, difficulty, keys }) {
+    const sel = new Set(keys);
+    const groups = [];
+    for (const f of SPM.forms) {
+      let body = '';
+      let all = true;
+      for (const ch of f.chapters) {
+        const picked = ch.topics.map((t, i) => (sel.has(t.key) ? i + 1 : 0)).filter(Boolean);
+        if (picked.length < ch.topics.length) all = false;
+        if (!picked.length) continue;
+        body += String.fromCharCode(96 + ch.no) + (picked.length < ch.topics.length ? picked.join('') : '');
+      }
+      if (body) groups.push(f.form + (all ? '*' : body));
+    }
+    return `${nonce}-${count}${DIFF_CODE[difficulty] || 'x'}-${groups.join('.')}`;
+  };
+  /** -> { nonce, count, difficulty, keys } for a full code, { nonce } for a bare seed, or null if malformed */
+  SPM.decodeCode = function (code) {
+    const s = String(code).toLowerCase().replace(/\s+/g, '');
+    if (/^[0-9a-z]+$/.test(s)) return { nonce: s };
+    const m = /^([0-9a-z]+)-(\d{1,3})([emax])-(.*)$/.exec(s);
+    if (!m) return null;
+    const keys = [];
+    for (const g of m[4] ? m[4].split('.') : []) {
+      const gm = /^(\d)(\*|(?:[a-z]\d*)+)$/.exec(g);
+      const f = gm && SPM.forms.find((x) => x.form === Number(gm[1]));
+      if (!f) return null;
+      if (gm[2] === '*') {
+        f.chapters.forEach((ch) => ch.topics.forEach((t) => keys.push(t.key)));
+        continue;
+      }
+      for (const [, l, pos] of gm[2].matchAll(/([a-z])(\d*)/g)) {
+        const ch = f.chapters.find((c) => c.no === l.charCodeAt(0) - 96);
+        if (!ch) return null;
+        const ts = pos ? [...pos].map((p) => ch.topics[p - 1]) : ch.topics;
+        if (ts.some((t) => !t)) return null;
+        ts.forEach((t) => keys.push(t.key));
+      }
+    }
+    const difficulty = m[3] === 'x' ? 'mixed' : m[3];
+    return { nonce: m[1], count: Math.max(1, Math.min(100, Number(m[2]))), difficulty, keys };
+  };
+
   /**
    * Generate a paper.
    * opts: { keys:[topicKey], count, difficulty:'e'|'m'|'a'|'mixed', seed }

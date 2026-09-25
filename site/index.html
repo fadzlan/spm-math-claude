@@ -104,7 +104,20 @@
           <label class="check"><input type="checkbox" role="switch" id="opt-labels" checked> <span data-i18n="optLabels">Show difficulty label on each question</span></label>
           <label class="check" id="cols-wrap"><input type="checkbox" role="switch" id="opt-cols"> <span data-i18n="optCols">Two columns (compact only)</span></label>
           <label class="check"><input type="checkbox" role="switch" id="opt-working"> <span data-i18n="optWorking">Show working steps in the answers</span></label>
-          <label class="seed"><span data-i18n="seed">Seed</span> <input type="text" id="seed" inputmode="numeric" size="10" spellcheck="false" autocomplete="off"></label>
+          <div class="seed-wrap">
+            <label class="seed"><span data-i18n="seed">Seed</span> <input type="text" id="seed" spellcheck="false" autocomplete="off" autocapitalize="off"></label>
+            <div class="seed-pop" id="seed-pop" role="alert" hidden>
+              <button type="button" class="seed-pop-x" id="seed-pop-x" data-i18n-label="close" aria-label="Close">&times;</button>
+              <strong data-i18n="seedBadTitle">Invalid seed</strong>
+              <p data-i18n="seedBadBody">Enter a short seed made of letters and digits only, or a full paper code copied from a worksheet:</p>
+              <p class="seed-pop-eg"><code>482913</code> <span data-i18n="or">or</span> <code>482913-20x-1abc.4a13</code></p>
+              <ul>
+                <li><code>482913</code> – <span data-i18n="seedBadNonce">random part (letters a–z and digits)</span></li>
+                <li><code>20x</code> – <span data-i18n="seedBadCount">number of questions (1–100) and difficulty: e easy, m medium, a advanced, x mixed</span></li>
+                <li><code>1abc.4a13</code> – <span data-i18n="seedBadTopics">topics: form number, then * for the whole form or chapter letters (a = chapter 1), optionally followed by topic numbers; forms are separated by “.”</span></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
