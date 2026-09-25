@@ -28,6 +28,10 @@ bind elsewhere, e.g. `SPM_HOST=127.0.0.1 npm run dev`.
 * **Print / Save as PDF** – the answers are always on their own last page(s), never sharing a page with questions.
   On screen the answers are collapsed until you expand them.
 * Light and dark mode (follows the system, can be toggled), responsive layout.
+* **Feedback** – a header button opens a Google Form in a new tab with the current paper code and question language
+  pre-filled, so any reported problem can be reproduced exactly. Responses land in the form's Google Sheet (turn on
+  email notifications in the form's settings). Configure it in the `FEEDBACK` constant in `js/app.js` (form URL +
+  the `entry.NNN` ids from the form's “Get pre-filled link”); the button stays hidden while the URL is empty.
 * A *seed* makes any worksheet reproducible; “New questions” draws a new seed. The seed box shows the full
   paper code – random part, number of questions, difficulty and topics, e.g. `482913-20x-1abc.4a13` – and it is
   printed on the sheet and the answer page. Typing a code back in restores all of those and the same questions

@@ -148,6 +148,22 @@
   }
   /** the paper code (see SPM.encodeCode): the random seed plus count, difficulty and topics */
   const paperCode = () => SPM.encodeCode({ nonce: state.seed, count: state.count, difficulty: state.difficulty, keys: [...sel] });
+
+  /* -------------------------------------------------------------- feedback */
+  // A Google Form collects feedback (responses go to a Google Sheet). `url` is the form's .../viewform
+  // address and `entry` the pre-fill field ids from the form's "Get pre-filled link"; while `url` is
+  // empty the header link stays hidden. `lang` is a choice field, so its value must match an option exactly.
+  const FEEDBACK = {
+    url: 'https://docs.google.com/forms/d/e/1FAIpQLScfGNigQJ3df8h0MXxU4FpE9V4lLgTmBKSJFmkmwplkSQt4KA/viewform',
+    entry: { code: '507359297', lang: '1351439379' },
+    langs: { en: 'English', ms: 'Bahasa Melayu' },
+  };
+  function feedbackUrl() {
+    const q = [['code', paperCode()], ['lang', FEEDBACK.langs[state.qlang]]]
+      .filter(([k]) => FEEDBACK.entry[k])
+      .map(([k, v]) => `entry.${FEEDBACK.entry[k]}=${encodeURIComponent(v)}`);
+    return FEEDBACK.url + '?usp=pp_url' + (q.length ? '&' + q.join('&') : '');
+  }
   let genSeq = 0; // bumped by every generate(), so one still waiting on packs can tell it has been superseded
   let prefetched = false;
   async function generate(newSeed) {
@@ -297,6 +313,7 @@
     const tb = $('#theme-btn');
     tb.setAttribute('aria-label', dark ? ui.themeToLight : ui.themeToDark);
     tb.title = dark ? ui.themeToLight : ui.themeToDark;
+    $('#feedback-btn').title = ui.feedbackTip;
     buildTree();
   }
   function effectiveTheme() {
@@ -441,6 +458,10 @@
       document.title = old;
     };
     $('#theme-btn').onclick = () => setTheme(effectiveTheme() === 'dark' ? 'light' : 'dark');
+    const fb = $('#feedback-btn');
+    fb.hidden = !FEEDBACK.url;
+    // built at click time so it carries the paper code currently on screen
+    fb.addEventListener('click', () => (fb.href = feedbackUrl()));
     if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => !state.theme && applyUI());
 
     // answers toggle (delegated, since the sheet is re-rendered)

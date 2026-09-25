@@ -95,6 +95,8 @@ h1, h2, h3, p { margin: 0; }
   background: var(--surface-2); border: 1px solid var(--border);
 }
 .icon-btn:hover { border-color: var(--accent); }
+.fb-btn { width: auto; display: flex; gap: 6px; padding: 0 12px; font-size: 13px; color: inherit; text-decoration: none; }
+.fb-btn[hidden] { display: none; }
 .i-sun { display: none; }
 :root[data-theme="dark"] .i-sun { display: block; }
 :root[data-theme="dark"] .i-moon { display: none; }
@@ -280,6 +282,8 @@ ol.ans-list .an { font-weight: 700; }
   .options { grid-template-columns: 1fr; }
   .seg button { padding: 6px 10px; }
   .brand h1 { font-size: 15px; }
+  .fb-btn span { display: none; }
+  .fb-btn { padding: 0; width: 36px; justify-content: center; }
   .idline { flex-direction: column; gap: 8px; }
 }
 
