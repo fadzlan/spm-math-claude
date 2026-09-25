@@ -144,6 +144,60 @@
   }
   SPM.tidyMath = tidyMath;
 
+  /* ------------------------------------------------ multiple-choice layout */
+  const CHOICE_LETTERS = 'ABCDEFGH';
+  const SEP_END = /(?:\s|<br\s*\/?>|&emsp;|&ensp;|&nbsp;|[;,])+$/;
+  const SEP_START = /^(?:\s|<br\s*\/?>|&emsp;|&ensp;|&nbsp;)+/;
+  const SENTENCE = /^([\s\S]*?[.?!])\s+([A-Z(][\s\S]*)$/;
+  /** a bracketed remainder is only a note to the question if it is a sentence – "(Diagram not drawn to
+   *  scale.)" is, "(15 min / 30 min / 45 min)" is part of the choice it follows */
+  const isTail = (t) => t[0] !== '(' || /[.?!]\)\.?$/.test(t);
+  /** rough printed width of a choice: html and LaTeX plumbing don't take up room on the page */
+  function choiceWidth(s) {
+    return s
+      .replace(/<[^>]*>/g, '')
+      .replace(/\\(?:dfrac|frac|sqrt|left|right|text|mathrm|circ|cdot|times|div|pm|neq|leq|geq|approx|;|,|!|\s)/g, ' ')
+      .replace(/[${}^_\\]/g, '')
+      .trim().length;
+  }
+  /**
+   * Lay out "(A) … (B) …" choices consistently: the stem always ends at a line break, then short
+   * choices share one line and wordy ones get a line each. Authors may write them run-on, with
+   * `&emsp;` or with `<br>`; this is the single place that decides how they land on the page.
+   */
+  function mcqLayout(str) {
+    if (typeof str !== 'string' || str.indexOf('(A)') < 0) return str;
+    if (/<(?:table|[ou]l)\b/.test(str)) return str; // the question lays itself out already
+    const marks = [];
+    for (let i = 0; i < CHOICE_LETTERS.length; i++) {
+      const re = new RegExp('(^|[\\s>;,])\\(' + CHOICE_LETTERS[i] + '\\)(?=[\\s$])', 'g');
+      re.lastIndex = marks.length ? marks[marks.length - 1].end : 0;
+      const m = re.exec(str);
+      if (!m) break;
+      marks.push({ start: m.index + m[1].length, end: re.lastIndex });
+    }
+    if (marks.length < 2) return str;
+    const stem = str.slice(0, marks[0].start).replace(SEP_END, '');
+    if (!stem) return str; // nothing to break away from
+    const bodies = marks.map((m, i) =>
+      str.slice(m.end, i + 1 < marks.length ? marks[i + 1].start : str.length).replace(SEP_START, '').replace(SEP_END, '')
+    );
+    if (bodies.some((b) => !b)) return str;
+    // an instruction trailing the last choice ("Give two reasons.", "(Diagram not drawn to scale.)")
+    // belongs to the question, not to that choice – but only when no other choice runs to two sentences
+    let tail = '';
+    const m = bodies[bodies.length - 1].match(SENTENCE);
+    if (m && isTail(m[2]) && !bodies.slice(0, -1).some((b) => SENTENCE.test(b))) {
+      bodies[bodies.length - 1] = m[1];
+      tail = m[2];
+    }
+    const widths = bodies.map(choiceWidth);
+    const oneLine = Math.max(...widths) <= 20 && widths.reduce((a, b) => a + b + 5, 0) <= 76;
+    const sep = oneLine ? ' &emsp; ' : '<br>';
+    return stem + '<br>' + bodies.map((b, i) => `(${CHOICE_LETTERS[i]}) ${b}`).join(sep) + (tail ? '<br>' + tail : '');
+  }
+  SPM.mcqLayout = mcqLayout;
+
   /* ------------------------------------------------------ number helpers */
   const gcd = (a, b) => {
     a = Math.abs(a);
@@ -386,6 +440,7 @@
       }
       if (!q || !q.q) continue;
       for (const key of ['q', 'a', 'w']) if (q[key]) q[key] = L(tidyMath(q[key].en), tidyMath(q[key].ms));
+      q.q = L(mcqLayout(q.q.en), mcqLayout(q.q.ms));
       last = q;
       const sig = q.q.en + '|' + (typeof q.fig === 'string' ? q.fig.length : '');
       if (!seen.has(sig)) {
