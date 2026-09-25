@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,8 +7,8 @@
 <meta name="description" content="Generate SPM Mathematics practice questions and answers for Form 1 to Form 5, in English or Bahasa Melayu. Print-ready worksheets.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f766e'/%3E%3Cpath d='M9 16h14M16 9v14' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <script>
-  /* apply saved theme before first paint to avoid a flash */
-  try { var t = JSON.parse(localStorage.getItem('spm-gen-v1') || '{}').theme; if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  /* apply saved theme before first paint to avoid a flash; first visit defaults to light */
+  try { var s = JSON.parse(localStorage.getItem('spm-gen-v1') || 'null'), t = s ? s.theme : 'light'; if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
   /* preload KaTeX's main font so it doesn't wait for the first render; skipped on file://, where Chrome blocks the CORS-mode font fetch */
   if (location.protocol !== 'file:') {
     var pl = document.createElement('link');

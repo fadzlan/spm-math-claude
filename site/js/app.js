@@ -8,9 +8,9 @@
 
   /* ----------------------------------------------------------------- state */
   const defaults = {
-    theme: null, // null = follow system
-    ui: 'en',
-    qlang: 'en',
+    theme: 'light', // null = follow system
+    ui: 'ms',
+    qlang: 'ms',
     format: 'normal',
     difficulty: 'mixed',
     count: 10,
